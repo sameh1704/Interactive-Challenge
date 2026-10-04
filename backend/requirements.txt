@@ -1,0 +1,31 @@
+# Al Manar Interactive Challenge - backend dependencies.
+# Pinned to exact versions so every rebuild is reproducible.
+
+# Web framework
+Django==5.2.17
+
+# Real-time transport (ASGI) - install_channels_daphne.py pulls in daphne
+channels[daphne]==4.3.2
+daphne==4.2.3
+
+# Redis transport for the Channels layer. Not installed by channels[daphne]:
+# it is a separate distribution and is required for group/channel broadcast.
+channels-redis==4.3.0
+
+# PostgreSQL driver
+psycopg[binary]==3.3.6
+
+# Image validation for question images (ImageField requires Pillow)
+Pillow==11.3.0
+
+# Redis client used by the cache backend and the Channels layer transport
+redis==8.1.0
+
+# Serialisation codec required by channels-redis
+msgpack==1.2.3
+
+# Static file serving without a separate web server
+whitenoise==6.12.0
+
+# WSGI reference server, available for debugging only
+gunicorn==26.2.0

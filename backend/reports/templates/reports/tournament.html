@@ -1,0 +1,107 @@
+{% extends "core/base.html" %}
+
+{% block title %}Report: {{ tournament.name }}{% endblock %}
+
+{% block content %}
+  <section class="page-heading">
+    <h1 class="page-heading__title">{{ tournament.name }}</h1>
+    <p class="page-heading__subtitle">
+      {% if report.season %}Season {{ report.season }}{% endif %}
+      {% if tournament.subject %} &middot; {{ tournament.subject }}{% endif %}
+      &middot; {{ tournament.get_status_display }}
+    </p>
+  </section>
+
+  <p class="page-actions">
+    <a class="button button--quiet"
+       href="{% url 'reports:tournament_csv' tournament.pk %}">Export CSV</a>
+  </p>
+
+  {% if report.winner %}
+    <section class="panel">
+      <h2 class="panel__heading">Champion</h2>
+      <p class="panel__body"><strong>{{ report.winner }}</strong></p>
+    </section>
+  {% endif %}
+
+  <section class="panel">
+    <h2 class="panel__heading">Participants</h2>
+    <table class="table">
+      <thead>
+        <tr>
+          <th scope="col">Classroom</th>
+          <th scope="col">Status</th>
+          <th scope="col">Aggregate score</th>
+          <th scope="col">Eliminated at</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in report.participants %}
+          <tr>
+            <td>{{ row.classroom }}</td>
+            <td><span class="badge status-{{ row.status }}">{{ row.status_display }}</span></td>
+            <td>{{ row.aggregate_score }}</td>
+            <td>{{ row.eliminated_at.display_name|default:"—" }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
+
+  <section class="panel">
+    <h2 class="panel__heading">Finalists and final result</h2>
+    {% if report.standings %}
+      <table class="table">
+        <thead>
+          <tr><th scope="col">Rank</th><th scope="col">Classroom</th><th scope="col">Score</th></tr>
+        </thead>
+        <tbody>
+          {% for row in report.standings %}
+            <tr><td>{{ row.rank }}</td><td>{{ row.classroom }}</td><td>{{ row.score }}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p class="panel__body">
+        This tournament has not been finalized, so it has no final standings.
+      </p>
+    {% endif %}
+  </section>
+
+  {% for stage in report.stages %}
+    <section class="panel">
+      <h2 class="panel__heading">
+        Stage {{ stage.stage.order }}: {{ stage.stage.display_name }}
+        <span class="tag">{{ stage.stage.get_status_display }}</span>
+      </h2>
+
+      {% for competition in stage.competitions %}
+        <h3 class="panel__heading">{{ competition.competition.title }}</h3>
+        <table class="table">
+          <thead>
+            <tr>
+              <th scope="col">Classroom</th>
+              <th scope="col">Correct</th>
+              <th scope="col">Wrong</th>
+              <th scope="col">Accuracy</th>
+              <th scope="col">Score</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in competition.classrooms %}
+              <tr>
+                <td>{{ row.classroom }}</td>
+                <td>{{ row.correct }}</td>
+                <td>{{ row.wrong }}</td>
+                <td>{% if row.accuracy is not None %}{{ row.accuracy }}%{% else %}—{% endif %}</td>
+                <td>{{ row.score }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% empty %}
+        <p class="panel__body">No competition has been assigned to this stage.</p>
+      {% endfor %}
+    </section>
+  {% endfor %}
+{% endblock %}

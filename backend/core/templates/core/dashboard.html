@@ -1,0 +1,129 @@
+{% extends "core/base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+  <section class="page-heading">
+    <h1 class="page-heading__title">Dashboard</h1>
+    <p class="page-heading__subtitle">
+      Signed in as {{ user.get_full_name }} &middot; {{ role_display }}
+    </p>
+  </section>
+
+  {% if is_administrator %}
+    <section class="stats" aria-label="School totals">
+      <div class="stat">
+        <span class="stat__value">{{ stats.classrooms_total }}</span>
+        <span class="stat__label">Classrooms</span>
+      </div>
+      <div class="stat">
+        <span class="stat__value">{{ stats.screens_registered }}</span>
+        <span class="stat__label">Registered screens</span>
+      </div>
+      <div class="stat">
+        <span class="stat__value">{{ stats.screens_active }}</span>
+        <span class="stat__label">Active screens</span>
+      </div>
+      <div class="stat">
+        <span class="stat__value">{{ stats.teachers }}</span>
+        <span class="stat__label">Teachers</span>
+      </div>
+      <div class="stat {% if stats.screens_online %}stat--online{% endif %}">
+        <span class="stat__value">{{ stats.screens_online }}</span>
+        <span class="stat__label">Screens online</span>
+      </div>
+      <div class="stat">
+        <span class="stat__value">{{ stats.screens_offline }}</span>
+        <span class="stat__label">Screens offline</span>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2 class="panel__heading">Interactive screens</h2>
+      {% if screens %}
+        <table class="table">
+          <thead>
+            <tr>
+              <th scope="col">Screen</th>
+              <th scope="col">Screen ID</th>
+              <th scope="col">Classroom</th>
+              <th scope="col">Status</th>
+              <th scope="col">Last seen</th>
+              <th scope="col">Address</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for screen in screens %}
+              <tr>
+                <td>
+                  {{ screen.name }}
+                  {% if screen.is_primary %}<span class="tag">Primary</span>{% endif %}
+                  {% if not screen.active %}<span class="tag tag--muted">Retired</span>{% endif %}
+                </td>
+                <td><code>{{ screen.screen_id }}</code></td>
+                <td>{{ screen.classroom.display_name|default:"Unassigned" }}</td>
+                <td>
+                  <span class="badge {% if screen.is_online %}status-online{% else %}status-offline{% endif %}">
+                    {{ screen.status_display }}
+                  </span>
+                </td>
+                <td>{{ screen.last_seen|default:"Never" }}</td>
+                <td>{{ screen.ip_address|default:"—" }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <p class="panel__body">No screens have been registered yet.</p>
+      {% endif %}
+    </section>
+
+    <p class="page-actions">
+      <a class="button button--quiet" href="{% url 'admin:classrooms_classroom_changelist' %}">Manage classrooms</a>
+      <a class="button button--quiet" href="{% url 'admin:screens_interactivescreen_changelist' %}">Manage screens</a>
+      <a class="button button--quiet" href="{% url 'admin:accounts_user_changelist' %}">Manage staff accounts</a>
+    </p>
+
+  {% else %}
+    <section class="stats" aria-label="Your classrooms">
+      <div class="stat">
+        <span class="stat__value">{{ stats.classrooms_total }}</span>
+        <span class="stat__label">My classrooms</span>
+      </div>
+      <div class="stat">
+        <span class="stat__value">{{ stats.screens_total }}</span>
+        <span class="stat__label">Screens</span>
+      </div>
+      <div class="stat {% if stats.screens_online %}stat--online{% endif %}">
+        <span class="stat__value">{{ stats.screens_online }}</span>
+        <span class="stat__label">Screens online</span>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2 class="panel__heading">My classrooms</h2>
+      {% if classrooms %}
+        <ul class="card-list">
+          {% for classroom in classrooms %}
+<li class="card">
+              <h3 class="card__title">{{ classroom.display_name }}</h3>
+              {% if classroom.location %}<p class="card__meta">{{ classroom.location }}</p>{% endif %}
+              {% with classroom_screens=classroom.screens.all %}
+                <p class="card__meta">
+                  {{ classroom_screens|length }} registered screen{{ classroom_screens|length|pluralize }}
+                </p>
+              {% endwith %}
+              {% if not classroom.active %}
+                <p class="card__meta"><span class="tag tag--muted">Inactive</span></p>
+              {% endif %}
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="panel__body">
+          You are not assigned to any classrooms yet. Please ask an administrator.
+        </p>
+      {% endif %}
+    </section>
+  {% endif %}
+{% endblock %}

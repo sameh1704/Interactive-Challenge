@@ -1,0 +1,54 @@
+{% extends "core/base.html" %}
+
+{% block title %}New tournament{% endblock %}
+
+{% block content %}
+  <section class="page-heading">
+    <h1 class="page-heading__title">Create a tournament</h1>
+    <p class="page-heading__subtitle">
+      New tournaments start as a draft. Nothing can be attached until it is opened.
+    </p>
+  </section>
+
+  <section class="panel">
+    {% if errors.name %}<p class="form-errors">{{ errors.name }}</p>{% endif %}
+
+    <form method="post" class="form">
+      {% csrf_token %}
+
+      <div class="field">
+        <label class="field__label" for="name">Name</label>
+        <input type="text" id="name" name="name" required value="{{ values.name }}"
+               placeholder="Primary Science Championship 2026">
+      </div>
+
+      <div class="field">
+        <label class="field__label" for="subject">Subject</label>
+        <input type="text" id="subject" name="subject" value="{{ values.subject }}"
+               placeholder="Science">
+      </div>
+
+      <div class="field">
+        <label class="field__label" for="grade">Grade</label>
+        <input type="text" id="grade" name="grade" value="{{ values.grade }}"
+               placeholder="Grade 5">
+      </div>
+
+      <div class="field">
+        <label class="field__label" for="season">Season</label>
+        <input type="text" id="season" name="season" value="{{ values.season }}"
+               placeholder="2026">
+      </div>
+
+      <div class="field">
+        <label class="field__label" for="description">Description</label>
+        <textarea id="description" name="description" rows="3">{{ values.description }}</textarea>
+      </div>
+
+      <p class="page-actions">
+        <button type="submit" class="button">Create draft</button>
+        <a class="button button--quiet" href="{% url 'tournaments:list' %}">Cancel</a>
+      </p>
+    </form>
+  </section>
+{% endblock %}

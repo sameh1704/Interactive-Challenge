@@ -1,0 +1,36 @@
+{% extends "core/base.html" %}
+
+{% block title %}Al Manar Interactive Challenge{% endblock %}
+
+{% block content %}
+  <section class="hero">
+    <p class="hero__eyebrow">Al Manar</p>
+    <h1 class="hero__title">Interactive Challenge</h1>
+    <p class="hero__lead">
+      A school-internal web application for running live interactive
+      educational competitions between classrooms, using the interactive
+      screens and web browsers that are already on the network.
+    </p>
+    <p class="hero__actions">
+      {% if user.is_authenticated %}
+        <a class="button" href="{% url 'dashboard' %}">Go to dashboard</a>
+      {% else %}
+        <a class="button" href="{% url 'accounts:login' %}">Staff sign in</a>
+      {% endif %}
+    </p>
+  </section>
+
+  <section class="panel">
+    <h2 class="panel__heading">Foundation</h2>
+    <p class="panel__body">
+      Staff identities, classrooms and interactive screens are in place.
+      Question authoring, competitions, scoring, tournaments and live
+      competition delivery are delivered in later phases.
+    </p>
+    <ul class="panel__list">
+      <li>Real-time communication over WebSocket, for the live rounds.</li>
+      <li>Interactive screens are identified by a registered Screen ID, not by IP address.</li>
+      <li>Screen network addresses are recorded as monitoring data only, so a DHCP change never alters a screen's identity.</li>
+    </ul>
+  </section>
+{% endblock %}

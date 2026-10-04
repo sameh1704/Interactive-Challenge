@@ -1,0 +1,35 @@
+{% extends "core/base.html" %}
+
+{% block title %}Sign in{% endblock %}
+
+{% block content %}
+  <section class="signin">
+    <h1 class="signin__title">Staff sign in</h1>
+    <p class="signin__lead">
+      Sign in with your school account to see your classrooms and screens.
+    </p>
+
+    {% if form.non_field_errors %}
+      <div class="form-errors" role="alert">
+        {% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
+      </div>
+    {% endif %}
+
+    <form method="post" class="form">
+      {% csrf_token %}
+      {% for field in form %}
+        <div class="field">
+          <label class="field__label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+          {{ field }}
+          {% if field.errors %}
+            <p class="field__error">{{ field.errors|striptags }}</p>
+          {% endif %}
+        </div>
+      {% endfor %}
+
+      {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
+
+      <button type="submit" class="button">Sign in</button>
+    </form>
+  </section>
+{% endblock %}

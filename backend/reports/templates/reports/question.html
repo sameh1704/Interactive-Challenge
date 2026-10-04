@@ -1,0 +1,33 @@
+{% extends "core/base.html" %}
+
+{% block title %}Report: question{% endblock %}
+
+{% block content %}
+  <section class="page-heading">
+    <h1 class="page-heading__title">Question statistics</h1>
+    <p class="page-heading__subtitle">{{ report.question_type_display }}</p>
+  </section>
+
+  <section class="panel">
+    <p class="panel__body">{{ question.text }}</p>
+    {% if question.explanation %}
+      <p class="card__meta"><strong>Answer:</strong> {{ question.answer_key }}</p>
+      <p class="card__meta">{{ question.explanation }}</p>
+    {% else %}
+      <p class="card__meta"><strong>Answer:</strong> {{ question.answer_key }}</p>
+    {% endif %}
+  </section>
+
+  <section class="stats" aria-label="Statistics">
+    <div class="stat"><span class="stat__value">{{ report.times_used }}</span><span class="stat__label">Competitions used in</span></div>
+    <div class="stat"><span class="stat__value">{{ report.times_asked }}</span><span class="stat__label">Times answered</span></div>
+    <div class="stat">
+      <span class="stat__value">{% if report.correct_percentage is not None %}{{ report.correct_percentage }}%{% else %}—{% endif %}</span>
+      <span class="stat__label">Correct</span>
+    </div>
+    <div class="stat">
+      <span class="stat__value">{% if report.average_response_seconds %}{{ report.average_response_seconds }}{% else %}—{% endif %}</span>
+      <span class="stat__label">Avg response (s)</span>
+    </div>
+  </section>
+{% endblock %}

@@ -1,0 +1,208 @@
+# ---------------------------------------------------------------------------
+# Al Manar Interactive Challenge - production overlay.
+#
+# Applied on top of the development compose file:
+#
+#     docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+#
+# What it changes, and why:
+#   * adds the reverse proxy, which becomes the only published port
+#   * switches the application to config.settings.production
+#   * runs Daphne under a supervisor-free entrypoint with explicit WebSocket frame
+#     limits and ping/pong keepalive, because the default of "no limit" lets one
+#     unauthenticated screen socket allocate unbounded memory
+#   * moves collectstatic and migrate into a one-shot prepare service, so several
+#     web containers can never race to migrate the same database
+#   * gives the proxy a read-only copy of the media volume so it can serve images
+#
+# What it deliberately does not change: the database and Redis services, their
+# volumes, and their network. Those are already correct for production, and
+# duplicating them here would be a second place for them to drift.
+# ---------------------------------------------------------------------------
+
+name: almanar-interactive-challenge
+
+volumes:
+  # Shared between the prepare container that runs collectstatic and the web
+  # container that serves the result. Without this the manifest is written into
+  # the prepare container's own layer and discarded when it exits, leaving the
+  # web container with the image's manifest-less build-time copy - and every page
+  # then fails with "Missing staticfiles manifest entry" once production's hashed
+  # storage backend is switched on.
+  challenge-static:
+
+services:
+  # -------------------------------------------------------------------------
+  # Reverse proxy: the single URL for teachers, administrators and screens.
+  # -------------------------------------------------------------------------
+  challenge-proxy:
+    image: nginx:1.27-alpine
+    container_name: almanar-challenge-proxy
+    restart: unless-stopped
+    depends_on:
+      challenge-web:
+        condition: service_healthy
+    environment:
+      # Substituted into the template at container start, so the deployment's
+      # tuning lives in .env rather than in this file.
+      NGINX_RATE_LIMIT_PER_IP: ${NGINX_RATE_LIMIT_PER_IP:-30r/s}
+      NGINX_RATE_LIMIT_BURST: ${NGINX_RATE_LIMIT_BURST:-120}
+      # A lesson can sit idle between questions; the socket must stay open.
+      NGINX_PROXY_READ_TIMEOUT: ${NGINX_PROXY_READ_TIMEOUT:-600s}
+      NGINX_PROXY_SEND_TIMEOUT: ${NGINX_PROXY_SEND_TIMEOUT:-600s}
+    ports:
+      # The only port published to the school network. `challenge-web` has no
+      # published port at all (see `ports: !reset []` below), so every request -
+      # and therefore every WebSocket upgrade - passes through here. That is what
+      # makes this proxy the only party able to set X-Forwarded-For.
+      - "${PROXY_BIND_ADDRESS:-0.0.0.0}:${PROXY_PORT:-80}:80"
+    volumes:
+      - ./deploy/nginx/templates:/etc/nginx/templates:ro
+      # Read-only: the proxy serves uploaded images, it never writes them.
+      - challenge-media:/var/www/media:ro
+    networks:
+      - challenge-network
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O - http://127.0.0.1/proxy-health | grep -q ok"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  # -------------------------------------------------------------------------
+  # Django + Daphne, in production mode.
+  # -------------------------------------------------------------------------
+  challenge-web:
+    environment:
+      # Set the resolved module name, not just the suffix. The base compose file
+      # interpolates `DJANGO_SETTINGS_MODULE` from `DJANGO_SETTINGS_MODULE_NAME`
+      # at parse time, so overriding only the suffix here would leave the
+      # application running `config.settings.development` in production - silently
+      # serving debug pages and the non-manifest static storage.
+      DJANGO_ENV: production
+      DJANGO_SETTINGS_MODULE_NAME: production
+      DJANGO_SETTINGS_MODULE: config.settings.production
+      DEBUG: "False"
+      # The proxy is now the only way in, so it is the one rewriting
+      # X-Forwarded-For. Safe only because the proxy OVERWRITES the header with
+      # $remote_addr (see deploy/nginx/templates/challenge.conf.template); with
+      # $proxy_add_x_forwarded_for a client could forge its own address and
+      # bypass the Screen ID rate limit. Without this setting at all, the screen
+      # list would record the proxy's address for every screen.
+      SCREEN_TRUST_FORWARDED_FOR: ${SCREEN_TRUST_FORWARDED_FOR:-True}
+      # Secure cookies and HSTS must reach the application, not only the migrate
+      # service: these are read by config.settings.production at import time.
+      SESSION_COOKIE_SECURE: ${SESSION_COOKIE_SECURE:-True}
+      CSRF_COOKIE_SECURE: ${CSRF_COOKIE_SECURE:-True}
+      SECURE_SSL_REDIRECT: ${SECURE_SSL_REDIRECT:-False}
+      SECURE_HSTS_SECONDS: ${SECURE_HSTS_SECONDS:-0}
+      SECURE_HSTS_INCLUDE_SUBDOMAINS: ${SECURE_HSTS_INCLUDE_SUBDOMAINS:-False}
+      SECURE_HSTS_PRELOAD: ${SECURE_HSTS_PRELOAD:-False}
+      PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:-}
+      SCREEN_RATE_LIMIT: ${SCREEN_RATE_LIMIT:-120}
+      SCREEN_RATE_LIMIT_WINDOW: ${SCREEN_RATE_LIMIT_WINDOW:-60}
+      LOGIN_RATE_LIMIT: ${LOGIN_RATE_LIMIT:-10}
+      LOGIN_RATE_LIMIT_WINDOW: ${LOGIN_RATE_LIMIT_WINDOW:-300}
+      CHANNEL_LAYER_EXPIRY: ${CHANNEL_LAYER_EXPIRY:-300}
+      LIVE_HEARTBEAT_SECONDS: ${LIVE_HEARTBEAT_SECONDS:-15}
+    command:
+      # Daphne is single-process: this version has no multi-worker flag. The
+      # screen fleet for one school is comfortably inside that, and a single
+      # event loop keeps the live round's ordering easy to reason about.
+      # `restart: unless-stopped` covers the failure case: if the process dies the
+      # container restarts, and every screen reconnects on its own - see
+      # docs/OPERATIONS.md for what a restart means for a round in progress.
+      - daphne
+      - -b
+      - 0.0.0.0
+      - -p
+      - "8000"
+      # Daphne defaults its frame and message size limits to 0, meaning no limit,
+      # and its own help calls that unsafe: an unauthenticated screen socket could
+      # allocate unbounded memory with one frame. The largest real message is a
+      # short-answer submission, well under a kilobyte.
+      - --websocket-max-message-size
+      - "${WS_MAX_MESSAGE_SIZE:-65536}"
+      - --websocket-max-frame-size
+      - "${WS_MAX_FRAME_SIZE:-16384}"
+      # Ping each socket that has been idle this long, and close it if no pong
+      # arrives. This is the transport-level half of the keepalive; the
+      # application heartbeat is the other half.
+      - --ping-interval
+      - "${WS_PING_INTERVAL:-20}"
+      - --ping-timeout
+      - "${WS_PING_TIMEOUT:-60}"
+      - --proxy-headers
+      - config.asgi:application
+    volumes:
+      # Reads what the prepare container collected. Mounted over the image's own
+      # build-time copy so the production manifest is what gets served.
+      - challenge-static:/app/staticfiles
+    # No host port. The proxy reaches this container over challenge-network, and
+    # removing the mapping is what guarantees a client cannot skip the proxy and
+    # forge X-Forwarded-For. `!reset` needs Compose v2.24 or newer.
+    ports: !reset []
+    restart: unless-stopped
+
+  # -------------------------------------------------------------------------
+  # Prepare: collect static files, then migrate. Runs once, before the
+  # application serves traffic.
+  #
+  # Two things the web entrypoint should not do in production:
+  #
+  # 1. *migrations* - the entrypoint also migrates, which is convenient in
+  #    development but wrong here: several web containers would race to migrate
+  #    the same database. A one-shot service does it first and exits.
+  # 2. *collectstatic* - the image collects at build time with the **development**
+  #    settings module, which uses plain StaticFilesStorage and therefore writes no
+  #    manifest. Production uses WhiteNoise's manifest storage, which 404s every
+  #    static file whose hashed name it cannot resolve. So it has to be collected
+  #    again with the production settings module, into the staticfiles directory
+  #    the web container reads.
+  # -------------------------------------------------------------------------
+  challenge-prepare:
+    image: almanar-challenge-web:${APP_VERSION:-0.1.0}
+    container_name: almanar-challenge-prepare
+    restart: "no"
+    entrypoint: ["sh", "-c"]
+    command:
+      - |
+        set -e
+        python manage.py collectstatic --noinput --clear
+        python manage.py migrate --noinput
+        echo "[prepare] static files collected and migrations applied"
+    environment:
+      DJANGO_ENV: production
+      DJANGO_SETTINGS_MODULE_NAME: production
+      DEBUG: "False"
+      APP_VERSION: ${APP_VERSION:-0.1.0}
+      APP_NAME: almanar-interactive-challenge
+      SERVICE_WAIT_TIMEOUT: ${SERVICE_WAIT_TIMEOUT:-60}
+      TIME_ZONE: ${TIME_ZONE:-UTC}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      DATABASE_NAME: ${DATABASE_NAME:?DATABASE_NAME is required}
+      DATABASE_USER: ${DATABASE_USER:?DATABASE_USER is required}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD:?DATABASE_PASSWORD is required}
+      DATABASE_HOST: challenge-db
+      DATABASE_PORT: "5432"
+      REDIS_HOST: challenge-redis
+      REDIS_PORT: "6379"
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:?DJANGO_SECRET_KEY is required}
+      ALLOWED_HOSTS: ${ALLOWED_HOSTS:?ALLOWED_HOSTS is required}
+      CSRF_TRUSTED_ORIGINS: ${CSRF_TRUSTED_ORIGINS:-}
+      SESSION_COOKIE_SECURE: ${SESSION_COOKIE_SECURE:-True}
+      CSRF_COOKIE_SECURE: ${CSRF_COOKIE_SECURE:-True}
+      SECURE_SSL_REDIRECT: ${SECURE_SSL_REDIRECT:-False}
+      SECURE_HSTS_SECONDS: ${SECURE_HSTS_SECONDS:-0}
+    depends_on:
+      challenge-db:
+        condition: service_healthy
+      challenge-redis:
+        condition: service_healthy
+    volumes:
+      # Where the production manifest and hashed files are written. Shared with
+      # the web container that serves them.
+      - challenge-static:/app/staticfiles
+    networks:
+      - challenge-network

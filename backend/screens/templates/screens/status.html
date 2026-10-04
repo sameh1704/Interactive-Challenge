@@ -1,0 +1,47 @@
+{% extends "core/base.html" %}
+{% load static %}
+
+{% block title %}{{ screen.name }}{% endblock %}
+
+{#
+  This page is displayed on the classroom's interactive screen itself.
+
+  It shows only the screen's own identity and status. No teacher account, no
+  other screen and no administration function is referenced or reachable here.
+  The heartbeat keeps `last_seen` fresh so that staff can see whether the screen
+  is online. It reports presence only and cannot change anything about the
+  screen's registration, classroom or identity.
+#}
+
+{% block content %}
+  <section class="screen"
+           data-screen-id="{{ screen.screen_id }}"
+           data-heartbeat-interval="{{ heartbeat_interval_seconds }}">
+    <p class="screen__eyebrow">Interactive screen registered</p>
+    <h1 class="screen__title">{{ screen.name }}</h1>
+
+    <p class="screen__classroom">
+      {% if classroom %}
+        {{ classroom.display_name }}
+        {% if classroom.location %}<span class="screen__location">{{ classroom.location }}</span>{% endif %}
+      {% else %}
+        Not yet assigned to a classroom
+      {% endif %}
+    </p>
+
+    <p class="screen__identity">
+      Screen ID <code>{{ screen.screen_id }}</code>
+    </p>
+
+    <p class="screen__status">
+      <span class="badge {% if screen.is_online %}status-online{% else %}status-offline{% endif %}"
+            id="screen-status">{{ status_display }}</span>
+    </p>
+
+    <p class="screen__note">
+      This screen is registered and waiting. Live competitions will appear here.
+    </p>
+  </section>
+
+  <script src="{% static 'core/js/screen-heartbeat.js' %}" defer></script>
+{% endblock %}

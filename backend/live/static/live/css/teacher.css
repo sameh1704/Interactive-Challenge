@@ -1,0 +1,183 @@
+/*
+ * The teacher's live dashboard.
+ *
+ * This is an operator console rather than a display, so it sits on the site's
+ * existing chrome and stylesheet scale and adds only what the live round needs:
+ * a state line, the figures a teacher reads at a glance, and the controls.
+ *
+ * The controls are the point of the styling. Each is a full-width target that
+ * names the transition it causes, and the disabled state is deliberately loud -
+ * a teacher glancing at the laptop mid-lesson needs to see at a distance which
+ * button is live, not have to read fine print.
+ */
+
+.live-teacher {
+  display: grid;
+  gap: 1.25rem;
+  max-width: 60rem;
+  margin: 0 auto;
+}
+
+.live-teacher__head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid var(--line, #e2e8f0);
+}
+
+.live-teacher__eyebrow {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted, #64748b);
+}
+
+.live-teacher__title {
+  margin: 0.15rem 0 0;
+  font-size: clamp(1.4rem, 3vw, 2rem);
+}
+
+.live-teacher__state {
+  display: flex;
+  gap: 0.75rem;
+  align-items: baseline;
+  margin: 0;
+  padding: 0.5rem 0.9rem;
+  font-weight: 700;
+  color: var(--accent, #0f766e);
+  background: rgba(53, 208, 165, 0.12);
+  border-radius: 999px;
+}
+
+/* The one number that moves on its own, so it is tabular and never reflows. */
+.live-teacher__clock {
+  font-variant-numeric: tabular-nums;
+}
+
+.live-teacher__figures {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: 0.75rem;
+  margin: 0;
+}
+
+.live-teacher__figures > div {
+  padding: 0.75rem 1rem;
+  background: var(--surface, #f8fafc);
+  border-radius: 0.75rem;
+}
+
+.live-teacher__figures dt {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted, #64748b);
+}
+
+.live-teacher__figures dd {
+  margin: 0.25rem 0 0;
+  font-size: 1.35rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.live-teacher__rooms {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.live-teacher__rooms li {
+  padding: 0.3rem 0.7rem;
+  font-size: 0.9rem;
+  background: var(--surface, #f8fafc);
+  border: 1px solid var(--line, #e2e8f0);
+  border-radius: 999px;
+}
+
+.live-teacher__empty {
+  margin: 0;
+  color: var(--muted, #64748b);
+}
+
+/* A refused action is shown, not swallowed: during a lesson a silent failure
+   is indistinguishable from a broken dashboard. */
+.live-teacher__error {
+  margin: 0;
+  padding: 0.75rem 1rem;
+  font-weight: 600;
+  color: #7f1d1d;
+  background: #fee2e2;
+  border-left: 4px solid #dc2626;
+  border-radius: 0.5rem;
+}
+
+.live-teacher__controls {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  gap: 0.75rem;
+}
+
+.live-teacher__controls .button {
+  min-height: 3.25rem;
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+/*
+ * A disabled control must be unmistakably unavailable without reading it. The
+ * strike-through is the cue that survives a glance and does not rely on colour
+ * alone.
+ */
+.live-teacher__controls .button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  text-decoration: line-through;
+}
+
+.live-teacher__hint {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--muted, #64748b);
+}
+
+.live-teacher__links {
+  margin: 0;
+}
+
+.live-teacher__subhead {
+  margin: 0.5rem 0 0;
+  font-size: 1.05rem;
+}
+
+.live-teacher__questions {
+  margin: 0;
+  padding-left: 1.5rem;
+}
+
+.live-teacher__questions li {
+  padding: 0.35rem 0;
+  border-bottom: 1px solid var(--line, #e2e8f0);
+}
+
+.live-teacher__q-number {
+  display: inline-block;
+  min-width: 2rem;
+  font-weight: 700;
+  color: var(--muted, #64748b);
+}
+
+.live-teacher__q-type {
+  margin-left: 0.5rem;
+  font-size: 0.8rem;
+  color: var(--muted, #64748b);
+}

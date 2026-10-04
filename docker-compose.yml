@@ -1,0 +1,131 @@
+# Al Manar Interactive Challenge
+#
+# This stack is fully self-contained. It shares nothing with the School Portal,
+# Cisco NMS, any other Django project or any other Docker Compose project:
+#   * dedicated Docker Compose project name
+#   * dedicated Docker network
+#   * prefixed service, container, volume and image names
+#
+# Every value below is read from the .env file next to this compose file.
+
+name: almanar-interactive-challenge
+
+# ---------------------------------------------------------------------------
+# Dedicated network. Only these three services can reach each other.
+# ---------------------------------------------------------------------------
+networks:
+  challenge-network:
+    name: almanar-interactive-challenge-net
+    driver: bridge
+
+volumes:
+  challenge-db-data:
+  challenge-redis-data:
+  challenge-media:
+
+services:
+  # -------------------------------------------------------------------------
+  # PostgreSQL - the only persistent datastore.
+  # -------------------------------------------------------------------------
+  challenge-db:
+    image: postgres:17-alpine
+    container_name: almanar-challenge-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DATABASE_NAME:?DATABASE_NAME is required}
+      POSTGRES_USER: ${DATABASE_USER:?DATABASE_USER is required}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:?DATABASE_PASSWORD is required}
+      # Keep the container's own locale deterministic.
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=C"
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - challenge-db-data:/var/lib/postgresql/data
+    networks:
+      - challenge-network
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - pg_isready -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    # Deliberately not published to the host: nothing outside this network needs
+    # direct database access. See README for optional local inspection.
+
+  # -------------------------------------------------------------------------
+  # Redis - cache and Channels layer transport.
+  # -------------------------------------------------------------------------
+  challenge-redis:
+    image: redis:8-alpine
+    container_name: almanar-challenge-redis
+    restart: unless-stopped
+    command:
+      - redis-server
+      - --appendonly
+      - "yes"
+      - --appendfsync
+      - everysec
+    volumes:
+      - challenge-redis-data:/data
+    networks:
+      - challenge-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "--no-auth-warning", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    # Deliberately not published to the host.
+
+  # -------------------------------------------------------------------------
+  # Django + Django Channels (ASGI).
+  # -------------------------------------------------------------------------
+  challenge-web:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    image: almanar-challenge-web:${APP_VERSION:-0.1.0}
+    container_name: almanar-challenge-web
+    restart: unless-stopped
+    depends_on:
+      challenge-db:
+        condition: service_healthy
+      challenge-redis:
+        condition: service_healthy
+    environment:
+      DJANGO_ENV: ${DJANGO_ENV:-development}
+      DJANGO_SETTINGS_MODULE: config.settings.${DJANGO_SETTINGS_MODULE_NAME:-development}
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:?DJANGO_SECRET_KEY is required}
+      DEBUG: ${DEBUG:-True}
+      ALLOWED_HOSTS: ${ALLOWED_HOSTS:-localhost,127.0.0.1,[::1]}
+      CSRF_TRUSTED_ORIGINS: ${CSRF_TRUSTED_ORIGINS:-}
+      APP_VERSION: ${APP_VERSION:-0.1.0}
+      APP_NAME: almanar-interactive-challenge
+      SERVICE_WAIT_TIMEOUT: ${SERVICE_WAIT_TIMEOUT:-60}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      TIME_ZONE: ${TIME_ZONE:-UTC}
+      DATABASE_NAME: ${DATABASE_NAME:?DATABASE_NAME is required}
+      DATABASE_USER: ${DATABASE_USER:?DATABASE_USER is required}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD:?DATABASE_PASSWORD is required}
+      DATABASE_HOST: challenge-db
+      DATABASE_PORT: "5432"
+      REDIS_HOST: challenge-redis
+      REDIS_PORT: "6379"
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
+    ports:
+      - "${WEB_BIND_ADDRESS:-0.0.0.0}:${WEB_PORT:-8000}:8000"
+    volumes:
+      - challenge-media:/app/media
+    networks:
+      - challenge-network
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import sys,urllib.request;sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8000/health/',timeout=4).status==200 else 1)"
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 40s

@@ -1,0 +1,91 @@
+{% extends "core/base.html" %}
+
+{% block title %}Report: {{ report.competition.title }}{% endblock %}
+
+{% block content %}
+  <section class="page-heading">
+    <h1 class="page-heading__title">{{ report.competition.title }}</h1>
+    <p class="page-heading__subtitle">
+      {{ report.state_display }}
+      {% if report.date %} &middot; {{ report.date|date:"j M Y" }}{% endif %}
+    </p>
+  </section>
+
+  <section class="stats" aria-label="Totals">
+    <div class="stat"><span class="stat__value">{{ report.classrooms_count }}</span><span class="stat__label">Classrooms</span></div>
+    <div class="stat"><span class="stat__value">{{ report.total_questions }}</span><span class="stat__label">Questions</span></div>
+    <div class="stat"><span class="stat__value">{{ report.correct_count }}</span><span class="stat__label">Correct</span></div>
+    <div class="stat"><span class="stat__value">{{ report.wrong_count }}</span><span class="stat__label">Wrong</span></div>
+    <div class="stat">
+      <span class="stat__value">{% if report.accuracy is not None %}{{ report.accuracy }}%{% else %}—{% endif %}</span>
+      <span class="stat__label">Accuracy</span>
+    </div>
+  </section>
+
+  <p class="page-actions">
+    <a class="button button--quiet"
+       href="{% url 'reports:competition_csv' report.competition.pk %}">Export CSV</a>
+  </p>
+
+  <section class="panel">
+    <h2 class="panel__heading">Participating classrooms</h2>
+    <table class="table">
+      <thead>
+        <tr>
+          <th scope="col">Classroom</th>
+          <th scope="col">Correct</th>
+          <th scope="col">Wrong</th>
+          <th scope="col">Accuracy</th>
+          <th scope="col">Final score</th>
+          <th scope="col">Avg response (s)</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in report.classrooms %}
+          <tr>
+            <td>{{ row.classroom }}</td>
+            <td>{{ row.correct }}</td>
+            <td>{{ row.wrong }}</td>
+            <td>{% if row.accuracy is not None %}{{ row.accuracy }}%{% else %}—{% endif %}</td>
+            <td><strong>{{ row.score }}</strong></td>
+            <td>{% if row.average_response_seconds %}{{ row.average_response_seconds }}{% else %}—{% endif %}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
+
+  <section class="panel">
+    <h2 class="panel__heading">Questions</h2>
+    <table class="table">
+      <thead>
+        <tr>
+          <th scope="col">#</th>
+          <th scope="col">Question</th>
+          <th scope="col">Type</th>
+          <th scope="col">Answer</th>
+          <th scope="col">Given</th>
+          <th scope="col">Correct</th>
+          <th scope="col">Accuracy</th>
+          <th scope="col">Avg response (s)</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in report.questions %}
+          <tr>
+            <td>{{ row.position }}</td>
+            <td>{{ row.question }}</td>
+            <td>{{ row.question_type }}</td>
+            <td>{{ row.correct_answer }}</td>
+            <td>{{ row.given }}</td>
+            <td>{{ row.correct }}</td>
+            <td>{% if row.accuracy is not None %}{{ row.accuracy }}%{% else %}—{% endif %}</td>
+            <td>{% if row.average_response_seconds %}{{ row.average_response_seconds }}{% else %}—{% endif %}</td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="8">No questions were answered in this competition.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
+{% endblock %}

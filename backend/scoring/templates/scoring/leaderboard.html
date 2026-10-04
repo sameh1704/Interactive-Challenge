@@ -1,0 +1,66 @@
+{% extends "core/base.html" %}
+{% load static %}
+
+{% block title %}{{ competition.title }} - Leaderboard{% endblock %}
+
+{% block content %}
+<section class="leaderboard" data-websocket-path="{{ websocket_path }}">
+  <header class="leaderboard__header">
+    <div>
+      <h1 class="leaderboard__title">{{ competition.title }}</h1>
+      <p class="leaderboard__meta">
+        Question {{ competition.question_number }} of {{ competition.total_questions }}
+        &middot; <span class="leaderboard__state">{{ state_display }}</span>
+      </p>
+    </div>
+    <p class="leaderboard__connection" data-role="connection" aria-live="polite">
+      Connecting&hellip;
+    </p>
+  </header>
+
+  {% if competition.is_finished %}
+    <p class="leaderboard__final">
+      Final result
+      {% if result %}- {{ result.winner_name }} takes it{% endif %}
+    </p>
+  {% endif %}
+
+  <table class="leaderboard__table">
+    <caption class="visually-hidden">
+      Live standings for {{ competition.title }}
+    </caption>
+    <thead>
+      <tr>
+        <th scope="col" class="leaderboard__rank">Rank</th>
+        <th scope="col">Classroom</th>
+        <th scope="col" class="leaderboard__numeric">Score</th>
+        <th scope="col" class="leaderboard__numeric">Correct</th>
+        <th scope="col" class="leaderboard__numeric">Answered</th>
+      </tr>
+    </thead>
+    <tbody data-role="rows">
+      {% for row in rows %}
+        <tr data-classroom-id="{{ row.classroom_id }}">
+          <td class="leaderboard__rank">{{ row.rank }}</td>
+          <th scope="row" class="leaderboard__classroom">{{ row.classroom_name }}</th>
+          <td class="leaderboard__numeric" data-field="score">{{ row.score }}</td>
+          <td class="leaderboard__numeric" data-field="correct_answers">
+            {{ row.correct_answers }}
+          </td>
+          <td class="leaderboard__numeric" data-field="answers_given">
+            {{ row.answers_given }}
+          </td>
+        </tr>
+      {% empty %}
+        <tr data-role="empty">
+          <td colspan="5">No classrooms are taking part yet.</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}
+
+{% block extra_scripts %}
+  <script src="{% static 'scoring/js/leaderboard.js' %}" defer></script>
+{% endblock %}

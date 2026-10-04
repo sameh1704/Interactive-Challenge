@@ -1,0 +1,62 @@
+{% extends "core/base.html" %}
+{% load static %}
+
+{% block title %}Tournaments{% endblock %}
+
+{% block extra_head %}
+  <link rel="stylesheet" href="{% static 'tournaments/css/tournaments.css' %}">
+{% endblock %}
+
+{% block content %}
+  <section class="page-heading">
+    <h1 class="page-heading__title">Tournaments</h1>
+    <p class="page-heading__subtitle">
+      Championships built from ordinary competitions.
+    </p>
+  </section>
+
+  <p class="page-actions">
+    <a class="button" href="{% url 'tournaments:create' %}">Create tournament</a>
+    <a class="button button--quiet" href="{% url 'tournaments:hall_of_fame' %}">Hall of Fame</a>
+  </p>
+
+  <section class="panel">
+    <h2 class="panel__heading">Your tournaments</h2>
+    {% if rows %}
+      <table class="table">
+        <thead>
+          <tr>
+            <th scope="col">Tournament</th>
+            <th scope="col">Subject</th>
+            <th scope="col">Grade</th>
+            <th scope="col">Season</th>
+            <th scope="col">Status</th>
+            <th scope="col">Current stage</th>
+            <th scope="col">Classrooms</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in rows %}
+            <tr>
+              <td>
+                <a href="{% url 'tournaments:detail' row.tournament.pk %}">{{ row.tournament.name }}</a>
+              </td>
+              <td>{{ row.tournament.subject|default:"—" }}</td>
+              <td>{{ row.tournament.grade|default:"—" }}</td>
+              <td>{{ row.tournament.season|default:"—" }}</td>
+              <td>
+                <span class="badge status-{{ row.tournament.status }}">{{ row.tournament.get_status_display }}</span>
+              </td>
+              <td>{{ row.current_stage.display_name|default:"—" }}</td>
+              <td>{{ row.participant_count }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p class="panel__body">
+        No tournaments yet. Create one to group several competitions into a championship.
+      </p>
+    {% endif %}
+  </section>
+{% endblock %}

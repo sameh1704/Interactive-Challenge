@@ -1,0 +1,65 @@
+{% extends "core/base.html" %}
+
+{% block title %}Report: {{ classroom.display_name }}{% endblock %}
+
+{% block content %}
+  <section class="page-heading">
+    <h1 class="page-heading__title">{{ classroom.display_name }}</h1>
+    <p class="page-heading__subtitle">Performance across every competition played.</p>
+  </section>
+
+  <section class="stats" aria-label="Totals">
+    <div class="stat"><span class="stat__value">{{ report.competitions_played }}</span><span class="stat__label">Competitions</span></div>
+    <div class="stat"><span class="stat__value">{{ report.total_score }}</span><span class="stat__label">Total score</span></div>
+    <div class="stat"><span class="stat__value">{% if report.average_score %}{{ report.average_score }}{% else %}—{% endif %}</span><span class="stat__label">Average score</span></div>
+    <div class="stat"><span class="stat__value">{% if report.accuracy is not None %}{{ report.accuracy }}%{% else %}—{% endif %}</span><span class="stat__label">Accuracy</span></div>
+  </section>
+
+  <p class="page-actions">
+    <a class="button button--quiet"
+       href="{% url 'reports:classroom_csv' classroom.pk %}">Export CSV</a>
+  </p>
+
+  <section class="panel">
+    <h2 class="panel__heading">Answers</h2>
+    <table class="table">
+      <thead>
+        <tr>
+          <th scope="col">Answers given</th>
+          <th scope="col">Correct</th>
+          <th scope="col">Wrong</th>
+          <th scope="col">Average response (s)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>{{ report.answers_given }}</td>
+          <td>{{ report.correct_answers }}</td>
+          <td>{{ report.wrong_answers }}</td>
+          <td>{% if report.average_response_seconds %}{{ report.average_response_seconds }}{% else %}—{% endif %}</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="panel">
+    <h2 class="panel__heading">Score per competition</h2>
+    <table class="table">
+      <thead>
+        <tr><th scope="col">Competition</th><th scope="col">Score</th></tr>
+      </thead>
+      <tbody>
+        {% for row in report.per_competition %}
+          <tr>
+            <td>
+              <a href="{% url 'reports:competition' row.competition_id %}">Competition #{{ row.competition_id }}</a>
+            </td>
+            <td>{{ row.score }}</td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="2">This classroom has not played any competition yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
+{% endblock %}

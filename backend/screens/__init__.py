@@ -1,0 +1,1 @@
+"""Interactive screens and their registration mechanism."""

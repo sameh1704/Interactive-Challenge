@@ -1,0 +1,127 @@
+# ---------------------------------------------------------------------------
+# Al Manar Interactive Challenge - reverse proxy.
+#
+# Terminates the school's single application URL and forwards to Daphne, which
+# serves both ordinary HTTP and the WebSocket used by interactive screens.
+#
+# This file is an nginx *template*: the official nginx image substitutes ${VAR}
+# from the environment while the container starts, then writes the result to
+# /etc/nginx/conf.d/challenge.conf. Every deployment-specific value therefore
+# comes from .env and no server address is baked into the file.
+#
+# nginx's own runtime variables ($host, $remote_addr, ...) are deliberately left
+# as they are: the substitution step only replaces names present in the
+# environment, which those are not.
+# ---------------------------------------------------------------------------
+
+# There is deliberately NO `upstream` block here.
+#
+# Naming the application in an `upstream` block resolves it once, at startup, so
+# every time challenge-web is recreated with a new address nginx would keep
+# dialling the old one and answer 502 until somebody also restarted the proxy.
+# The `proxy_pass` below therefore names the host through a *variable*, which
+# makes nginx re-resolve it per request through the resolver above; the cost is
+# that this connection cannot use a shared keepalive pool to the upstream.
+#
+# Do not "tidy" this into an upstream block: that reintroduces the 502 after
+# every redeploy. 127.0.0.11 is Docker's embedded DNS, reachable only from
+# inside a container on a user-defined network, and `valid=10s` bounds how long a
+# stale answer can be used.
+resolver 127.0.0.11 valid=10s ipv6=off;
+
+# WebSocket upgrade is HTTP with two extra headers. This map lets one location
+# serve both without repeating the header dance, and it is the reason a screen's
+# socket survives the proxy.
+map $http_upgrade $connection_upgrade {
+    default upgrade;
+    ''      close;
+}
+
+# Burst control per client address, so a screen reload loop or a credential
+# script cannot saturate the application. Sized for a classroom behind one NAT
+# address - see .env.example SCREEN_RATE_LIMIT.
+limit_req_zone $binary_remote_addr zone=challenge_per_ip:10m rate=${NGINX_RATE_LIMIT_PER_IP};
+
+server {
+    listen 80;
+    server_name _;
+
+    # Uploaded question images. Served by the proxy, never by Django, so a
+    # user-supplied file can never be interpreted as application code.
+    location /media/ {
+        alias /var/www/media/;
+        autoindex off;
+        add_header X-Content-Type-Options "nosniff" always;
+        expires 7d;
+        access_log off;
+    }
+
+    # Everything else, including every WebSocket upgrade.
+    location / {
+        limit_req zone=challenge_per_ip burst=${NGINX_RATE_LIMIT_BURST} nodelay;
+
+        # The upstream is named through a variable on purpose: that makes nginx
+        # resolve it per request through the resolver above, so a redeployed
+        # application container is picked up within `valid=10s` without restarting
+        # the proxy. With a literal upstream it would resolve once at startup and
+        # every deploy would 502 until the proxy was restarted by hand.
+        set $challenge_upstream http://challenge-web:8000;
+        proxy_pass $challenge_upstream;
+        proxy_http_version 1.1;
+
+        # Required for the screen and teacher sockets. Without these headers the
+        # handshake is answered as ordinary HTTP and every screen silently fails
+        # to connect.
+        proxy_set_header Upgrade    $http_upgrade;
+        proxy_set_header Connection $connection_upgrade;
+
+        proxy_set_header Host              $host;
+        proxy_set_header X-Real-IP         $remote_addr;
+
+        # OVERWRITE, never append.
+        #
+        # $proxy_add_x_forwarded_for *appends* $remote_addr to whatever the
+        # client already sent, which leaves the client's own value in the
+        # left-most position - and the left-most entry is the one
+        # screens.network.client_ip() reads. A client could therefore send
+        #
+        #     X-Forwarded-For: <random>
+        #
+        # on every request and be counted under a fresh address each time,
+        # which defeats the Screen ID rate limit (core.ratelimit) completely
+        # and lets it forge the address recorded against a screen.
+        #
+        # This proxy is the only ingress: challenge-web publishes no host port
+        # (docker-compose.prod.yml resets it), so $remote_addr here is the real
+        # client and replacing the header keeps that invariant true. If another
+        # proxy is ever placed in front of this one, it must overwrite too, or
+        # SCREEN_TRUST_FORWARDED_FOR has to go back to False in .env.
+        proxy_set_header X-Forwarded-For   $remote_addr;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-Host  $host;
+        proxy_set_header X-Forwarded-Port  $server_port;
+
+        # A lesson can leave a round idle for minutes between questions, and the
+        # heartbeat refreshes subscriptions without closing the socket. The
+        # default 60s read timeout would tear the connection down mid-lesson and
+        # the screens would reconnect in a loop.
+        proxy_read_timeout ${NGINX_PROXY_READ_TIMEOUT};
+        proxy_send_timeout ${NGINX_PROXY_SEND_TIMEOUT};
+
+        # Required for a WebSocket: the response is streamed for as long as the
+        # socket lives, so response buffering must be off.
+        proxy_buffering off;
+
+        # Static files are served by WhiteNoise from the application container and
+        # need no location here. The manifest fingerprint WhiteNoise adds makes
+        # each deploy a cache bust, so browsers refetch after an update.
+    }
+
+    # Health of the proxy itself, for the reverse proxy's own monitoring. Not
+    # proxied: it reports this container, not the application.
+    location = /proxy-health {
+        access_log off;
+        add_header Content-Type text/plain;
+        return 200 "ok\n";
+    }
+}

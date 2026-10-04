@@ -1,0 +1,308 @@
+{% extends "core/base.html" %}
+{% load static %}
+
+{% block title %}{{ tournament.name }}{% endblock %}
+
+{% block extra_head %}
+  <link rel="stylesheet" href="{% static 'tournaments/css/tournaments.css' %}">
+{% endblock %}
+
+{% block content %}
+  <section class="page-heading">
+    <h1 class="page-heading__title">{{ tournament.name }}</h1>
+    <p class="page-heading__subtitle">
+      {% if tournament.subject %}{{ tournament.subject }}{% endif %}
+      {% if tournament.grade %} &middot; {{ tournament.grade }}{% endif %}
+      {% if tournament.season %} &middot; Season {{ tournament.season }}{% endif %}
+    </p>
+    <p>
+      <span class="badge status-{{ tournament.status }}">{{ tournament.get_status_display }}</span>
+      {% if tournament.current_stage %}
+        <span class="tag">Current stage: {{ tournament.current_stage.display_name }}</span>
+      {% endif %}
+    </p>
+  </section>
+
+  {% if tournament.description %}<p class="panel__body">{{ tournament.description }}</p>{% endif %}
+
+  {% if record %}
+    <section class="panel">
+      <h2 class="panel__heading">Final result</h2>
+      <p class="panel__body">
+        Champion: <strong>{{ record.winner_name|default:"No champion" }}</strong>
+        &middot; concluded {{ record.completed_at|date:"j M Y" }}
+      </p>
+      <table class="table">
+        <thead>
+          <tr><th scope="col">Rank</th><th scope="col">Classroom</th><th scope="col">Score</th></tr>
+        </thead>
+        <tbody>
+          {% for row in record.rows %}
+            <tr><td>{{ row.rank }}</td><td>{{ row.classroom }}</td><td>{{ row.score }}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </section>
+  {% endif %}
+
+  {# ------------------------------------------------------------------ #}
+  <section class="panel">
+    <h2 class="panel__heading">Stages</h2>
+    {% if stages %}
+      {% for entry in stages %}
+        {% with stage=entry.stage %}
+        <article class="stage">
+          <header class="stage__head">
+            <h3 class="stage__title">
+              {{ stage.order }}. {{ stage.display_name }}
+            </h3>
+            <span class="badge status-{{ stage.status }}">{{ stage.get_status_display }}</span>
+            {% if stage.advancing_count %}
+              <span class="tag">Top {{ stage.advancing_count }} advance</span>
+            {% else %}
+              <span class="tag tag--muted">All advance</span>
+            {% endif %}
+          </header>
+
+          <p class="card__meta">
+            {% if entry.competitions %}
+              Competitions:
+              {% for competition in entry.competitions %}
+                <a href="{% url 'reports:competition' competition.pk %}">{{ competition.title }}</a>{% if not forloop.last %}, {% endif %}
+              {% endfor %}
+            {% else %}
+              No competition attached yet.
+            {% endif %}
+          </p>
+
+          {% if entry.is_tie %}
+            <p class="messages__item messages__item--warning">
+              A tie was found on the cut-off between
+              {% for classroom in entry.tied_classrooms %}{{ classroom.name }}{% if not forloop.last %}, {% endif %}{% endfor %}.
+              An administrator must choose who advances.
+            </p>
+          {% endif %}
+
+          {% if entry.standings_with_ranks %}
+            <table class="table">
+              <thead>
+                <tr>
+                  <th scope="col">Rank</th>
+                  <th scope="col">Classroom</th>
+                  <th scope="col">Score</th>
+                  <th scope="col">Correct</th>
+                  <th scope="col">Outcome</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for row in entry.standings_with_ranks %}
+                  <tr>
+                    <td>{{ row.rank }}</td>
+                    <td>{{ row.standing.classroom_name }}</td>
+                    <td>{{ row.standing.score }}</td>
+                    <td>{{ row.standing.correct_answers }}</td>
+                    <td>
+                      {% if row.advanced == True %}<span class="tag">Advanced</span>
+                      {% elif row.advanced == False %}<span class="tag tag--muted">Eliminated</span>
+                      {% else %}<span class="tag tag--muted">—</span>{% endif %}
+                      {% if row.tied %}<span class="tag tag--muted">Tied</span>{% endif %}
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          {% endif %}
+
+          {% if can_manage %}
+            <div class="stage__actions">
+              {% if stage.is_completed and not stage.advancement %}
+                <form method="post" action="{% url 'tournaments:action' tournament.pk %}">
+                  {% csrf_token %}
+                  <input type="hidden" name="action" value="process_advancement">
+                  <input type="hidden" name="stage" value="{{ stage.pk }}">
+                  <button type="submit" class="button">Process advancement</button>
+                </form>
+              {% endif %}
+
+              {% if entry.is_tie and is_administrator %}
+                <form method="post" action="{% url 'tournaments:action' tournament.pk %}"
+                      class="tie-form">
+                  {% csrf_token %}
+                  <input type="hidden" name="action" value="resolve_tie">
+                  <input type="hidden" name="stage" value="{{ stage.pk }}">
+                  <p class="card__meta">Choose who advances from the tie:</p>
+                  {% for classroom in entry.tied_classrooms %}
+                    <label class="tie-form__choice">
+                      <input type="checkbox" name="classroom_ids" value="{{ classroom.pk }}">
+                      {{ classroom.name }}
+                    </label>
+                  {% endfor %}
+                  <button type="submit" class="button">Resolve tie</button>
+                </form>
+              {% endif %}
+
+              {% if stage.is_open and stage.competitions.exists %}
+                <form method="post" action="{% url 'tournaments:action' tournament.pk %}">
+                  {% csrf_token %}
+                  <input type="hidden" name="action" value="complete_stage">
+                  <input type="hidden" name="stage" value="{{ stage.pk }}">
+                  <button type="submit" class="button">Complete stage</button>
+                </form>
+              {% endif %}
+
+              {% if stage.is_open and available_competitions %}
+                <form method="post" action="{% url 'tournaments:action' tournament.pk %}"
+                      class="inline-form">
+                  {% csrf_token %}
+                  <input type="hidden" name="action" value="attach_competition">
+                  <input type="hidden" name="stage" value="{{ stage.pk }}">
+                  <label class="field__label" for="competition-{{ stage.pk }}">Assign a finished competition</label>
+                  <select id="competition-{{ stage.pk }}" name="competition">
+                    {% for competition in available_competitions %}
+                      <option value="{{ competition.pk }}">{{ competition.title }}</option>
+                    {% endfor %}
+                  </select>
+                  <button type="submit" class="button button--quiet">Assign</button>
+                </form>
+              {% endif %}
+            </div>
+          {% endif %}
+        </article>
+        {% endwith %}
+      {% endfor %}
+    {% else %}
+      <p class="panel__body">No stages yet. Add a qualification stage to begin.</p>
+    {% endif %}
+  </section>
+
+  {# ------------------------------------------------------------------ #}
+  <section class="panel">
+    <h2 class="panel__heading">Participants</h2>
+    {% if participants %}
+      <table class="table">
+        <thead>
+          <tr>
+            <th scope="col">Classroom</th>
+            <th scope="col">Status</th>
+            <th scope="col">Aggregate score</th>
+            <th scope="col">Eliminated at</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for participant in participants %}
+            <tr>
+              <td>{{ participant.display_name }}</td>
+              <td>
+                <span class="badge status-{{ participant.status }}">{{ participant.get_status_display }}</span>
+              </td>
+              <td>{{ participant.aggregate_score }}</td>
+              <td>{{ participant.eliminated_at_stage.display_name|default:"—" }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p class="panel__body">No classrooms have entered this tournament yet.</p>
+    {% endif %}
+
+    {% if can_manage and not is_cancelled and not is_completed %}
+      <form method="post" action="{% url 'tournaments:action' tournament.pk %}"
+            class="inline-form">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="add_participant">
+        <label class="field__label" for="classroom">Add a classroom</label>
+        <select id="classroom" name="classroom" required>
+          <option value="">Choose a classroom</option>
+          {% for classroom in available_classrooms %}
+            <option value="{{ classroom.pk }}">{{ classroom.display_name }}</option>
+          {% endfor %}
+        </select>
+        <button type="submit" class="button" {% if not available_classrooms %}disabled{% endif %}>Add</button>
+      </form>
+    {% endif %}
+  </section>
+
+  {# ------------------------------------------------------------------ #}
+  {% if can_manage and not is_cancelled and not is_completed %}
+    <section class="panel">
+      <h2 class="panel__heading">Add a stage</h2>
+      <form method="post" action="{% url 'tournaments:action' tournament.pk %}"
+            class="inline-form">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="create_stage">
+        <label class="field__label" for="stage_type">Stage</label>
+        <select id="stage_type" name="stage_type">
+          <option value="qualification">Qualification</option>
+          <option value="semi_final">Semi final</option>
+          <option value="final">Final</option>
+        </select>
+
+        <label class="field__label" for="advancing_count">How many advance</label>
+        <input type="number" id="advancing_count" name="advancing_count" min="1"
+               placeholder="blank = all">
+
+        <label class="field__label" for="stage-name">Label (optional)</label>
+        <input type="text" id="stage-name" name="name" placeholder="Round 1">
+
+        <button type="submit" class="button">Add stage</button>
+      </form>
+    </section>
+  {% endif %}
+
+  {# ------------------------------------------------------------------ #}
+  <section class="panel">
+    <h2 class="panel__heading">History</h2>
+    <table class="table">
+      <thead>
+        <tr><th scope="col">Stage</th><th scope="col">Status</th><th scope="col">Competitions</th></tr>
+      </thead>
+      <tbody>
+        {% for entry in history.stages %}
+          <tr>
+            <td>{{ entry.stage.display_name }}</td>
+            <td>{{ entry.stage.get_status_display }}</td>
+            <td>
+              {% for competition in entry.competitions %}{{ competition.title }}{% if not forloop.last %}, {% endif %}{% empty %}—{% endfor %}
+            </td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="3">No stages recorded.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <p class="page-actions">
+      <a class="button button--quiet" href="{{ report_url }}">Tournament report</a>
+    </p>
+  </section>
+
+  {% if can_manage %}
+    <section class="panel">
+      <h2 class="panel__heading">Manage</h2>
+      <div class="stage__actions">
+        {% if is_draft %}
+          <form method="post" action="{% url 'tournaments:action' tournament.pk %}">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="open">
+            <button type="submit" class="button">Open tournament</button>
+          </form>
+        {% endif %}
+
+        {% if not is_cancelled and not is_completed %}
+          <form method="post" action="{% url 'tournaments:action' tournament.pk %}">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="finalize">
+            <button type="submit" class="button">Finalize tournament</button>
+          </form>
+        {% endif %}
+
+        {% if not is_cancelled and not is_completed %}
+          <form method="post" action="{% url 'tournaments:action' tournament.pk %}">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="cancel">
+            <button type="submit" class="button button--quiet">Cancel tournament</button>
+          </form>
+        {% endif %}
+      </div>
+    </section>
+  {% endif %}
+{% endblock %}

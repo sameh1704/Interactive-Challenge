@@ -1,0 +1,127 @@
+{% extends "core/base.html" %}
+{% load static %}
+
+{% block title %}{{ competition.title }} &middot; Live control{% endblock %}
+
+{% block extra_head %}{{ block.super }}
+  <link rel="stylesheet" href="{% static 'live/css/teacher.css' %}">
+{% endblock %}
+
+{% block content %}
+<div
+  class="live-teacher"
+  data-websocket-path="{{ websocket_path }}"
+  data-state="{{ control_state }}">
+
+  <header class="live-teacher__head">
+    <div>
+      <p class="live-teacher__eyebrow">Live control</p>
+      <h1 class="live-teacher__title">{{ competition.title }}</h1>
+    </div>
+    <p class="live-teacher__state" data-role="state">
+      {{ state_display }}
+      <span class="live-teacher__clock" data-role="remaining"></span>
+    </p>
+  </header>
+
+  {# Read-only figures. Nothing here is a control. #}
+  <dl class="live-teacher__figures">
+    <div>
+      <dt>Question</dt>
+      <dd data-role="question-number">
+        {{ competition.question_number|default:"-" }} of
+        {{ competition.total_questions|default:"-" }}
+      </dd>
+    </div>
+    <div>
+      <dt>Classrooms</dt>
+      <dd>{{ participating_classrooms|length }}</dd>
+    </div>
+    <div>
+      <dt>Screens connected</dt>
+      <dd data-role="connected-screens">-</dd>
+    </div>
+    <div>
+      <dt>State</dt>
+      <dd data-role="state-name">{{ state_display }}</dd>
+    </div>
+    <div>
+      <dt>Time left</dt>
+      <dd data-role="seconds-remaining">-</dd>
+    </div>
+  </dl>
+
+  {% if participating_classrooms %}
+    <ul class="live-teacher__rooms">
+      {% for classroom in participating_classrooms %}
+        <li>{{ classroom.display_name }}</li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="live-teacher__empty">No classrooms are taking part in this round.</p>
+  {% endif %}
+
+  <p class="live-teacher__error" data-role="error" hidden></p>
+
+  {#
+    One control per transition, each named for the state it produces. No control
+    does two jobs: "End question" ends the question and nothing else, which is
+    why it exists separately from "Next question" at all.
+
+    `data-requires` lists the server states in which the control is meaningful.
+    The server refuses an out-of-state action either way - this only stops the
+    teacher being offered a button that will bounce.
+  #}
+  <div class="live-teacher__controls">
+    <button type="button" class="button button--primary"
+            data-control="start_competition" data-requires="not_started,finished">
+      Start competition
+    </button>
+
+    <button type="button" class="button button--primary"
+            data-control="start_question" data-requires="waiting,answering_closed,next_question">
+      Start / next question
+    </button>
+
+    <button type="button" class="button button--warn"
+            data-control="end_question" data-requires="question_active">
+      End question
+    </button>
+
+    <button type="button" class="button"
+            data-control="advance" data-requires="answering_closed,next_question">
+      Next question
+    </button>
+
+    <button type="button" class="button button--quiet"
+            data-control="finish_competition" data-requires="waiting,question_active,answering_closed,next_question">
+      Finish competition
+    </button>
+  </div>
+
+  <p class="live-teacher__hint" data-role="hint">
+    End question stops the answers and shows the result. Next question then moves on.
+  </p>
+
+  <p class="live-teacher__links">
+    <a href="{{ leaderboard_path }}">Open the leaderboard display</a>
+  </p>
+
+  <h2 class="live-teacher__subhead">Questions in this round</h2>
+  <ol class="live-teacher__questions">
+    {% for entry in questions %}
+      <li data-position="{{ entry.position }}">
+        <span class="live-teacher__q-number">{{ entry.position }}</span>
+        <span class="live-teacher__q-text">{{ entry.question.text }}</span>
+        <span class="live-teacher__q-type">{{ entry.question.get_question_type_display }}</span>
+      </li>
+    {% empty %}
+      <li class="live-teacher__empty">No questions have been added to this round.</li>
+    {% endfor %}
+  </ol>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+  <script src="{% static 'live/js/teacher.js' %}" defer></script>
+{% endblock %}

@@ -1,0 +1,78 @@
+{% extends "core/base.html" %}
+
+{% block title %}Reports{% endblock %}
+
+{% block content %}
+  <section class="page-heading">
+    <h1 class="page-heading__title">Reports</h1>
+    <p class="page-heading__subtitle">
+      Every figure here is derived from stored answers and frozen results, so a
+      report cannot disagree with the leaderboard.
+    </p>
+  </section>
+
+  <section class="panel">
+    <h2 class="panel__heading">Competitions</h2>
+    {% if competitions %}
+      <table class="table">
+        <thead>
+          <tr>
+            <th scope="col">Competition</th>
+            <th scope="col">Finished</th>
+            <th scope="col">Questions</th>
+            <th scope="col">Report</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for competition in competitions %}
+            <tr>
+              <td>{{ competition.title }}</td>
+              <td>{{ competition.finished_at|date:"j M Y"|default:"&mdash;" }}</td>
+              <td>{{ competition.total_questions }}</td>
+              <td><a href="{% url 'reports:competition' competition.pk %}">View</a></td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p class="panel__body">No competitions have finished yet.</p>
+    {% endif %}
+  </section>
+
+  <section class="panel">
+    <h2 class="panel__heading">Tournaments</h2>
+    {% if tournaments %}
+      <table class="table">
+        <thead>
+          <tr><th scope="col">Tournament</th><th scope="col">Season</th><th scope="col">Report</th></tr>
+        </thead>
+        <tbody>
+          {% for tournament in tournaments %}
+            <tr>
+              <td>{{ tournament.name }}</td>
+              <td>{{ tournament.season|default:"&mdash;" }}</td>
+              <td><a href="{% url 'reports:tournament' tournament.pk %}">View</a></td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p class="panel__body">No tournaments are available to you.</p>
+    {% endif %}
+  </section>
+
+  <section class="panel">
+    <h2 class="panel__heading">Classrooms</h2>
+    {% if classrooms %}
+      <ul class="card-list">
+        {% for classroom in classrooms %}
+          <li class="card">
+            <h3 class="card__title"><a href="{% url 'reports:classroom' classroom.pk %}">{{ classroom.display_name }}</a></h3>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="panel__body">No classrooms are assigned to you.</p>
+    {% endif %}
+  </section>
+{% endblock %}

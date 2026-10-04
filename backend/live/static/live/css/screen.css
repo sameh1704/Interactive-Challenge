@@ -1,0 +1,578 @@
+/*
+ * The classroom screen.
+ *
+ * Designed for an interactive board at the front of a room, operated by somebody
+ * standing up, possibly with a wet hand, from two metres away. Every decision
+ * below follows from that:
+ *
+ * - Touch targets are at least 64px tall. A button that needs a fingertip placed
+ *   precisely is a button that gets pressed twice.
+ * - Type is large and the contrast is high, because the screen is often read from
+ *   the back row under fluorescent light.
+ * - The layout is full-bleed and never scrolls during a question, so nothing can
+ *   be pushed off the bottom by a long question text.
+ * - There is one obvious action per screen. Navigation a pupil could trigger is
+ *   the absence of navigation.
+ *
+ * There are no administration controls here at all, and that is a structural
+ * choice rather than a styling one: this stylesheet styles what the server sends,
+ * and the server sends this screen no competition list, no other classrooms and
+ * no controls. The screen can only answer.
+ */
+
+.screen {
+  --touch: 64px;
+  --pad: clamp(16px, 3vw, 40px);
+  --ink: #ffffff;
+  --ink-dim: #d7e3f4;
+  --surface: #0b1220;
+  --surface-raised: #16233a;
+  --accent: #35d0a5;
+  --accent-ink: #04231b;
+  --warn: #ffcf5c;
+  --bad: #ff7a7a;
+
+  position: fixed;
+  inset: 0;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  min-height: 100vh;
+  margin: 0;
+  color: var(--ink);
+  background: var(--surface);
+  font-family: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-size: clamp(18px, 2.2vw, 30px);
+  line-height: 1.35;
+  overflow: hidden;
+}
+
+/* ---- header: who we are, and how long is left ----------------------- */
+
+.screen__bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--pad);
+  padding: var(--pad);
+  background: var(--surface-raised);
+  border-bottom: 2px solid rgba(255, 255, 255, 0.12);
+}
+
+.screen__identity {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.screen__classroom {
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.screen__screenid {
+  font-size: 0.6em;
+  color: var(--ink-dim);
+  font-variant-numeric: tabular-nums;
+}
+
+.screen__progress {
+  font-size: 0.75em;
+  color: var(--ink-dim);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/*
+ * The timer is the one number on this screen that changes on its own, so it is
+ * given its own block and tabular figures: a countdown that reflows every second
+ * is unreadable.
+ */
+.screen__timer {
+  min-width: 5.5ch;
+  text-align: right;
+  font-size: clamp(30px, 5vw, 64px);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: var(--accent);
+}
+
+.screen__timer[data-urgent="true"] {
+  color: var(--bad);
+}
+
+.screen__main {
+  display: grid;
+  min-height: 0;
+  padding: var(--pad);
+  place-items: center;
+  text-align: center;
+}
+
+.screen__panel {
+  display: grid;
+  gap: clamp(12px, 2vh, 28px);
+  width: 100%;
+  max-width: 1500px;
+  align-content: center;
+  justify-items: center;
+}
+
+.screen__state {
+  color: var(--accent);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 0.7em;
+}
+
+.screen__lead {
+  font-size: 1.05em;
+  color: var(--ink-dim);
+  max-width: 40ch;
+}
+
+/* ---- the question ----------------------------------------------------- */
+
+.screen__question {
+  width: 100%;
+  font-size: clamp(24px, 3.4vw, 52px);
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.screen__image {
+  max-width: min(100%, 60vh);
+  max-height: 46vh;
+  object-fit: contain;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.screen__options {
+  display: grid;
+  gap: clamp(10px, 1.6vh, 18px);
+  width: 100%;
+  max-width: 1300px;
+}
+
+/*
+ * Options are buttons, not list items. The whole row is the target, the label is
+ * never selectable text that could be dragged, and the selected row is marked by
+ * more than colour - a check glyph and a weight change - so the state survives a
+ * projector with poor colour and a pupil with colour vision deficiency.
+ */
+.screen__option {
+  display: flex;
+  align-items: center;
+  gap: clamp(12px, 2vw, 24px);
+  min-height: var(--touch);
+  padding: clamp(10px, 1.6vh, 20px) clamp(16px, 2.4vw, 32px);
+  font: inherit;
+  font-size: 1.1em;
+  font-weight: 600;
+  text-align: left;
+  color: var(--ink);
+  background: var(--surface-raised);
+  border: 3px solid rgba(255, 255, 255, 0.28);
+  border-radius: 16px;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color 120ms ease, border-color 120ms ease;
+}
+
+.screen__option:hover:not(:disabled) {
+  border-color: var(--accent);
+}
+
+.screen__option:focus-visible {
+  outline: 4px solid var(--accent);
+  outline-offset: 3px;
+}
+
+.screen__option:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+
+.screen__option[data-selected="true"] {
+  color: var(--accent-ink);
+  background: var(--accent);
+  border-color: var(--accent);
+  opacity: 1;
+}
+
+.screen__option-key {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 1.9em;
+  height: 1.9em;
+  font-size: 0.85em;
+  font-weight: 800;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+}
+
+.screen__option-label {
+  flex: 1 1 auto;
+}
+
+/* ---- ordering --------------------------------------------------------- */
+
+.screen__order-list {
+  display: grid;
+  gap: clamp(8px, 1.2vh, 14px);
+  width: 100%;
+  max-width: 1300px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: step;
+}
+
+.screen__order-item {
+  display: flex;
+  align-items: center;
+  gap: clamp(10px, 1.8vw, 20px);
+  min-height: var(--touch);
+  padding: clamp(8px, 1.4vh, 16px) clamp(12px, 2vw, 24px);
+  background: var(--surface-raised);
+  border: 3px solid rgba(255, 255, 255, 0.28);
+  border-radius: 14px;
+}
+
+.screen__order-item::before {
+  counter-increment: step;
+  content: counter(step);
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 2em;
+  height: 2em;
+  font-size: 0.85em;
+  font-weight: 800;
+  color: var(--accent);
+  border: 2px solid var(--accent);
+  border-radius: 50%;
+}
+
+.screen__order-label {
+  flex: 1 1 auto;
+  font-weight: 600;
+}
+
+.screen__order-move {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: var(--touch);
+  height: var(--touch);
+  font: inherit;
+  font-size: 1.3em;
+  font-weight: 800;
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.08);
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-radius: 12px;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.screen__order-move:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+/* ---- classification --------------------------------------------------- */
+
+.screen__categories {
+  display: grid;
+  gap: clamp(10px, 1.6vh, 20px);
+  width: 100%;
+  max-width: 1400px;
+}
+
+.screen__category {
+  display: grid;
+  gap: clamp(8px, 1.2vh, 12px);
+  padding: clamp(10px, 1.6vh, 18px);
+  background: rgba(255, 255, 255, 0.05);
+  border: 2px dashed rgba(255, 255, 255, 0.3);
+  border-radius: 16px;
+}
+
+.screen__category-name {
+  font-size: 0.8em;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.screen__category-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: clamp(8px, 1.2vw, 14px);
+  justify-content: center;
+}
+
+.screen__chip {
+  min-height: var(--touch);
+  padding: clamp(8px, 1.2vh, 14px) clamp(14px, 2vw, 22px);
+  font: inherit;
+  font-size: 0.9em;
+  font-weight: 700;
+  color: var(--ink);
+  background: var(--surface-raised);
+  border: 3px solid rgba(255, 255, 255, 0.28);
+  border-radius: 999px;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.screen__chip[data-placed="true"] {
+  color: var(--accent-ink);
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.screen__chip[data-pending="true"] {
+  border-color: var(--warn);
+  box-shadow: 0 0 0 3px var(--warn);
+}
+
+/*
+ * The drop target for a classification answer. Appears only while an item is
+ * chosen, so at most one such button exists on screen at a time and a pupil
+ * cannot be left tapping between six identical targets.
+ */
+.screen__place {
+  min-height: var(--touch);
+  padding: clamp(8px, 1.2vh, 14px) clamp(12px, 1.8vw, 20px);
+  font: inherit;
+  font-size: 0.85em;
+  font-weight: 700;
+  color: var(--warn);
+  background: transparent;
+  border: 3px dashed var(--warn);
+  border-radius: 12px;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.screen__place:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.screen__item-pool {
+  display: flex;
+  flex-wrap: wrap;
+  gap: clamp(8px, 1.2vw, 14px);
+  justify-content: center;
+}
+
+/* ---- short answer ----------------------------------------------------- */
+
+.screen__shortanswer {
+  display: grid;
+  gap: clamp(10px, 1.6vh, 20px);
+  width: 100%;
+  max-width: 900px;
+  justify-items: center;
+}
+
+.screen__input {
+  width: 100%;
+  min-height: calc(var(--touch) * 1.2);
+  padding: clamp(10px, 1.6vh, 18px) clamp(14px, 2vw, 24px);
+  font: inherit;
+  font-size: 1.1em;
+  font-weight: 600;
+  color: var(--ink);
+  background: var(--surface-raised);
+  border: 3px solid rgba(255, 255, 255, 0.28);
+  border-radius: 14px;
+}
+
+.screen__input:focus-visible {
+  outline: 4px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* ---- the one big action ---------------------------------------------- */
+
+.screen__submit {
+  min-height: calc(var(--touch) * 1.15);
+  padding: clamp(12px, 1.8vh, 20px) clamp(28px, 5vw, 64px);
+  font: inherit;
+  font-size: 1.25em;
+  font-weight: 800;
+  color: var(--accent-ink);
+  background: var(--accent);
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.screen__submit:disabled {
+  color: var(--ink-dim);
+  background: rgba(255, 255, 255, 0.12);
+  cursor: default;
+}
+
+.screen__submit:focus-visible {
+  outline: 4px solid var(--ink);
+  outline-offset: 3px;
+}
+
+/* ---- after answering -------------------------------------------------- */
+
+.screen__locked {
+  display: grid;
+  gap: clamp(10px, 1.8vh, 22px);
+  justify-items: center;
+  color: var(--ink-dim);
+}
+
+.screen__lock-icon {
+  display: grid;
+  place-items: center;
+  width: clamp(64px, 10vw, 120px);
+  height: clamp(64px, 10vw, 120px);
+  font-size: clamp(28px, 4vw, 52px);
+  color: var(--accent);
+  border: 4px solid var(--accent);
+  border-radius: 50%;
+}
+
+.screen__waiting {
+  color: var(--warn);
+  font-weight: 700;
+}
+
+.screen__result {
+  display: grid;
+  gap: clamp(10px, 1.6vh, 20px);
+  justify-items: center;
+  width: 100%;
+}
+
+.screen__verdict {
+  font-size: clamp(22px, 3vw, 44px);
+  font-weight: 800;
+}
+
+.screen__verdict[data-correct="true"] {
+  color: var(--accent);
+}
+
+.screen__verdict[data-correct="false"] {
+  color: var(--bad);
+}
+
+.screen__key {
+  padding: clamp(10px, 1.6vh, 18px) clamp(16px, 2.4vw, 32px);
+  font-size: clamp(20px, 2.6vw, 40px);
+  font-weight: 700;
+  background: var(--surface-raised);
+  border-radius: 14px;
+}
+
+.screen__explanation {
+  max-width: 60ch;
+  font-size: 0.9em;
+  color: var(--ink-dim);
+}
+
+/* ---- leaderboard and footer ------------------------------------------ */
+
+.screen__board {
+  display: grid;
+  gap: clamp(8px, 1.2vh, 14px);
+  width: 100%;
+  max-width: 1100px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.screen__board-row {
+  display: grid;
+  grid-template-columns: 3ch 1fr auto;
+  gap: clamp(10px, 2vw, 24px);
+  align-items: center;
+  min-height: var(--touch);
+  padding: clamp(8px, 1.4vh, 16px) clamp(14px, 2vw, 28px);
+  background: var(--surface-raised);
+  border-radius: 14px;
+  border: 3px solid transparent;
+}
+
+.screen__board-row[data-self="true"] {
+  border-color: var(--accent);
+}
+
+.screen__board-rank {
+  font-weight: 800;
+  color: var(--ink-dim);
+  font-variant-numeric: tabular-nums;
+}
+
+.screen__board-name {
+  font-weight: 600;
+  text-align: left;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.screen__board-score {
+  font-weight: 800;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+
+.screen__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--pad);
+  padding: clamp(8px, 1.4vh, 16px) var(--pad);
+  font-size: 0.6em;
+  color: var(--ink-dim);
+  background: var(--surface-raised);
+  border-top: 2px solid rgba(255, 255, 255, 0.12);
+}
+
+.screen__link {
+  font-size: 0.6em;
+  color: var(--ink-dim);
+}
+
+/*
+ * Wide boards and short questions: shrink the vertical rhythm rather than
+ * clipping. A question must never be cut off, and a screen that scrolls during a
+ * live question cannot be trusted to show the whole question.
+ */
+@media (max-height: 560px) {
+  .screen {
+    font-size: clamp(15px, 1.7vw, 22px);
+  }
+
+  .screen__image {
+    max-height: 34vh;
+  }
+}
+
+/* Respect a stated preference for less motion rather than animating anyway. */
+@media (prefers-reduced-motion: reduce) {
+  .screen__option {
+    transition: none;
+  }
+}

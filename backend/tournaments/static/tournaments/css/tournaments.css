@@ -1,0 +1,112 @@
+/* Tournament pages.
+ *
+ * Extends the shared site stylesheet rather than replacing it: the tournament
+ * dashboard should look like the rest of the school administration, so only the
+ * pieces the shared sheet has no vocabulary for live here - the stage blocks, the
+ * tie-resolution form, and the status badges for the tournament lifecycle.
+ */
+
+.stage {
+  border-top: 1px solid var(--line, #e2e8f0);
+  padding: 1rem 0;
+}
+
+.stage:first-of-type {
+  border-top: none;
+}
+
+.stage__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.35rem;
+}
+
+.stage__title {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.stage__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-top: 0.75rem;
+}
+
+/* An action form sitting inline with its siblings rather than on its own line. */
+.inline-form,
+.stage__actions form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.4rem;
+  margin: 0;
+}
+
+.inline-form select,
+.inline-form input[type="text"],
+.inline-form input[type="number"] {
+  padding: 0.35rem 0.5rem;
+  border: 1px solid var(--line, #cbd5e1);
+  border-radius: 4px;
+  font: inherit;
+  min-width: 8rem;
+}
+
+.tie-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.6rem 0.8rem;
+  border: 1px solid #f59e0b;
+  border-radius: 6px;
+  background: #fffbeb;
+}
+
+.tie-form__choice {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+/* Status badges.
+ *
+ * The shared stylesheet colours "online" and "offline". These give the tournament
+ * and participant lifecycles the same treatment, so a reader learns one mapping
+ * and can apply it everywhere. Colours are never the only signal: every badge
+ * carries its status word as text.
+ */
+.status-draft,
+.status-pending,
+.status-entered {
+  background: #e2e8f0;
+  color: #334155;
+}
+
+.status-open,
+.status-ready {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.status-running,
+.status-qualified {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.status-completed,
+.status-champion {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.status-cancelled,
+.status-eliminated,
+.status-withdrawn {
+  background: #fee2e2;
+  color: #991b1b;
+}

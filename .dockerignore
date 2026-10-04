@@ -1,0 +1,29 @@
+# Build context exclusions.
+# Secrets, local state and generated files must never enter the image.
+
+.git
+.gitignore
+.env
+.env.*
+!.env.example
+
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+
+backend/staticfiles/
+backend/media/
+
+*.sqlite3
+*.log
+
+README.md
+docs/

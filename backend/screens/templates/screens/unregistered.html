@@ -1,0 +1,29 @@
+{% extends "core/base.html" %}
+
+{% block title %}Screen not registered{% endblock %}
+
+{#
+  Shown when a screen presents an unknown, retired or missing Screen ID.
+
+  Unknown and inactive Screen IDs produce this same page, so the endpoint cannot
+  be used to discover which Screen IDs are registered. It deliberately contains
+  no list of screens, no staff details and no administration link.
+#}
+
+{% block content %}
+  <section class="screen screen--unregistered">
+    <p class="screen__eyebrow">Not registered</p>
+    <h1 class="screen__title">This screen is not registered</h1>
+
+    {% if screen_id %}
+      <p class="screen__identity">
+        Presented Screen ID <code>{{ screen_id }}</code>
+      </p>
+    {% endif %}
+
+    <p class="screen__note">
+      Ask an administrator to register this screen and then open the
+      registration URL they give you.
+    </p>
+  </section>
+{% endblock %}

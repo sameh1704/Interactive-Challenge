@@ -1,0 +1,59 @@
+{% load static %}<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Al Manar Interactive Challenge{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'core/css/site.css' %}">
+  {# Per-page stylesheets, loaded after the site stylesheet so they win. #}
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+  <header class="masthead">
+    <div class="masthead__inner">
+      <a class="masthead__brand" href="{% url 'core:landing' %}">
+        <span class="masthead__brand-mark">AM</span>
+        <span class="masthead__brand-text">
+          <strong>Al Manar</strong>
+          <small>Interactive Challenge</small>
+        </span>
+      </a>
+
+      <nav class="masthead__nav">
+        {% if user.is_authenticated %}
+          <a href="{% url 'dashboard' %}">Dashboard</a>
+          <a href="{% url 'tournaments:list' %}">Tournaments</a>
+          <a href="{% url 'reports:index' %}">Reports</a>
+          {% if user.is_staff %}<a href="{% url 'admin:index' %}">Administration</a>{% endif %}
+          <span class="masthead__user">{{ user.get_full_name }}</span>
+          <form method="post" action="{% url 'accounts:logout' %}" class="masthead__logout">
+            {% csrf_token %}
+            <button type="submit" class="button button--quiet">Sign out</button>
+          </form>
+        {% else %}
+          <a href="{% url 'accounts:login' %}">Sign in</a>
+        {% endif %}
+      </nav>
+    </div>
+  </header>
+
+  {% if messages %}
+    <div class="messages">
+      {% for message in messages %}
+        <p class="messages__item messages__item--{{ message.tags }}">{{ message }}</p>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <main class="page">
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="page__footer">
+    <span>Al Manar Interactive Challenge</span>
+    <span class="page__footer-version">v{{ app_version }}</span>
+  </footer>
+
+  {% block extra_scripts %}{% endblock %}
+</body>
+</html>

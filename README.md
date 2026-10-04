@@ -346,4 +346,5 @@ connectivity cases when Redis is unreachable instead of failing misleadingly.
 
 ## Licence
 
-Internal school project. All rights reserved.# Asset-Management
+Internal school project. All rights reserved.
+

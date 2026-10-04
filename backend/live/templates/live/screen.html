@@ -1,0 +1,114 @@
+{% load static %}<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <title>{{ classroom.display_name|default:screen.name }} &middot; Live</title>
+  {# The screen is shown full-bleed on a board, so it draws no site chrome. #}
+  <link rel="stylesheet" href="{% static 'live/css/screen.css' %}">
+</head>
+<body
+  class="screen"
+  data-websocket-path="{{ websocket_path }}"
+  data-screen-id="{{ screen.screen_id }}"
+  data-heartbeat-interval="{{ heartbeat_interval_seconds }}"
+  data-state="{{ state|default:'waiting' }}">
+
+  <header class="screen__bar">
+    <div class="screen__identity">
+      <span class="screen__classroom">
+        {{ classroom.display_name|default:screen.name }}
+      </span>
+      <span class="screen__screenid">Screen {{ screen.screen_id }}</span>
+    </div>
+    <span class="screen__progress" data-role="progress" hidden></span>
+    <span class="screen__timer" data-role="timer" data-urgent="false" hidden>--</span>
+  </header>
+
+  <main class="screen__main">
+    {# Every state below is a separate panel; exactly one is shown at a time. #}
+    <section class="screen__panel" data-panel="connecting">
+      <p class="screen__state">Connecting</p>
+      <p class="screen__lead">Joining the competition&hellip;</p>
+    </section>
+
+    <section class="screen__panel" data-panel="offline" hidden>
+      <p class="screen__state">Reconnecting</p>
+      <p class="screen__lead">
+        The connection to the server dropped. This screen will rejoin by itself.
+      </p>
+    </section>
+
+    <section class="screen__panel" data-panel="waiting" hidden>
+      <p class="screen__state">Waiting</p>
+      <p class="screen__lead">
+        Get ready. The first question will appear here.
+      </p>
+    </section>
+
+    <section class="screen__panel" data-panel="question" hidden>
+      <h1 class="screen__question" data-role="question-text"></h1>
+      <img class="screen__image" data-role="question-image" alt="" hidden>
+
+      <div class="screen__options" data-role="options" hidden></div>
+
+      <ol class="screen__order-list" data-role="ordering" hidden></ol>
+
+      <div class="screen__categories" data-role="classification" hidden></div>
+      <div class="screen__item-pool" data-role="item-pool" hidden></div>
+
+      <form class="screen__shortanswer" data-role="shortanswer" hidden>
+        <input
+          class="screen__input"
+          data-role="shortanswer-input"
+          type="text"
+          autocomplete="off"
+          autocapitalize="off"
+          spellcheck="false"
+          aria-label="Your answer">
+        <button class="screen__submit" type="submit">Send answer</button>
+      </form>
+
+      <button class="screen__submit" type="button" data-role="submit" hidden>
+        Send answer
+      </button>
+    </section>
+
+    <section class="screen__panel" data-panel="locked" hidden>
+      <div class="screen__lock-icon" aria-hidden="true">&#10003;</div>
+      <p class="screen__lead" data-role="locked-text">
+        Answer sent. Waiting for the teacher.
+      </p>
+    </section>
+
+    <section class="screen__panel" data-panel="closed" hidden>
+      <p class="screen__state">Answers closed</p>
+      <p class="screen__lead">The teacher has closed this question.</p>
+    </section>
+
+    <section class="screen__panel" data-panel="result" hidden>
+      <p class="screen__verdict" data-role="verdict"></p>
+      <p class="screen__key" data-role="correct-answer" hidden></p>
+      <p class="screen__explanation" data-role="explanation" hidden></p>
+    </section>
+
+    <section class="screen__panel" data-panel="board" hidden>
+      <p class="screen__state">Leaderboard</p>
+      <ol class="screen__board" data-role="board"></ol>
+    </section>
+
+    <section class="screen__panel" data-panel="finished" hidden>
+      <p class="screen__state">Finished</p>
+      <p class="screen__lead" data-role="final-summary"></p>
+    </section>
+  </main>
+
+  <footer class="screen__foot">
+    <span data-role="connection">Connecting&hellip;</span>
+    <span>Answers are scored by the server</span>
+  </footer>
+
+  <script src="{% static 'core/js/screen-heartbeat.js' %}" defer></script>
+  <script src="{% static 'live/js/screen.js' %}" defer></script>
+</body>
+</html>
