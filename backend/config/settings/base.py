@@ -198,7 +198,12 @@ PUBLIC_BASE_URL = env_str("PUBLIC_BASE_URL").rstrip("/")
 INSTALLED_APPS = [
     # Must precede staticfiles so that `runserver` uses the ASGI stack.
     "daphne",
-    "django.contrib.admin",
+    # Django's own admin app config, carrying `default_site` so `/admin/` is
+    # served by core.admin_site.ChallengeAdminSite. It keeps the app's `name`,
+    # so it replaces "django.contrib.admin" rather than joining it - listing
+    # both would make Django's `default = True` config the winner and silently
+    # ignore the custom site.
+    "core.admin_config.ChallengeAdminConfig",
     "django.contrib.contenttypes",
     "django.contrib.auth",
     "django.contrib.sessions",
@@ -235,7 +240,12 @@ ASGI_APPLICATION = "config.asgi.application"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        # Searched *before* any installed app. This is what lets the project's
+        # `admin/base_site.html`, `admin/nav_sidebar.html` and `admin/index.html`
+        # override Django's, which an app-level override cannot: `core` is listed
+        # after `django.contrib.admin`, and the app template loader walks
+        # INSTALLED_APPS in order, so Django's own copies would win.
+        "DIRS": [BASE_DIR / "templates"],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [

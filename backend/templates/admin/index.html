@@ -1,0 +1,43 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% comment %}
+  The administration landing page.
+
+  Django's own index lists the models an administrator may reach. This adds the
+  operational picture above it - what the school actually has - and nothing else:
+  the app list below is Django's, untouched, so every model is still reachable
+  and every permission is still Django's.
+
+  The tiles reuse `.stats` and `.stat` from the project's own stylesheet, the
+  same components the dashboard and the teacher pages use, so this page reads as
+  part of the same product rather than a separate application.
+
+  Every number comes from `core.admin_site.operational_metrics()`, a real query
+  per figure. Nothing is estimated, and nothing appears here that the database
+  cannot answer.
+{% endcomment %}
+
+{% block bodyclass %}{{ block.super }} app-challenge-index{% endblock %}
+
+{% block breadcrumbs %}{% endblock %}
+
+{% block content %}
+  <div class="admin-metrics" role="region" aria-label="{% translate 'School totals' %}">
+    {% if metrics.tiles %}
+      <div class="stats">
+        {% for tile in metrics.tiles %}
+          <div class="stat admin-stat admin-stat--{{ tile.tone }}">
+            <span class="stat__value">{{ tile.value }}</span>
+            <span class="stat__label">{{ tile.label }}</span>
+            <span class="admin-stat__help">{{ tile.help }}</span>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p class="panel__body">{% translate "No totals are available yet." %}</p>
+    {% endif %}
+  </div>
+
+  {{ block.super }}
+{% endblock %}

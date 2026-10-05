@@ -1,0 +1,117 @@
+{% load i18n %}
+
+{% comment %}
+  Administration navigation.
+
+  Two sources of links, and both are gated server-side:
+
+  * the Django admin apps, from `available_apps`, which Django has already
+    filtered by `has_module_permission` - so an app the viewer cannot reach is
+    not rendered at all. That filtering is `core.admin.AdministratorAdminMixin`
+    doing its job, and this template does not second-guess it.
+  * the school's own pages - tournaments, hall of fame, reports, dashboard -
+    which require a signed-in staff member and are reached with `{% url %} as`,
+    so an item whose URL does not exist is omitted rather than rendered broken.
+
+  Every `{% url ... as %}` below is the `as` form on purpose: it evaluates to
+  empty when the name is unknown instead of raising, which is what keeps this
+  template honest if a URL is ever renamed.
+{% endcomment %}
+
+{% url 'admin:index' as admin_index_url %}
+
+<nav class="admin-sidebar" aria-label="{% translate 'Administration sections' %}">
+
+  <ul class="admin-sidebar__list">
+    {% if admin_index_url %}
+      <li class="admin-sidebar__item">
+        <a class="admin-sidebar__link{% if request.path == admin_index_url %} admin-sidebar__link--current{% endif %}"
+           href="{{ admin_index_url }}"
+           {% if request.path == admin_index_url %}aria-current="page"{% endif %}>{% translate "Dashboard" %}</a>
+      </li>
+    {% endif %}
+  </ul>
+
+  {# ---- the models, grouped the way an administrator thinks about them ---- #}
+  {% for app in available_apps %}
+    {% if app.has_module_perms %}
+      {% if app.app_label == 'accounts' %}
+        <p class="admin-sidebar__group">{% translate "People" %}</p>
+      {% elif app.app_label == 'classrooms' or app.app_label == 'screens' %}
+        <p class="admin-sidebar__group">{% translate "Rooms" %}</p>
+      {% elif app.app_label == 'questions' %}
+        <p class="admin-sidebar__group">{% translate "Content" %}</p>
+      {% elif app.app_label == 'competitions' or app.app_label == 'scoring' %}
+        <p class="admin-sidebar__group">{% translate "Competition" %}</p>
+      {% elif app.app_label == 'tournaments' %}
+        <p class="admin-sidebar__group">{% translate "Championships" %}</p>
+      {% else %}
+        <p class="admin-sidebar__group">{{ app.name }}</p>
+      {% endif %}
+
+      <ul class="admin-sidebar__list">
+        {% for model in app.models %}
+          {% if model.admin_url %}
+            <li class="admin-sidebar__item">
+              {% comment %}
+                `admin_url` is the field Django's own `available_apps` provides
+                (see `AdminSite._build_app_dict`). Using it rather than
+                reconstructing a URL from the app and model names means the link
+                is the one Django computed, so it cannot drift from the
+                changelist the ModelAdmin actually serves.
+
+                "You are here" is decided by comparing paths rather than by
+                reversing a URL name, because a model may register add/change
+                routes under several names and the comparison still resolves to
+                the right page.
+              {% endcomment %}
+              <a class="admin-sidebar__link{% if request.path == model.admin_url %} admin-sidebar__link--current{% endif %}"
+                 href="{{ model.admin_url }}"
+                 {% if request.path == model.admin_url %}aria-current="page"{% endif %}>{{ model.name }}</a>
+            </li>
+          {% endif %}
+        {% endfor %}
+      </ul>
+    {% endif %}
+  {% endfor %}
+
+  {# ---- the school's own pages, reached outside the admin but from here ---- #}
+  {% if user.is_active and user.is_staff %}
+    {% url 'dashboard' as dashboard_url %}
+    {% url 'tournaments:list' as tournaments_url %}
+    {% url 'tournaments:hall_of_fame' as hall_of_fame_url %}
+    {% url 'reports:index' as reports_url %}
+
+    {% if tournaments_url or hall_of_fame_url or reports_url or dashboard_url %}
+      <p class="admin-sidebar__group">{% translate "School" %}</p>
+      <ul class="admin-sidebar__list">
+        {% if dashboard_url %}
+          <li class="admin-sidebar__item">
+            <a class="admin-sidebar__link" href="{{ dashboard_url }}">{% translate "Staff dashboard" %}</a>
+          </li>
+        {% endif %}
+        {% if tournaments_url %}
+          <li class="admin-sidebar__item">
+            <a class="admin-sidebar__link" href="{{ tournaments_url }}">{% translate "Championships" %}</a>
+          </li>
+        {% endif %}
+        {% if reports_url %}
+          <li class="admin-sidebar__item">
+            <a class="admin-sidebar__link" href="{{ reports_url }}">{% translate "Reports" %}</a>
+          </li>
+        {% endif %}
+        {% if hall_of_fame_url %}
+          <li class="admin-sidebar__item">
+            <a class="admin-sidebar__link" href="{{ hall_of_fame_url }}">{% translate "Hall of Fame" %}</a>
+          </li>
+        {% endif %}
+      </ul>
+    {% endif %}
+  {% endif %}
+
+  <p class="admin-sidebar__foot">
+    {% translate "Signed in as" %}
+    <strong>{{ user.get_full_name|default:user.get_username }}</strong>
+    &middot; {{ user.get_role_display }}
+  </p>
+</nav>

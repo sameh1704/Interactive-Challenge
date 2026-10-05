@@ -1,0 +1,535 @@
+/* ---------------------------------------------------------------------------
+ * Al Manar Interactive Challenge - administration styles.
+ *
+ * This file deliberately contains almost no colour of its own. Every colour,
+ * radius and font comes from the variables `core/css/site.css` already defines
+ * for the dashboard, the tournaments, the reports and the sign-in page. What is
+ * here is only what is needed to sit inside Django's admin markup, which is
+ * generated and cannot be restructured from a template.
+ *
+ * The technique is reassignment, not override-by-force: Django's admin sets its
+ * own palette on `--body-bg`, `--body-fg`, `--primary`, `--darkened-bg` and
+ * about forty siblings. Pointing those at the project's tokens restyles the
+ * whole generated interface - changelists, forms, filters, pagination, the
+ * delete confirmation - in one place, so a later change to the school's palette
+ * moves the admin with it instead of leaving it stranded on old colours.
+ *
+ * Load order matters and is set in `admin/base_site.html`:
+ *     admin/css/base.css  ->  core/css/site.css  ->  core/css/admin.css
+ * ------------------------------------------------------------------------- */
+
+:root {
+  /* Reassign Django's admin palette onto the school's tokens. */
+  --body-bg: var(--colour-bg);
+  --body-fg: var(--colour-text);
+  --body-quiet-color: var(--colour-muted);
+  --body-loud-color: var(--colour-text);
+  --header-color: var(--colour-surface);
+  --header-branding-color: var(--colour-text);
+  --header-bg: var(--colour-surface);
+  --header-link-color: var(--colour-text);
+  --breadcrumbs-bg: var(--colour-surface-raised);
+  --breadcrumbs-link-fg: var(--colour-muted);
+  --breadcrumbs-fg: var(--colour-text);
+
+  --primary: var(--colour-accent);
+  --primary-fg: #08131c;
+  --primary-accent: var(--colour-accent-dim);
+  --primary-bg: var(--colour-accent);
+  --close-button-bg: var(--colour-danger);
+  --close-button-fg: var(--colour-bg);
+  --delete-button-bg: var(--colour-danger);
+  --default-button-bg: var(--colour-surface-raised);
+  --default-button-hover-bg: var(--colour-border);
+  --object-tools-bg: var(--colour-accent);
+  --object-tools-hover-bg: #45dda0;
+  --object-tools-fg: #08131c;
+  --default-button-fg: var(--colour-text);
+
+  --link-fg: var(--colour-accent);
+  --link-hover-color: var(--colour-accent);
+  --link-selected-fg: var(--colour-accent);
+
+  --hairline-color: var(--colour-border);
+  --border-color: var(--colour-border);
+  --darkened-bg: var(--colour-surface);
+  --selected-bg: var(--colour-surface-raised);
+  --selected-row: var(--colour-surface-raised);
+  --hover-row: var(--colour-surface-raised);
+
+  --error-fg: var(--colour-danger);
+  --message-success-bg: var(--colour-surface);
+  --message-warning-bg: var(--colour-surface);
+  --message-error-bg: var(--colour-surface);
+  --message-success-border: var(--colour-accent-dim);
+  --message-warning-border: var(--colour-warn);
+  --message-error-border: var(--colour-danger);
+
+  --button-fg: var(--colour-text);
+  --button-hover-bg: var(--colour-surface-raised);
+  --default-button-box-shadow-exists: 0 1px 2px rgba(0, 0, 0, 0.3);
+
+  --admin-side-nav-bgs: var(--colour-surface);
+  --admin-side-nav-active-bg: var(--colour-surface-raised);
+  --admin-side-nav-active-fg: var(--colour-accent);
+  --admin-side-nav-link-fg: var(--colour-text);
+  --admin-side-nav-link-hover-fg: var(--colour-accent);
+  --admin-side-nav-header-fg: var(--colour-muted);
+  --admin-side-nav-current-fg: var(--colour-accent);
+
+  --font-family-primary: var(--font-stack);
+  --font-family-secondary: var(--font-stack);
+  --font-family-monospace: "Cascadia Mono", Consolas, monospace;
+
+  --body-quiet-width: 64rem;
+}
+
+/* --- the header ----------------------------------------------------------- */
+
+/*
+ * The brand mark is the dashboard's own `.masthead__brand-mark`, so the two
+ * pages are visibly the same product without this file restating its styles.
+ */
+#header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  border-bottom: 1px solid var(--colour-border);
+}
+
+.admin-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  color: inherit;
+  text-decoration: none;
+}
+
+.admin-brand:hover {
+  color: var(--colour-text);
+}
+
+#user-tools {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  font-size: 0.9rem;
+}
+
+#user-tools a {
+  color: var(--colour-text);
+}
+
+#user-tools a:hover {
+  color: var(--colour-accent);
+}
+
+#logout-form {
+  margin: 0;
+}
+
+#logout-form button {
+  padding: 0.4rem 0.85rem;
+  border: 1px solid var(--colour-border);
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--colour-text);
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+#logout-form button:hover {
+  border-color: var(--colour-accent);
+}
+
+/* Django puts the welcome line in a `.visually-hidden` span in 5.x and shows the
+ * name in the tools row; keeping it hidden avoids a duplicate of the sidebar
+ * footer, which already says who is signed in. */
+#user-tools strong {
+  font-weight: 600;
+}
+
+/* --- breadcrumbs ---------------------------------------------------------- */
+
+/*
+ * Cleared on the index (the template removes the block) and restyled everywhere
+ * else to the project's muted-on-surface treatment.
+ */
+.breadcrumbs {
+  padding: 0.6rem 0;
+  font-size: 0.85rem;
+  letter-spacing: 0.02em;
+}
+
+/* --- the sidebar ---------------------------------------------------------- */
+
+.admin-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: 1.25rem 0.75rem 1.5rem;
+  font-size: 0.9rem;
+}
+
+.admin-sidebar__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.admin-sidebar__group {
+  margin: 1.25rem 0 0.35rem;
+  padding: 0 0.6rem;
+  font-size: 0.7rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--colour-muted);
+}
+
+.admin-sidebar__group:first-of-type {
+  margin-top: 0.25rem;
+}
+
+.admin-sidebar__link {
+  display: block;
+  padding: 0.45rem 0.6rem;
+  border-left: 2px solid transparent;
+  border-radius: 0 6px 6px 0;
+  color: var(--colour-text);
+  text-decoration: none;
+}
+
+.admin-sidebar__link:hover {
+  border-left-color: var(--colour-accent-dim);
+  background: var(--colour-surface-raised);
+  color: var(--colour-accent);
+}
+
+/*
+ * Colour alone must not carry "you are here", so the current item also gets a
+ * heavier weight and a filled marker. It is a real link, so it is keyboard
+ * reachable and announced as one.
+ */
+.admin-sidebar__link--current,
+.admin-sidebar__link[aria-current="page"] {
+  border-left-color: var(--colour-accent);
+  background: var(--colour-surface-raised);
+  color: var(--colour-accent);
+  font-weight: 600;
+}
+
+.admin-sidebar__foot {
+  margin: 1.75rem 0 0;
+  padding: 0.85rem 0.6rem 0;
+  border-top: 1px solid var(--colour-border);
+  font-size: 0.8rem;
+  color: var(--colour-muted);
+  line-height: 1.5;
+}
+
+.admin-sidebar__foot strong {
+  display: block;
+  color: var(--colour-text);
+}
+
+/* --- the overview tiles --------------------------------------------------- */
+
+/*
+ * `.stats` and `.stat` are the dashboard's components, loaded from site.css.
+ * Only the extra help line and the tone accents are new.
+ */
+.admin-metrics {
+  margin-bottom: 1.5rem;
+}
+
+.admin-stat {
+  display: flex;
+  flex-direction: column;
+}
+
+.admin-stat__help {
+  margin-top: 0.35rem;
+  font-size: 0.75rem;
+  color: var(--colour-muted);
+}
+
+/* The three accents, and only while they mean something: a tile is only
+ * accented when the thing it counts is actually happening. */
+.admin-stat--online,
+.admin-stat--running {
+  border-color: var(--colour-accent-dim);
+}
+
+.admin-stat--online .stat__value,
+.admin-stat--running .stat__value {
+  color: var(--colour-accent);
+}
+
+/* --- tables --------------------------------------------------------------- */
+
+#changelist table thead th {
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--colour-muted);
+}
+
+#changelist table tbody td,
+#changelist table tbody th {
+  padding: 0.65rem 0.6rem;
+  vertical-align: middle;
+}
+
+#changelist table thead th.action-checkbox-column,
+#changelist table tbody td.action-checkbox {
+  width: 2.5rem;
+}
+
+#changelist-filter {
+  border-radius: var(--radius);
+}
+
+#searchbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+#searchbar input[type="text"] {
+  padding: 0.5rem 0.7rem;
+  border: 1px solid var(--colour-border);
+  border-radius: var(--radius);
+  background: var(--colour-surface);
+  color: var(--colour-text);
+}
+
+/* --- forms ---------------------------------------------------------------- */
+
+fieldset.module {
+  border: 1px solid var(--colour-border);
+  border-radius: var(--radius);
+  background: var(--colour-surface);
+}
+
+fieldset.module h2 {
+  color: var(--colour-accent);
+  letter-spacing: 0.08em;
+}
+
+.form-row {
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--colour-border);
+}
+
+.form-row:last-child {
+  border-bottom: none;
+}
+
+/* Django marks required fields with a `required` class on the label and renders
+ * a `#this-field-is-required` note. Make the marker visible rather than relying
+ * on the browser's own validation bubble. */
+.form-row .required {
+  color: var(--colour-danger);
+}
+
+#this-field-is-required {
+  margin: 0 0 0.5rem;
+  font-size: 0.8rem;
+  color: var(--colour-muted);
+}
+
+.help,
+p.help {
+  margin: 0.15rem 0 0;
+  font-size: 0.8rem;
+  color: var(--colour-muted);
+}
+
+/* Validation messages must not rely on colour alone either. */
+.errorlist {
+  margin: 0.35rem 0;
+  padding: 0.5rem 0.7rem;
+  border: 1px solid var(--colour-danger);
+  border-radius: var(--radius);
+  background: var(--colour-surface);
+  color: var(--colour-danger);
+  font-size: 0.85rem;
+  list-style: none;
+}
+
+.errorlist li::before {
+  content: "! ";
+  font-weight: 700;
+}
+
+/* --- buttons and focus ---------------------------------------------------- */
+
+input[type="submit"],
+input[type="button"],
+.button,
+.object-tools a {
+  border-radius: var(--radius);
+  font-weight: 600;
+}
+
+/*
+ * One visible focus ring for the whole admin, matching the project's sign-in
+ * form. `:focus-visible` keeps it off mouse clicks but present for keyboards.
+ */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+summary:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--colour-accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Django hides the outline on some controls; restore it. */
+a:focus,
+button:focus,
+input:focus,
+select:focus,
+textarea:focus {
+  outline: 2px solid var(--colour-accent);
+  outline-offset: 2px;
+}
+
+/* --- skip link and pagination --------------------------------------------- */
+
+.skip-to-content-link {
+  display: block;
+  padding: 0.6rem 1rem;
+  background: var(--colour-accent);
+  color: #08131c;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.paginator {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  align-items: center;
+  margin: 1rem 0;
+}
+
+.paginator a,
+.paginator .this-page {
+  padding: 0.3rem 0.6rem;
+  border: 1px solid var(--colour-border);
+  border-radius: 6px;
+  text-decoration: none;
+}
+
+.paginator .this-page {
+  border-color: var(--colour-accent);
+  color: var(--colour-accent);
+  font-weight: 600;
+}
+
+.messagelist {
+  margin: 0 0 1.25rem;
+  padding: 0;
+  list-style: none;
+}
+
+.messagelist li {
+  margin-bottom: 0.5rem;
+  padding: 0.65rem 0.9rem;
+  border: 1px solid var(--colour-border);
+  border-left: 3px solid var(--colour-accent);
+  border-radius: var(--radius);
+  background: var(--colour-surface);
+  font-size: 0.9rem;
+}
+
+.messagelist li.error {
+  border-left-color: var(--colour-danger);
+}
+
+.messagelist li.warning {
+  border-left-color: var(--colour-warn);
+}
+
+/* --- responsive ----------------------------------------------------------- */
+
+/*
+ * The admin is a desktop tool that must stay usable on a tablet. Django's own
+ * `nav_sidebar.css` collapses the sidebar below its breakpoint; these rules
+ * cover what is ours: the tiles stop trying to fit many across, long tables get
+ * a horizontal scroll of their own instead of stretching the page, and the
+ * filter sidebar drops under the list rather than beside it.
+ */
+@media (max-width: 60rem) {
+  #changelist table {
+    display: block;
+    width: 100%;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+}
+
+@media (max-width: 48rem) {
+  .admin-sidebar {
+    padding: 0.85rem 0.5rem;
+    border-bottom: 1px solid var(--colour-border);
+  }
+
+  .admin-sidebar__list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+  }
+
+  .admin-sidebar__item {
+    flex: 0 0 auto;
+  }
+
+  .admin-sidebar__link {
+    border-left: none;
+    border: 1px solid var(--colour-border);
+    border-radius: var(--radius);
+  }
+
+  .admin-sidebar__group {
+    margin: 0.85rem 0 0.25rem;
+  }
+
+  #header {
+    justify-content: flex-start;
+  }
+
+  #changelist-filter {
+    clear: both;
+  }
+}
+
+@media (max-width: 34rem) {
+  .stats {
+    grid-template-columns: repeat(auto-fit, minmax(7.5rem, 1fr));
+  }
+
+  #user-tools {
+    width: 100%;
+    justify-content: space-between;
+  }
+}
+
+/* --- print ---------------------------------------------------------------- */
+
+@media print {
+  .admin-sidebar,
+  #user-tools,
+  .object-tools,
+  #changelist-filter {
+    display: none;
+  }
+}

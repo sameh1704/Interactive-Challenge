@@ -1,0 +1,76 @@
+{% extends "admin/base.html" %}
+{% load i18n static %}
+
+{% comment %}
+  The school's own admin chrome.
+
+  Extends Django's `admin/base.html` rather than replacing it, so every block it
+  does not touch - the changelist, the forms, the filters, the pagination, the
+  history, the delete confirmation - is Django's own, unmodified. That is the
+  point: the administration interface keeps working exactly as it did, and only
+  its appearance changes.
+
+  Two stylesheets are loaded, in this order:
+
+    core/css/site.css   the project's design tokens and components, byte for byte
+                        the same file the dashboard, tournaments and reports use
+    core/css/admin.css  the small set of rules needed to sit *inside* Django's
+                        admin markup, which is generated and cannot be
+                        restructured here
+
+  Django's own `admin/css/base.css` still loads underneath both. Rather than
+  fight it, admin.css reassigns the admin's colour variables to the project's
+  palette, so the generated markup inherits the school's colours instead of
+  being fought rule by rule.
+{% endcomment %}
+
+{% block title %}{% if title %}{{ title }} &middot; {% endif %}{{ site_title|default:"Administration" }}{% endblock %}
+
+{% block dark-mode-vars %}{% endblock %}
+{% comment %}
+  Django's own block, emptied on purpose.
+
+  It loads `admin/css/dark_mode.css` and `admin/js/theme.js`, which let a browser
+  flip the admin to a *light* palette from `localStorage`. The rest of this
+  application has exactly one palette - the dark one in `site.css` - and the
+  restyled admin inherits it through `--body-bg`. Leaving the theme assets in
+  would mean a machine that had once visited a stock Django admin could render
+  the school's admin light while every other page stayed dark, and it would
+  carry a JavaScript dependency for a control this project does not offer.
+{% endcomment %}
+
+{% block extrastyle %}
+  {{ block.super }}
+  <link rel="stylesheet" href="{% static 'core/css/site.css' %}">
+  <link rel="stylesheet" href="{% static 'core/css/admin.css' %}">
+{% endblock %}
+
+{% block branding %}
+  {% comment %} Reuses the dashboard's own brand mark so the two are recognisably one
+     product, and links back to the staff dashboard rather than nowhere. {% endcomment %}
+  <a class="admin-brand" href="{% url 'dashboard' %}">
+    <span class="masthead__brand-mark" aria-hidden="true">AM</span>
+    <span class="masthead__brand-text">
+      <strong>Al Manar</strong>
+      <small>Interactive Challenge</small>
+    </span>
+  </a>
+{% endblock %}
+
+{% block nav-sidebar %}
+  {% include "admin/nav_sidebar.html" %}
+{% endblock %}
+
+{% block userlinks %}
+  {% comment %} Django's default user-tools row, minus the items that do not apply to this
+     project (documentation link, and the light/dark toggle, which would fight
+     the single dark palette the rest of the application uses). {% endcomment %}
+  {% if site_url %}<a href="{{ site_url }}">{% translate "Back to dashboard" %}</a>{% endif %}
+  {% if user.has_usable_password %}
+    <a href="{% url 'admin:password_change' %}">{% translate "Change password" %}</a>
+  {% endif %}
+  <form id="logout-form" method="post" action="{% url 'admin:logout' %}">
+    {% csrf_token %}
+    <button type="submit">{% translate "Sign out" %}</button>
+  </form>
+{% endblock %}
