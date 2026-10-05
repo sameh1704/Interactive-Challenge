@@ -89,6 +89,40 @@ class DjangoStartsTests(SimpleTestCase):
         )
 
 
+class SessionConfigurationTests(SimpleTestCase):
+    """How long a signed-in session stays valid.
+
+    The decision is recorded here so it cannot be changed silently and so the
+    reasoning is visible next to the number.
+    """
+
+    #: A school day, plus room for a late-afternoon competition.
+    A_SCHOOL_DAY_SECONDS = 12 * 60 * 60
+
+    def test_the_session_lifetime_is_a_school_day_not_a_fortnight(self) -> None:
+        """Django's default is 14 days; a shared staff-room machine makes that
+        a two-week window for anyone who takes a cookie off it."""
+        self.assertEqual(settings.SESSION_COOKIE_AGE, self.A_SCHOOL_DAY_SECONDS)
+
+    def test_the_session_outlives_any_lesson(self) -> None:
+        """A session must not expire while a question is on the board."""
+        longest_question = getattr(settings, "MAX_QUESTION_DURATION_SECONDS", 600)
+        self.assertGreater(settings.SESSION_COOKIE_AGE, longest_question)
+
+    def test_the_session_is_longer_than_the_day_but_shorter_than_a_week(self) -> None:
+        """Bounds on both sides: covers a working day, not a holiday weekend."""
+        self.assertGreater(settings.SESSION_COOKIE_AGE, 8 * 60 * 60)
+        self.assertLess(settings.SESSION_COOKIE_AGE, 7 * 24 * 60 * 60)
+
+    def test_the_session_cookie_stays_http_only(self) -> None:
+        """A script must not be able to read the session cookie."""
+        self.assertTrue(settings.SESSION_COOKIE_HTTPONLY)
+
+    def test_the_session_does_not_expire_when_the_browser_closes(self) -> None:
+        """A teacher who closes the tab must not be signed out mid-lesson."""
+        self.assertFalse(settings.SESSION_EXPIRE_AT_BROWSER_CLOSE)
+
+
 class EnvironmentConfigurationTests(SimpleTestCase):
     def test_secrets_are_not_hard_coded_in_settings(self) -> None:
         """Secrets must come from the process environment, not from the source."""

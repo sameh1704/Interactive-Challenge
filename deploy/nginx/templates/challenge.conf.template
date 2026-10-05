@@ -46,6 +46,17 @@ server {
     listen 80;
     server_name _;
 
+    # Do not advertise the proxy's version. `Server: nginx/1.27.5` on every
+    # response tells anything that can reach port 80 exactly which nginx build
+    # to look up published vulnerabilities for. This replaces the header value
+    # with plain `nginx`; the header itself stays, because removing it entirely
+    # is not worth the loss of a clue when debugging a reverse proxy.
+    #
+    # Valid in the http, server and location contexts; the official image's
+    # stock nginx.conf puts this server block inside http{}, so it applies to
+    # every response this container serves.
+    server_tokens off;
+
     # Uploaded question images. Served by the proxy, never by Django, so a
     # user-supplied file can never be interpreted as application code.
     location /media/ {

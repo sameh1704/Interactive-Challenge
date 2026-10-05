@@ -39,7 +39,6 @@ from channels.db import database_sync_to_async  # noqa: E402
 from channels.layers import get_channel_layer  # noqa: E402
 from django.utils import timezone  # noqa: E402
 
-from competitions.models import Competition  # noqa: E402
 from core.tests.utils import (  # noqa: E402
     create_classroom,
     create_competition,
@@ -48,6 +47,10 @@ from core.tests.utils import (  # noqa: E402
     create_teacher,
 )
 from live import clock_runner, services  # noqa: E402
+from live.tests.check_fixtures import (  # noqa: E402
+    assert_no_residue,
+    discard_check_fixtures,
+)
 from live.tests.wsclient import WebSocketClient  # noqa: E402
 
 HOST = os.environ.get("LIVE_CHECK_HOST", "127.0.0.1")
@@ -69,14 +72,19 @@ def screen_client(label: str, screen_id: str) -> WebSocketClient:
     return WebSocketClient(label, f"/ws/live/screen/?screen_id={screen_id}", HOST, PORT)
 
 
-def build_fixtures() -> dict:
-    """Create a two-lab, one-question competition, started and ready to run."""
-    tag = uuid.uuid4().hex[:6]
+def build_fixtures(tag: str) -> dict:
+    """Create a two-lab, one-question competition, started and ready to run.
+
+    ``tag`` is minted by ``main`` and passed in, so the same value bounds both
+    the fixtures created here and the cleanup afterwards. Minting it inside this
+    function meant a failure part way through left ``main`` with nothing to
+    clean up by, because the tag died with the frame.
+    """
     teacher = create_teacher(username=f"live.check.{tag}")
     lab_a = create_classroom(name=f"Science Lab A {tag}")
     lab_b = create_classroom(name=f"Science Lab B {tag}")
     question = create_question(
-        text="What is 2 + 2?",
+        text=f"What is 2 + 2? {tag}",
         options=["3", "4", "5", "6"],
         correct_option=CORRECT,
     )
@@ -89,6 +97,9 @@ def build_fixtures() -> dict:
     services.start_competition(competition)
     services.start_question(competition, position=1)
     return {
+        # The run's unique tag. `discard_check_fixtures` needs it to bound every
+        # cleanup lookup, so it is part of the fixtures rather than a local.
+        "tag": tag,
         "competition_id": competition.pk,
         "screen_a": create_screen(name=f"A board {tag}", classroom=lab_a).screen_id,
         "screen_b": create_screen(name=f"B board {tag}", classroom=lab_b).screen_id,
@@ -218,16 +229,39 @@ async def run_checks(fixtures: dict) -> int:
 
 
 def main() -> int:
-    fixtures = in_thread(build_fixtures)
-    print(
-        f"competition {fixtures['competition_id']}: two labs, one question, "
-        f"key {CORRECT!r}",
-        flush=True,
-    )
+    # Minted here, not inside build_fixtures, so that the finally below can purge
+    # even a build that raised half way through. A check that leaves fixtures
+    # behind when it crashes is worse than one that never runs.
+    tag = uuid.uuid4().hex[:6]
+    fixtures = {}
     try:
+        fixtures = in_thread(build_fixtures, tag)
+        print(
+            f"competition {fixtures['competition_id']}: two labs, one question, "
+            f"key {CORRECT!r}",
+            flush=True,
+        )
         return asyncio.run(run_checks(fixtures))
     finally:
-        in_thread(Competition.objects.filter(pk=fixtures["competition_id"]).delete)
+        # Everything this run created, not just the competition: accounts,
+        # classrooms, screens and questions were all left behind before, because
+        # nothing cascades to them. `check_fixtures` is shared with the other
+        # networked checks so the purge cannot drift between them.
+        # `competition_id` is None when the build never got that far; every
+        # other lookup is still bounded by the tag, so a partial build is purged
+        # as completely as a finished one.
+        competition_id = fixtures.get("competition_id")
+        discard = in_thread(
+            discard_check_fixtures, tag=tag, competition_id=competition_id
+        )
+        residue = in_thread(
+            assert_no_residue, tag=tag, competition_id=competition_id
+        )
+        print(f"[cleanup] removed {discard}", flush=True)
+        if residue:
+            print(f"[cleanup] WARNING: residue left behind: {residue}", flush=True)
+        else:
+            print("[cleanup] nothing left behind", flush=True)
 
 
 if __name__ == "__main__":

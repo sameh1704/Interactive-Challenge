@@ -3,7 +3,7 @@
 
 {% block title %}{{ screen.name }}{% endblock %}
 
-{#
+{% comment %}
   This page is displayed on the classroom's interactive screen itself.
 
   It shows only the screen's own identity and status. No teacher account, no
@@ -11,7 +11,7 @@
   The heartbeat keeps `last_seen` fresh so that staff can see whether the screen
   is online. It reports presence only and cannot change anything about the
   screen's registration, classroom or identity.
-#}
+{% endcomment %}
 
 {% block content %}
   <section class="screen"

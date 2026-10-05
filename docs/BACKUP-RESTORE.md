@@ -146,16 +146,136 @@ part-updated; the restore procedure is then the way back.
 
 ## Scheduling
 
-A nightly backup with a weekly verification, as two entries in the server's
-crontab. Adjust the schedule to suit:
+Scheduled with a **systemd timer** rather than cron, so a backup missed while
+the server was off runs as soon as it comes back instead of being skipped, and
+so a failure is visible in `systemctl status` rather than only in a log file
+nobody reads.
+
+Install and enable it:
+
+```bash
+cd /opt/almanar/challenge
+./deploy/install-backup-timer.sh
+```
+
+That installs and enables two timers:
+
+| Timer | Default schedule | What it runs |
+| --- | --- | --- |
+| `almanar-challenge-backup.timer` | daily 02:30 | `deploy/backup.sh` |
+| `almanar-challenge-backup-verify.timer` | Sunday 03:15 | `deploy/verify-latest-backup.sh` |
+
+Both carry `Persistent=true`, so a missed run is caught up on the next boot
+rather than lost. The backup timer also carries `RandomizedDelaySec=15m` so this
+server does not dump its database at the same instant as everything else
+scheduled for the small hours.
+
+### Where backups go
+
+| Installed as | Backup directory |
+| --- | --- |
+| `root` (recommended on the server) | `/var/backups/almanar-interactive-challenge/` |
+| a normal user | `/opt/almanar/backups/almanar-interactive-challenge/` |
+
+Both are **outside the source tree**, so a dump can never be picked up by
+`git add -A` and never sits inside a directory a `git checkout` can touch. The
+script writes a config file with these values and both `backup.sh` and the
+verification read it, so a scheduled run and a manual run always agree on where
+dumps live.
+
+Override either before installing:
+
+```bash
+BACKUP_DIR=/mnt/usb/backups KEEP_DAYS=14 ./deploy/install-backup-timer.sh
+```
+
+### Retention, checksums and verification
+
+`KEEP_DAYS` defaults to **30** and is enforced by `backup.sh`, which also writes
+a SHA-256 beside every dump and checks the archive is readable before reporting
+success. The weekly timer goes further: it restores the newest dump into a
+**scratch** database, compares every table against the live one, and drops the
+scratch database. The live database is never modified.
+
+### Logs and failure visibility
+
+```bash
+systemctl status almanar-challenge-backup.timer
+journalctl -u almanar-challenge-backup.service -n 50
+journalctl -u almanar-challenge-backup-verify.service -n 50
+```
+
+A failed backup exits non-zero, so the timer records the failure. There is
+deliberately no notification destination configured — no mail relay, no remote
+host — because an unattended notification to an address nobody set up is not
+monitoring. To be told, set `OnFailure=` on the unit to something that reaches
+you.
+
+For a non-root install, use `systemctl --user` and `journalctl --user`. The
+installer runs `loginctl enable-linger` so the timer survives logout and
+reboots; confirm with `loginctl show-user "$USER" -p Linger`.
+
+#### A user-level install needs Docker group membership
+
+`backup.sh` takes the dump with `docker exec ... pg_dump`, so whoever runs the
+timer has to be allowed to talk to the Docker socket — in practice a member of
+the `docker` group.
+
+The subtlety: a systemd **user** manager started *before* you were added to that
+group keeps its old group set, and every service it runs fails with
+
+```
+permission denied while trying to connect to the docker API at unix:///var/run/docker.sock
+```
+
+even though `docker ps` works in your shell. Log out and back in, or, without
+disrupting your session:
+
+```bash
+systemctl --user daemon-reexec
+pgrep -u "$USER" -x systemd | head -1 | \
+  xargs -I{} grep -E '^Groups' /proc/{}/status     # 983 must be in the list
+```
+
+Check that before trusting a user-level schedule. A system-level install run as
+root has no such problem, which is the other reason to prefer it.
+
+### Checking it works
+
+Do not wait for the first scheduled run to find out:
+
+```bash
+systemctl start almanar-challenge-backup.service
+journalctl -u almanar-challenge-backup.service -n 30
+```
+
+### Removing the schedule
+
+```bash
+./deploy/install-backup-timer.sh --uninstall   # keeps existing dumps
+./deploy/install-backup-timer.sh --status      # show what is installed
+```
+
+### Restoring from a scheduled backup
+
+```bash
+ls -t /var/backups/almanar-interactive-challenge/*.dump | head -1
+./deploy/restore.sh /var/backups/almanar-interactive-challenge/challenge-<stamp>.dump --verify
+./deploy/restore.sh /var/backups/almanar-interactive-challenge/challenge-<stamp>.dump --live --confirm
+```
+
+### cron, if you prefer it
 
 ```cron
 # Nightly backup at 02:15
-15 2 * * * cd /opt/almanar/challenge && ./deploy/backup.sh >> /var/log/challenge-backup.log 2>&1
+15 2 * * * cd /opt/almanar/challenge && BACKUP_DIR=/var/backups/almanar-interactive-challenge ./deploy/backup.sh >> /var/log/challenge-backup.log 2>&1
 
 # Weekly restore verification, Sunday 03:40
-40 3 * * 0 cd /opt/almanar/challenge && ./deploy/restore.sh "$(ls -t backups/*.dump | head -1)" --verify >> /var/log/challenge-restore-check.log 2>&1
+40 3 * * 0 cd /opt/almanar/challenge && BACKUP_DIR=/var/backups/almanar-interactive-challenge ./deploy/verify-latest-backup.sh >> /var/log/challenge-restore-check.log 2>&1
 ```
+
+Unlike the timers, neither cron entry runs a backup that was missed while the
+machine was off.
 
 ---
 

@@ -58,7 +58,6 @@ from channels.layers import get_channel_layer  # noqa: E402
 from django.test import Client as DjangoTestClient  # noqa: E402
 from django.utils import timezone  # noqa: E402
 
-from competitions.models import Competition  # noqa: E402
 from core.tests.utils import (  # noqa: E402
     create_classroom,
     create_competition,
@@ -68,6 +67,10 @@ from core.tests.utils import (  # noqa: E402
     create_true_false_question,
 )
 from live import clock_runner  # noqa: E402
+from live.tests.check_fixtures import (  # noqa: E402
+    assert_no_residue,
+    discard_check_fixtures,
+)
 from live.tests.wsclient import WebSocketClient  # noqa: E402
 
 HOST = os.environ.get("LIVE_CHECK_HOST", "127.0.0.1")
@@ -127,24 +130,29 @@ async def wait_for_where(client: WebSocketClient, event_type: str, predicate, wh
 # ---------------------------------------------------------------------------
 
 
-def build_fixtures() -> dict:
+def build_fixtures(tag: str) -> dict:
     """A three-lab round with two questions of different types.
 
-    Question 1 is true/false so that a wrong answer is unambiguous; question 2 is
-    short answer, so the timeout run also exercises a question type that arrived in
-    this phase.
+Question 1 is true/false so that a wrong answer is unambiguous; question 2 is
+    short answer, so the timeout run also exercises a question type that arrived
+    in this phase.
+
+    ``tag`` is minted by ``main`` and passed in, so the same value bounds both the
+    fixtures created here and the cleanup afterwards. Every question's text
+    carries it: cleanup finds its rows by matching on it, and a question whose
+    text does not include the tag could never be matched and so would survive
+    every run.
     """
     from core.tests.utils import TEST_PASSWORD
 
-    tag = uuid.uuid4().hex[:6]
     teacher = create_teacher(username=f"multi.{tag}")
     classrooms = [create_classroom(name=f"{name} {tag}") for name in LABS]
 
     question_one = create_true_false_question(
-        text="Water boils at 100 °C at sea level.", value=True
+        text=f"Water boils at 100 °C at sea level. {tag}", value=True
     )
     question_two = create_short_answer_question(
-        text="Which gas do plants take in?",
+        text=f"Which gas do plants take in? {tag}",
         accepted_answers=["carbon dioxide", "co2"],
         explanation="Plants take in carbon dioxide for photosynthesis.",
     )
@@ -165,6 +173,9 @@ def build_fixtures() -> dict:
         raise AssertionError("could not obtain a teacher session")
 
     return {
+        # The run's unique tag, needed by the cleanup below to bound every
+        # lookup so it can only ever remove rows this run created.
+        "tag": tag,
         "competition_id": competition.pk,
         "cookies": {name: morsel.value for name, morsel in http.cookies.items()},
         "screens": [
@@ -402,16 +413,40 @@ async def run_timeout_pass(teacher, labs, channel_layer, competition_id) -> None
 
 
 def main() -> int:
-    fixtures = in_thread(build_fixtures)
-    print(
-        f"competition {fixtures['competition_id']}: 1 teacher and "
-        f"{len(fixtures['screens'])} classrooms, two questions",
-        flush=True,
-    )
+    # Minted here, not inside build_fixtures, so the finally below can purge even a
+    # build that raised half way through. A check that leaves fixtures behind when
+    # it crashes is worse than one that never runs.
+    tag = uuid.uuid4().hex[:6]
+    fixtures = {}
     try:
+        fixtures = in_thread(build_fixtures, tag)
+        print(
+            f"competition {fixtures['competition_id']}: 1 teacher and "
+            f"{len(fixtures['screens'])} classrooms, two questions",
+            flush=True,
+        )
         return asyncio.run(run_checks(fixtures))
     finally:
-        in_thread(Competition.objects.filter(pk=fixtures["competition_id"]).delete)
+        # Everything this run created, not just the competition. Deleting only
+        # the competition used to leave the teacher account, the three
+        # classrooms, the three screens and both questions behind, because
+        # nothing cascades to them. `check_fixtures` is shared with the other
+        # networked checks so the purge cannot drift between them.
+        # `competition_id` is None when the build never got that far; every
+        # other lookup is still bounded by the tag, so a partial build is purged
+        # as completely as a finished one.
+        competition_id = fixtures.get("competition_id")
+        discard = in_thread(
+            discard_check_fixtures, tag=tag, competition_id=competition_id
+        )
+        residue = in_thread(
+            assert_no_residue, tag=tag, competition_id=competition_id
+        )
+        print(f"[cleanup] removed {discard}", flush=True)
+        if residue:
+            print(f"[cleanup] WARNING: residue left behind: {residue}", flush=True)
+        else:
+            print("[cleanup] nothing left behind", flush=True)
 
 
 if __name__ == "__main__":

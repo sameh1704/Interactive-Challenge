@@ -125,6 +125,50 @@ LOGIN_REDIRECT_URL = "dashboard"
 LOGOUT_REDIRECT_URL = "core:landing"
 
 
+# One password rule, deliberately a floor rather than a composition rule.
+#
+# A school needs passwords its staff can actually choose: typed on a keypad,
+# written on a whiteboard, reset by a non-specialist administrator. Rules like
+# "one uppercase, one digit, one symbol" are reliably worked around with
+# `Password1` and then shared across a desk, which is worse than a slightly
+# longer single word. Eight characters is long enough to make an unthrottled
+# guessing run hopeless and short enough not to obstruct anybody.
+#
+# Online guessing is separately bounded by LOGIN_RATE_LIMIT (see the rate
+# limiting section below), so this rule is about the *chosen* password, not
+# about the rate: it stops an account being protected by a four-character guess.
+AUTH_PASSWORD_VALIDATORS = [
+    {
+        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
+        # Django's own default is 8. Written out so the number is a decision
+        # recorded here rather than a framework default that could change.
+        "OPTIONS": {"min_length": 8},
+    }
+]
+
+
+# ---------------------------------------------------------------------------
+# Sessions
+# ---------------------------------------------------------------------------
+#
+# How long a signed-in session stays valid, in seconds.
+#
+# The decision: twelve hours, not the framework default of fourteen days.
+#
+# A teacher's day is one contiguous block - sign in before first period, stay
+# signed in through the day, sign out at the end. Twelve hours covers that with
+# room to spare, including a late-afternoon competition, so nobody is asked to
+# sign in mid-lesson. What it deliberately does not cover is a device left
+# signed in overnight on a shared staff-room machine: with a fortnight-long
+# cookie, a session stolen from such a machine stays usable for two weeks, which
+# is the whole window an attacker needs to sit in the competition engine and
+# the question bank.
+#
+# Twelve hours is also comfortably longer than any lesson, so a session cannot
+# expire mid-question. A teacher who is signed out simply signs in again.
+SESSION_COOKIE_AGE = env_int("SESSION_COOKIE_AGE", 12 * 60 * 60)
+
+
 # ---------------------------------------------------------------------------
 # Interactive screens
 # ---------------------------------------------------------------------------

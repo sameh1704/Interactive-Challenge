@@ -63,7 +63,7 @@
 
   <p class="live-teacher__error" data-role="error" hidden></p>
 
-  {#
+  {% comment %}
     One control per transition, each named for the state it produces. No control
     does two jobs: "End question" ends the question and nothing else, which is
     why it exists separately from "Next question" at all.
@@ -71,7 +71,7 @@
     `data-requires` lists the server states in which the control is meaningful.
     The server refuses an out-of-state action either way - this only stops the
     teacher being offered a button that will bounce.
-  #}
+  {% endcomment %}
   <div class="live-teacher__controls">
     <button type="button" class="button button--primary"
             data-control="start_competition" data-requires="not_started,finished">

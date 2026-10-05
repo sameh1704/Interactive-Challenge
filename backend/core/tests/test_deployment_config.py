@@ -48,6 +48,13 @@ PROD_COMPOSE = PROJECT_ROOT / "docker-compose.prod.yml"
 DEV_COMPOSE = PROJECT_ROOT / "docker-compose.yml"
 ENV_EXAMPLE = PROJECT_ROOT / ".env.example"
 
+#: The settings module's own source. Always present, in a source checkout and
+#: inside the container image alike, because the image copies `backend/` to /app.
+#: Used to assert what a setting's *shipped default* is, which `settings` cannot
+#: answer: by the time settings are built the environment has already overridden
+#: whatever the default was.
+BASE_SETTINGS = Path(settings.BASE_DIR) / "config" / "settings" / "base.py"
+
 #: The container image carries only backend/ and tests/, so these files exist in a
 #: source checkout and not inside challenge-web. The tests skip rather than fail
 #: there: the host checkout is where these files are edited and reviewed.
@@ -172,6 +179,27 @@ class NginxStructureTests(SimpleTestCase):
             self.nginx, r"proxy_set_header\s+Connection\s+\$connection_upgrade\s*;"
         )
         self.assertIn("proxy_buffering off;", self.nginx)
+
+    def test_the_server_token_is_suppressed(self):
+        """The proxy must not advertise its exact version.
+
+        `Server: nginx/1.27.5` on every response tells anything that can reach
+        the port which nginx build to check published advisories against.
+        `server_tokens off` reduces the header to plain `nginx`.
+        """
+        self.assertRegex(
+            self.nginx,
+            r"(?m)^\s*server_tokens\s+off\s*;",
+            "the proxy template must set `server_tokens off;`",
+        )
+
+    def test_the_server_token_suppression_is_not_undone(self):
+        """Guards against a later edit quietly re-exposing the version."""
+        self.assertNotRegex(
+            self.nginx,
+            r"(?m)^\s*server_tokens\s+on\s*;",
+            "`server_tokens on` would put the version back in the header",
+        )
 
     def test_the_socket_read_timeout_exceeds_the_application_heartbeat(self):
         """A round can sit idle between questions; the socket must survive it.
@@ -364,10 +392,82 @@ class EnvExampleTests(SimpleTestCase):
         )
         self.assertGreater(settings.SCREEN_ONLINE_WINDOW_SECONDS, 60)
 
-    def test_the_default_forwarded_for_trust_is_off(self):
-        """Trusting the header is only correct behind the overwriting proxy, so it
-        is never the default - the production overlay switches it on."""
-        self.assertFalse(settings.SCREEN_TRUST_FORWARDED_FOR)
+    def test_the_base_default_for_forwarded_trust_is_off(self):
+        """Trusting the header is only correct behind the overwriting proxy, so
+        it is never the default - the production overlay switches it on.
+
+        Asserted against the *source* rather than ``settings``, deliberately.
+        This module runs both outside a source checkout (where the deployment
+        files are absent and the whole class is skipped) and inside the
+        production container, where ``SCREEN_TRUST_FORWARDED_FOR`` is correctly
+        ``True``. Reading ``settings`` here made the assertion depend on which
+        settings module happened to be loaded, so the one test guarding this
+        coupling failed in production - the environment it exists to describe.
+
+        What is actually being guaranteed is unchanged: the shipped default is
+        off, so an application run without the proxy behind it never believes a
+        client-supplied address. ``test_the_production_overlay_turns_it_on`` in
+        ProxyHeaderTests pins the other half.
+        """
+        source = read(BASE_SETTINGS)
+        match = re.search(
+            r"SCREEN_TRUST_FORWARDED_FOR\s*=\s*env_bool\(\s*"
+            r'"SCREEN_TRUST_FORWARDED_FOR"\s*,\s*default=(\w+)\s*\)',
+            source,
+        )
+        self.assertIsNotNone(
+            match, "base.py must read SCREEN_TRUST_FORWARDED_FOR with an explicit default"
+        )
+        self.assertEqual(
+            match.group(1),
+            "False",
+            "base.py must default SCREEN_TRUST_FORWARDED_FOR to False",
+        )
         self.assertRegex(
             self.env, r"(?m)^SCREEN_TRUST_FORWARDED_FOR=(False|false|0|no)\s*$"
+        )
+
+    def test_the_proxy_and_websocket_settings_are_documented(self):
+        """The effective proxy configuration must be visible in the repository.
+
+        These are read by `docker-compose.prod.yml` and by nothing else, so an
+        operator looking at `.env.example` had no way to know they existed, let
+        alone what they were set to. Documented here with the values the overlay
+        actually defaults to, so the file cannot quietly fall behind the compose
+        file it mirrors.
+        """
+        documented = dict(
+            re.findall(r"^([A-Z][A-Z0-9_]*)=(\S*)\s*$", self.env, re.M)
+        )
+        expected = {
+            name: default
+            for name, default in re.findall(
+                r"\$\{("
+                r"NGINX_[A-Z_]+|PROXY_[A-Z_]+|WS_[A-Z_]+):-([^}]+)\}",
+                read(PROD_COMPOSE),
+            )
+        }
+        self.assertTrue(
+            expected,
+            "no proxy or WebSocket variable found in the production overlay",
+        )
+        for name, default in expected.items():
+            self.assertIn(
+                name, documented, f"{name} is undocumented in .env.example"
+            )
+            self.assertEqual(
+                documented[name],
+                default,
+                f"{name}: .env.example says {documented[name]!r}, the compose "
+                f"overlay defaults to {default!r}",
+            )
+
+    def test_the_documented_session_lifetime_matches_the_settings(self):
+        documented = dict(
+            re.findall(r"^([A-Z][A-Z0-9_]*)=(\S*)\s*$", self.env, re.M)
+        )
+        self.assertIn("SESSION_COOKIE_AGE", documented)
+        self.assertEqual(
+            int(documented["SESSION_COOKIE_AGE"]),
+            settings.SESSION_COOKIE_AGE,
         )

@@ -2,12 +2,15 @@
 
 from __future__ import annotations
 
-from django.contrib.auth import get_user_model
+from django.conf import settings
+from django.contrib.auth import authenticate, get_user_model
+from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError, transaction
 from django.test import TestCase
 
 from accounts.roles import Role
+from core.tests.factories import TEST_PASSWORD
 
 UserModel = get_user_model()
 
@@ -153,3 +156,82 @@ class RoleStorageTests(TestCase):
     def test_role_labels_are_human_readable(self) -> None:
         self.assertEqual(Role.ADMINISTRATOR.label, "Administrator")
         self.assertEqual(Role.TEACHER.label, "Teacher")
+
+
+class PasswordPolicyTests(TestCase):
+    """What the deployment will and will not accept as a password.
+
+    Driven through ``validate_password`` rather than a form, so it states the
+    policy itself and is not coupled to which screen happens to enforce it. The
+    admin screens enforce it via Django's ``UserCreationForm``; see
+    ``UserCrudTests`` for the end-to-end behaviour.
+
+    The policy is deliberately one rule and deliberately small: a minimum length
+    of 8, and no composition requirement. A school needs passwords its staff can
+    type and an administrator can reset, so a rule that is routinely satisfied
+    with ``Password1`` would be theatre.
+    """
+
+    #: The configured minimum, read from the settings so this test cannot drift
+    #: away from the number the application actually enforces.
+    MINIMUM = settings.AUTH_PASSWORD_VALIDATORS[0]["OPTIONS"]["min_length"]
+
+    def test_a_minimum_length_validator_is_configured(self) -> None:
+        self.assertEqual(
+            [entry["NAME"] for entry in settings.AUTH_PASSWORD_VALIDATORS],
+            [
+                "django.contrib.auth.password_validation.MinimumLengthValidator",
+            ],
+            "the policy is one rule: a length floor, not a composition checklist",
+        )
+
+    def test_the_minimum_is_eight(self) -> None:
+        self.assertEqual(self.MINIMUM, 8)
+
+    def test_a_password_at_the_minimum_is_accepted(self) -> None:
+        validate_password("a" * self.MINIMUM)
+
+    def test_a_password_below_the_minimum_is_refused(self) -> None:
+        with self.assertRaises(ValidationError):
+            validate_password("a" * (self.MINIMUM - 1))
+
+    def test_a_very_short_password_is_refused(self) -> None:
+        with self.assertRaises(ValidationError):
+            validate_password("ab")
+
+    def test_an_empty_password_is_refused(self) -> None:
+        with self.assertRaises(ValidationError):
+            validate_password("")
+
+    def test_a_phrase_is_accepted_without_composition_rules(self) -> None:
+        """A long lowercase phrase must pass: no uppercase, digit or symbol needed.
+
+        This is the property that keeps the policy from being worked around.
+        If it ever starts demanding a symbol, staff will comply with `Password1`
+        and share it, which is strictly worse than the phrase.
+        """
+        validate_password("correct horse battery staple")
+
+    def test_the_test_password_the_suite_relies_on_satisfies_the_policy(self) -> None:
+        """Every factory in the suite creates users with this password.
+
+        Without this, tightening the policy later would fail hundreds of tests
+        at once with a password complaint that looks like a product bug.
+        """
+        validate_password(TEST_PASSWORD)
+
+    def test_existing_accounts_can_still_sign_in(self) -> None:
+        """The policy governs choosing a new password, not signing in.
+
+        A password set before the policy existed is still accepted at login, or
+        adding the policy would lock every teacher out of the system.
+        """
+        UserModel.objects.create_user(
+            username="legacy.teacher", password=TEST_PASSWORD, role=Role.TEACHER
+        )
+
+        self.assertTrue(
+            authenticate(
+                username="legacy.teacher", password=TEST_PASSWORD
+            )
+        )

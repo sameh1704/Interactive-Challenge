@@ -9,6 +9,28 @@
   {% block extra_head %}{% endblock %}
 </head>
 <body>
+  {% comment %}
+    Every page carries a CSRF token, signed in or not.
+
+    The screen heartbeat is an anonymous POST and is not exempted from CSRF, so
+    the token has to be reachable from a plain page load: an interactive screen
+    has no session and never will. The cookie alone authorises nothing - the
+    token must come back in a header or form field, which a cross-site caller
+    cannot do.
+
+    A separate hidden form, so the sign-out form keeps its own token and this one
+    can never be mistaken for a form that is submitted. It has no action and no
+    submit control, so it renders nothing and submits nothing.
+
+    This block uses the block form of the comment tag on purpose. The brace form
+    cannot span lines and cannot contain another brace comment, so writing
+    anything explanatory in it puts visible prose in front of every visitor. An
+    earlier revision did exactly that, and the trailing hash-brace was printed on
+    every page until this was caught. core/tests/test_templates.py now fails if
+    it is reintroduced.
+  {% endcomment %}
+  <form hidden aria-hidden="true">{% csrf_token %}</form>
+
   <header class="masthead">
     <div class="masthead__inner">
       <a class="masthead__brand" href="{% url 'core:landing' %}">

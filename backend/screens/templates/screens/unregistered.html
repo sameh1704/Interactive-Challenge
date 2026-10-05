@@ -2,13 +2,13 @@
 
 {% block title %}Screen not registered{% endblock %}
 
-{#
+{% comment %}
   Shown when a screen presents an unknown, retired or missing Screen ID.
 
   Unknown and inactive Screen IDs produce this same page, so the endpoint cannot
   be used to discover which Screen IDs are registered. It deliberately contains
   no list of screens, no staff details and no administration link.
-#}
+{% endcomment %}
 
 {% block content %}
   <section class="screen screen--unregistered">

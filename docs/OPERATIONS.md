@@ -256,22 +256,47 @@ docker exec almanar-challenge-web python manage.py check
 docker exec almanar-challenge-web python manage.py makemigrations --check --dry-run
 ```
 
-Live checks, against the running stack:
+Live checks, against the running stack. **Set the host to the address the
+application is reached at in production, not the proxy's container name** —
+see "Why the address, not the container name" below:
 
 ```bash
+# Replace 172.16.1.2 with the deployment's own address, from ALLOWED_HOSTS.
+SERVER=172.16.1.2
+
 # Three classrooms plus a teacher, over real sockets.
-docker exec -e LIVE_CHECK_HOST=dryrun-challenge-proxy -e LIVE_CHECK_PORT=80 \
+docker exec -e LIVE_CHECK_HOST=$SERVER -e LIVE_CHECK_PORT=80 \
   almanar-challenge-web python -m live.tests.live_multi_client_check
 
 # Reveal behaviour, including the server clock reaching a deadline.
-docker exec -e LIVE_CHECK_HOST=dryrun-challenge-proxy -e LIVE_CHECK_PORT=80 \
+docker exec -e LIVE_CHECK_HOST=$SERVER -e LIVE_CHECK_PORT=80 \
   almanar-challenge-web python -m live.tests.live_reveal_check
 
 # A full round at classroom scale.
-docker exec -e LIVE_CHECK_HOST=dryrun-challenge-proxy -e LIVE_CHECK_PORT=80 \
+docker exec -e LIVE_CHECK_HOST=$SERVER -e LIVE_CHECK_PORT=80 \
   almanar-challenge-web python -m live.tests.live_load_check --screens 20 \
-  --host dryrun-challenge-proxy --port 80
+  --host $SERVER --port 80 --allow-remote-host --allow-production-settings
 ```
 
-Substitute the real proxy container name. These write test data into the
-database, so run them on a copy or outside a lesson.
+The load check writes to the database it is pointed at, so it refuses to run
+against a non-local host or under production settings until both are explicitly
+allowed. On a deployment with real competition results, run it on a rehearsal
+database instead.
+
+#### Why the address, not the container name
+
+Pointing these at the proxy's container name — `almanar-challenge-proxy` — looks
+like it should work, and does not. The check connects to that name on port 80,
+which reaches nginx, and nginx forwards the request with `Host:
+almanar-challenge-proxy`. Django then applies `ALLOWED_HOSTS`, which lists the
+addresses the school actually uses and not Docker's internal names, and refuses
+the request with **HTTP 400**.
+
+This is the correct behaviour and must stay that way: `ALLOWED_HOSTS` is a
+security control that stops one school server answering requests meant for
+another, and adding container names to it to make a test convenient would widen
+the accepted set for every request. Use the deployment address.
+
+To reach Daphne directly, bypassing the proxy, use `127.0.0.1:8000` from inside
+the container — but that skips the nginx WebSocket upgrade path, so it does not
+prove the proxy works. Prefer the address above.
