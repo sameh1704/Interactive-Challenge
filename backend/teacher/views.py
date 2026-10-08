@@ -20,6 +20,7 @@ from accounts.permissions import is_administrator, is_staff_member
 from accounts.roles import Role
 from classrooms.models import Classroom
 from competitions.models import Competition, CompetitionState
+from questions.forms import TeacherQuestionForm
 from questions.models import Question
 from tournaments import services
 from tournaments.models import Tournament, TournamentStatus
@@ -266,8 +267,8 @@ class QuestionBankView(TemplateView):
         return reverse("accounts:login")
 
 
-class QuestionCreateView(TemplateView):
-    """Create a new question."""
+class QuestionCreateView(View):
+    """Create a new question using the unified Question Builder."""
 
     template_name = "teacher/question_form.html"
 
@@ -275,23 +276,75 @@ class QuestionCreateView(TemplateView):
     def dispatch(self, request, *args, **kwargs):
         return super().dispatch(request, *args, **kwargs)
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
+    def get(self, request, *args, **kwargs):
+        form = TeacherQuestionForm()
+        question = None
+        save_option = request.GET.get("save_option", "save")
+        context = self._build_context(form, question, save_option, is_edit=False)
+        return render(request, self.template_name, context)
 
-        context.update({
+    def post(self, request, *args, **kwargs):
+        form = TeacherQuestionForm(request.POST, request.FILES)
+        save_option = request.POST.get("save_option", "save")
+        if form.is_valid():
+            question = form.save(teacher=request.user)
+            messages.success(request, f"Question #{question.pk} saved.")
+            if save_option == "save_another":
+                return redirect("teacher:create_question")
+            if save_option == "save_to_competition":
+                return redirect(f"{reverse('teacher:create_competition')}?question_id={question.pk}")
+            return redirect("teacher:questions")
+        context = self._build_context(form, None, save_option, is_edit=False)
+        return render(request, self.template_name, context)
+
+    def _build_context(self, form, question, save_option, *, is_edit):
+        user = self.request.user
+        preview_data = {}
+        if form.is_bound and form.is_valid():
+            preview_data = self._build_preview(form.cleaned_data)
+        elif not form.is_bound:
+            preview_data = {
+                "type": QuestionType.MULTIPLE_CHOICE,
+                "text": "",
+                "options": [],
+                "correct_option": "",
+                "correct_answer": None,
+                "type_config": {},
+                "duration_seconds": 30,
+                "active": True,
+            }
+        context = {
+            "form": form,
+            "question": question,
             "question_types": QuestionType.choices,
-            "is_administrator": is_administrator(self.request.user),
-            "is_teacher": self.request.user.is_teacher,
-            "role_display": self.request.user.get_role_display(),
-        })
+            "save_option": save_option,
+            "is_edit": is_edit,
+            "preview_data": preview_data,
+            "is_administrator": is_administrator(user),
+            "is_teacher": user.is_teacher,
+            "role_display": user.get_role_display(),
+        }
         return context
+
+    @staticmethod
+    def _build_preview(cleaned: dict) -> dict:
+        return {
+            "type": cleaned.get("question_type"),
+            "text": cleaned.get("text", ""),
+            "options": cleaned.get("_parsed_options", []) or [],
+            "correct_option": cleaned.get("correct_option", ""),
+            "correct_answer": cleaned.get("_parsed_correct_answer"),
+            "type_config": cleaned.get("_parsed_type_config", {}) or {},
+            "duration_seconds": cleaned.get("duration_seconds", 30),
+            "active": cleaned.get("active", True),
+        }
 
     def get_login_url(self) -> str:
         return reverse("accounts:login")
 
 
-class QuestionEditView(TemplateView):
-    """Edit an existing question."""
+class QuestionEditView(View):
+    """Edit an existing question using the unified Question Builder."""
 
     template_name = "teacher/question_form.html"
 
@@ -299,20 +352,64 @@ class QuestionEditView(TemplateView):
     def dispatch(self, request, *args, **kwargs):
         return super().dispatch(request, *args, **kwargs)
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        pk = self.kwargs["pk"]
+    def get(self, request, *args, **kwargs):
+        question = self._get_question()
+        form = TeacherQuestionForm(instance=question)
+        save_option = request.GET.get("save_option", "save")
+        context = self._build_context(form, question, save_option, is_edit=True)
+        return render(request, self.template_name, context)
 
-        # Get the question
-        question = get_object_or_404(Question, pk=pk)
+    def post(self, request, *args, **kwargs):
+        question = self._get_question()
+        form = TeacherQuestionForm(request.POST, request.FILES, instance=question)
+        save_option = request.POST.get("save_option", "save")
+        if form.is_valid():
+            form.save(teacher=request.user)
+            messages.success(request, f"Question #{question.pk} updated.")
+            if save_option == "save_another":
+                return redirect("teacher:create_question")
+            if save_option == "save_to_competition":
+                return redirect(f"{reverse('teacher:create_competition')}?question_id={question.pk}")
+            return redirect("teacher:questions")
+        context = self._build_context(form, question, save_option, is_edit=True)
+        return render(request, self.template_name, context)
 
-        context.update({
+    def _get_question(self):
+        question = get_object_or_404(Question, pk=self.kwargs["pk"])
+        user = self.request.user
+        if not is_administrator(user) and question.correct_option != "":
+            # Teachers can edit any question (shared bank for now), but we keep
+            # the permission hook in place for future tightening.
+            pass
+        return question
+
+    def _build_context(self, form, question, save_option, *, is_edit):
+        user = self.request.user
+        preview_data = {}
+        if form.is_bound and form.is_valid():
+            preview_data = QuestionCreateView._build_preview(form.cleaned_data)
+        elif form.instance and form.instance.pk:
+            preview_data = {
+                "type": form.instance.question_type,
+                "text": form.instance.text,
+                "options": list(form.instance.options or []),
+                "correct_option": form.instance.correct_option or "",
+                "correct_answer": form.instance.correct_answer,
+                "type_config": form.instance.type_config or {},
+                "duration_seconds": form.instance.duration_seconds,
+                "active": form.instance.active,
+            }
+        context = {
+            "form": form,
             "question": question,
             "question_types": QuestionType.choices,
-            "is_administrator": is_administrator(self.request.user),
-            "is_teacher": self.request.user.is_teacher,
-            "role_display": self.request.user.get_role_display(),
-        })
+            "save_option": save_option,
+            "is_edit": is_edit,
+            "preview_data": preview_data,
+            "is_administrator": is_administrator(user),
+            "is_teacher": user.is_teacher,
+            "role_display": user.get_role_display(),
+        }
         return context
 
     def get_login_url(self) -> str:
