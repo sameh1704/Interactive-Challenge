@@ -1,0 +1,34 @@
+{% extends "teacher/base.html" %}
+
+{% block title %}Tournament Detail{% endblock %}
+
+{% block content %}
+  <section class="page-heading">
+    <h1 class="page-heading__title">{{ tournament.name }}</h1>
+    <p class="page-heading__subtitle">Tournament details</p>
+  </section>
+
+  <section class="stats" aria-label="Tournament details">
+    <div class="stat">
+      <span class="stat__value">{{ tournament.status }}</span>
+      <span class="stat__label">Status</span>
+    </div>
+    <div class="stat">
+      <span class="stat__value">{{ tournament.stages.count }}</span>
+      <span class="stat__label">Stages</span>
+    </div>
+    <div class="stat">
+      <span class="stat__value">{{ tournament.participants.count }}</span>
+      <span class="stat__label">Participants</span>
+    </div>
+    <div class="stat">
+      <span class="stat__value">{{ tournament.created_at|date:"Y-m-d" }}</span>
+      <span class="stat__label">Created</span>
+    </div>
+  </section>
+
+  <div class="page-actions">
+    <a class="button button--quiet" href="{% url 'teacher:tournaments' %}">Back to list</a>
+    <a class="button button--quiet" href="{% url 'tournaments:detail' pk=tournament.pk %}">Full management &rarr;</a>
+  </div>
+{% endblock %}

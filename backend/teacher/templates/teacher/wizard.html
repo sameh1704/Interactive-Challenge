@@ -1,0 +1,249 @@
+{% extends "teacher/base.html" %}
+
+{% block title %}Create Competition{% endblock %}
+
+{% block content %}
+  <section class="page-heading">
+    <h1 class="page-heading__title">Create Competition</h1>
+    <p class="page-heading__subtitle">Follow the steps to set up a live round</p>
+  </section>
+
+  <!-- Progress indicator -->
+  <section class="wizard-progress">
+    <div class="wizard-progress__items">
+      {% for step_item in wizard_steps %}
+        <div class="wizard-progress__item wizard-progress__item--{{ step_item.state }}">
+          <span class="wizard-progress__number">{{ step_item.index|add:1 }}</span>
+          <span class="wizard-progress__label">{{ step_item.label }}</span>
+        </div>
+      {% endfor %}
+    </div>
+  </section>
+
+  {% if errors %}
+    <div class="form-errors">
+      <p><strong>Please fix the following errors:</strong></p>
+      <ul>
+        {% for field, error in errors.items %}
+          <li>{{ error }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+  {% endif %}
+
+  <!-- Step 1: Basic Information -->
+  {% if step == "basic" %}
+    <section class="panel">
+      <h2 class="panel__heading">Step 1 — Basic Information</h2>
+      <form method="post" class="form">
+        {% csrf_token %}
+        <div class="field">
+          <label class="field__label" for="id_title">
+            Competition Name
+            {% if errors.title %}<span class="field__error" aria-live="polite">{{ errors.title }}</span>{% endif %}
+          </label>
+          <input type="text" name="title" id="id_title" value="{{ title }}" required autofocus>
+          <small class="field__help">What will this round be called? e.g. "Science Lab 1 versus Science Lab 2"</small>
+        </div>
+        <div class="field">
+          <label class="field__label" for="id_subject">Subject</label>
+          <input type="text" name="subject" id="id_subject" value="{{ subject }}" placeholder="e.g. Science">
+        </div>
+        <div class="field">
+          <label class="field__label" for="id_grade">Grade</label>
+          <input type="text" name="grade" id="id_grade" value="{{ grade }}" placeholder="e.g. Grade 7">
+        </div>
+        <div class="field">
+          <label class="field__label" for="id_description">Description (optional)</label>
+          <textarea name="description" id="id_description" rows="3">{{ description }}</textarea>
+        </div>
+        <div class="page-actions">
+          <button type="submit" name="action" value="next" class="button">Next: Select Classes</button>
+        </div>
+      </form>
+    </section>
+  {% endif %}
+
+  <!-- Step 2: Participating Classrooms -->
+  {% if step == "classrooms" %}
+    <section class="panel">
+      <h2 class="panel__heading">Step 2 — Participating Classrooms</h2>
+      <p class="panel__body">Select the classrooms that will take part in this competition.</p>
+      <form method="post" class="form">
+        {% csrf_token %}
+        <div class="classroom-selection">
+          {% if classrooms %}
+            {% for classroom in classrooms %}
+              <label class="classroom-card {% if classroom.pk in selected_classroom_ids %}classroom-card--selected{% endif %}">
+                <input type="checkbox" name="classroom_ids" value="{{ classroom.pk }}"
+                       {% if classroom.pk in selected_classroom_ids %}checked{% endif %} class="visually-hidden">
+                <div class="classroom-card__content">
+                  <div class="classroom-card__header">
+                    <span class="classroom-card__name">{{ classroom.display_name }}</span>
+                    {% if classroom.pk in selected_classroom_ids %}<span class="classroom-card__selected">Selected</span>{% endif %}
+                  </div>
+                  {% if classroom.location %}<p class="classroom-card__meta">{{ classroom.location }}</p>{% endif %}
+                  {% if classroom.grade %}<p class="classroom-card__meta">{{ classroom.grade }}</p>{% endif %}
+                </div>
+              </label>
+            {% endfor %}
+          {% else %}
+            <p class="panel__body">No classrooms are available. Please assign classrooms to your teacher account.</p>
+          {% endif %}
+        </div>
+        {% if errors.classrooms %}<p class="field__error" aria-live="polite">{{ errors.classrooms }}</p>{% endif %}
+        <div class="page-actions">
+          <button type="submit" name="action" value="back" class="button button--quiet">Back: Basic Info</button>
+          <button type="submit" name="action" value="next" class="button">Next: Settings</button>
+        </div>
+      </form>
+    </section>
+  {% endif %}
+
+  <!-- Step 3: Competition Settings -->
+  {% if step == "settings" %}
+    <section class="panel">
+      <h2 class="panel__heading">Step 3 — Competition Settings</h2>
+      <form method="post" class="form">
+        {% csrf_token %}
+        <div class="field">
+          <label class="field__label" for="id_duration_seconds">
+            Time per question
+            <span class="field__help-icon" title="How long each question stays on screen. Answering closes automatically.">?</span>
+            {% if errors.duration_seconds %}<span class="field__error" aria-live="polite">{{ errors.duration_seconds }}</span>{% endif %}
+          </label>
+          <input type="number" name="duration_seconds" id="id_duration_seconds" value="{{ duration_seconds }}" min="5" max="600" required>
+          <small class="field__help">Seconds each question is shown (5–600). Answering closes automatically when time runs out.</small>
+        </div>
+        <div class="field">
+          <label class="field__label" for="id_scoring_mode">
+            Scoring mode
+            <span class="field__help-icon" title="How points are awarded for correct answers.">?</span>
+          </label>
+          <select name="scoring_mode" id="id_scoring_mode">
+            <option value="standard" {% if scoring_mode == "standard" %}selected{% endif %}>Standard</option>
+          </select>
+          <small class="field__help">Correct answers earn the configured points.</small>
+        </div>
+        <div class="field">
+          <label class="field__label" for="id_speed_bonus">
+            Speed bonus
+            <span class="field__help-icon" title="Extra points for correct answers submitted early.">?</span>
+          </label>
+          <input type="number" name="speed_bonus" id="id_speed_bonus" value="{{ speed_bonus }}" min="0" max="100" required>
+          <small class="field__help">Extra points for correct answers submitted early. 0 disables the speed bonus.</small>
+        </div>
+        <div class="page-actions">
+          <button type="submit" name="action" value="back" class="button button--quiet">Back: Classes</button>
+          <button type="submit" name="action" value="next" class="button">Next: Select Questions</button>
+        </div>
+      </form>
+    </section>
+  {% endif %}
+
+   <!-- Step 4: Select Questions -->
+   {% if step == "questions" %}
+     {% load wizard_extras %}
+     <section class="panel">
+       <h2 class="panel__heading">Step 4 — Select Questions</h2>
+       <p class="panel__body">Search, filter and add questions from the question bank.</p>
+       
+       <!-- Search and filter form -->
+       <form method="get" class="form form--inline">
+         <div class="field">
+           <label class="field__label" for="id_q">Search questions</label>
+           <input type="text" name="q" id="id_q" value="{{ q }}" placeholder="Search by question text...">
+         </div>
+         <div class="field">
+           <label class="field__label" for="id_type">Question Type</label>
+           <select name="type" id="id_type">
+             <option value="">All types</option>
+             {% for qt_value, qt_label in question_type_choices %}
+               <option value="{{ qt_value }}" {% if question_type == qt_value %}selected{% endif %}>{{ qt_label }}</option>
+             {% endfor %}
+           </select>
+         </div>
+         <button type="submit" name="action" value="search" class="button">Search</button>
+         <button type="submit" name="action" value="clear" class="button button--quiet">Clear</button>
+       </form>
+       
+       <p class="panel__body">{{ selected_question_ids|length }} question(s) selected. Uncheck to remove.</p>
+       <form method="post" class="form">
+         {% csrf_token %}
+         <div class="question-bank">
+           {% if questions %}
+             {% for question in questions %}
+               <label class="question-card {% if question.pk in selected_question_ids %}question-card--selected{% endif %}">
+                 <input type="checkbox" name="question_ids" value="{{ question.pk }}"
+                        {% if question.pk in selected_question_ids %}checked{% endif %} class="visually-hidden">
+                 <div class="question-card__content">
+                   <div class="question-card__preview">{{ question.text|truncatewords:12 }}</div>
+                   <div class="question-card__meta">
+                     <span class="badge">{{ question.get_question_type_display }}</span>
+                     <span class="question-card__duration">{{ question.duration_seconds }}s</span>
+                   </div>
+                   {% if question.pk in selected_question_ids %}
+                     <span class="question-card__action">Added</span>
+                   {% else %}
+                     <span class="question-card__action">Add</span>
+                   {% endif %}
+                 </div>
+               </label>
+             {% endfor %}
+           {% else %}
+             <p class="panel__body">No questions are available in the question bank.</p>
+           {% endif %}
+         </div>
+         {% if errors.questions %}<p class="field__error" aria-live="polite">{{ errors.questions }}</p>{% endif %}
+         <div class="page-actions">
+           <button type="submit" name="action" value="back" class="button button--quiet">Back: Settings</button>
+           <button type="submit" name="action" value="next" class="button">Next: Review</button>
+           <button type="submit" name="action" value="save_draft" class="button button--quiet">Save Draft</button>
+         </div>
+       </form>
+     </section>
+   {% endif %}
+
+  <!-- Step 5: Review -->
+  {% if step == "review" %}
+    <section class="panel">
+      <h2 class="panel__heading">Step 5 — Review</h2>
+      <p class="panel__body">Check your competition details before creating it.</p>
+      <div class="review-summary">
+        <div class="review-block">
+          <h3>Competition</h3>
+          <p><strong>{{ review_title }}</strong></p>
+          <p>Subject: {{ review_subject }} &middot; Grade: {{ review_grade }}</p>
+          {% if review_description %}<p>{{ review_description }}</p>{% endif %}
+        </div>
+        <div class="review-block">
+          <h3>Participating Classrooms</h3>
+          <ul>
+            {% for classroom in review_classrooms %}
+              <li>{{ classroom.display_name }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+        <div class="review-block">
+          <h3>Questions</h3>
+          <p>{{ review_question_count }} questions selected</p>
+          {% for question in review_questions %}
+            <p>{{ forloop.counter }}. {{ question.text|truncatewords:10 }} <span class="badge">{{ question.get_question_type_display }}</span></p>
+          {% endfor %}
+        </div>
+        <div class="review-block">
+          <h3>Settings</h3>
+          <p>Time per question: {{ review_duration_seconds }} seconds</p>
+          <p>Speed bonus: {{ review_speed_bonus }} points</p>
+          <p>Estimated duration: {{ review_estimated_minutes|floatformat:1 }} minutes</p>
+        </div>
+      </div>
+      <form method="post" class="page-actions">
+        {% csrf_token %}
+        <button type="submit" name="action" value="back" class="button button--quiet">Back: Questions</button>
+        <button type="submit" name="action" value="save_draft" class="button button--quiet">Save Draft</button>
+        <button type="submit" name="action" value="submit" class="button">Create Competition</button>
+      </form>
+    </section>
+  {% endif %}
+{% endblock %}

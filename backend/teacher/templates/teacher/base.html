@@ -1,0 +1,66 @@
+{% load static %}<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Teacher Workspace{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'core/css/site.css' %}">
+  <link rel="stylesheet" href="{% static 'teacher/css/teacher.css' %}">
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+  <form hidden aria-hidden="true">{% csrf_token %}</form>
+
+  <header class="masthead">
+    <div class="masthead__inner">
+      <a class="masthead__brand" href="{% url 'teacher:dashboard' %}">
+        <span class="masthead__brand-mark">AM</span>
+        <span class="masthead__brand-text">
+          <strong>Teacher</strong>
+          <small>Workspace</small>
+        </span>
+      </a>
+
+      <nav class="masthead__nav">
+        {% if user.is_authenticated %}
+          <a href="{% url 'teacher:dashboard' %}">Dashboard</a>
+          <a href="{% url 'teacher:competitions' %}">My Competitions</a>
+          <a href="{% url 'teacher:competitions' %}">Create Competition</a>
+          <a href="{% url 'teacher:questions' %}">Question Bank</a>
+          <a href="{% url 'teacher:create_question' %}">Create Question</a>
+          <a href="{% url 'teacher:tournaments' %}">My Tournaments</a>
+          <a href="{% url 'teacher:create_tournament' %}">Create Tournament</a>
+          <a href="{% url 'teacher:reports' %}">Reports</a>
+          <a href="{% url 'teacher:hall_of_fame' %}">Hall of Fame</a>
+          <a href="{% url 'teacher:help' %}">Help</a>
+          <span class="masthead__user">{{ user.get_full_name }}</span>
+          <form method="post" action="{% url 'accounts:logout' %}" class="masthead__logout">
+            {% csrf_token %}
+            <button type="submit" class="button button--quiet">Sign out</button>
+          </form>
+        {% else %}
+          <a href="{% url 'accounts:login' %}">Sign in</a>
+        {% endif %}
+      </nav>
+    </div>
+  </header>
+
+  {% if messages %}
+    <div class="messages">
+      {% for message in messages %}
+        <p class="messages__item messages__item--{{ message.tags }}">{{ message }}</p>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <main class="page">
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="page__footer">
+    <span>Al Manar Interactive Challenge</span>
+  </footer>
+
+  {% block extra_scripts %}{% endblock %}
+</body>
+</html>

@@ -25,6 +25,10 @@ administrator access, and nothing here grants or implies any permission.
 from __future__ import annotations
 
 from django.contrib.admin import AdminSite
+from django.contrib.auth.views import redirect_to_login
+from django.shortcuts import redirect
+
+from accounts.permissions import is_administrator, is_teacher
 
 
 class ChallengeAdminSite(AdminSite):
@@ -34,6 +38,19 @@ class ChallengeAdminSite(AdminSite):
     site_header = "Al Manar Interactive Challenge"
     index_title = "Administration"
     enable_nav_sidebar = True
+
+    def dispatch(self, request, *args, **kwargs):
+        # Admin is administrator-only by design. Teachers are redirected to the
+        # teacher workspace; anonymous users are sent to sign in. This prevents
+        # teachers from accidentally using the implementation-oriented admin and
+        # blocks URL-guessing of restricted admin endpoints.
+        if is_teacher(request.user):
+            # Teacher: send to the simplified workspace.
+            from django.urls import reverse
+            return redirect(reverse("teacher:dashboard"))
+        if not request.user.is_authenticated:
+            return redirect_to_login(request.get_full_path())
+        return super().dispatch(request, *args, **kwargs)
 
     def index(self, request, extra_context=None):
         """Add the school's own totals to Django's standard app list.

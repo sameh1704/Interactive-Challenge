@@ -220,6 +220,7 @@ INSTALLED_APPS = [
     "scoring",
     "tournaments",
     "reports",
+    "teacher",
 ]
 
 MIDDLEWARE = [

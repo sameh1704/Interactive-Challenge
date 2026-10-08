@@ -1,0 +1,33 @@
+{% extends "teacher/base.html" %}
+
+{% block title %}Competition Detail{% endblock %}
+
+{% block content %}
+  <section class="page-heading">
+    <h1 class="page-heading__title">{{ competition.title }}</h1>
+    <p class="page-heading__subtitle">Competition details</p>
+  </section>
+
+  <section class="stats" aria-label="Competition details">
+    <div class="stat">
+      <span class="stat__value">{{ competition.state }}</span>
+      <span class="stat__label">State</span>
+    </div>
+    <div class="stat">
+      <span class="stat__value">{{ competition.questions.count }}</span>
+      <span class="stat__label">Questions</span>
+    </div>
+    <div class="stat">
+      <span class="stat__value">{{ competition.classrooms.count }}</span>
+      <span class="stat__label">Classrooms</span>
+    </div>
+    <div class="stat">
+      <span class="stat__value">{{ competition.created_at|date:"Y-m-d" }}</span>
+      <span class="stat__label">Created</span>
+    </div>
+  </section>
+
+  <div class="page-actions">
+    <a class="button button--quiet" href="{% url 'teacher:competitions' %}">Back to list</a>
+  </div>
+{% endblock %}

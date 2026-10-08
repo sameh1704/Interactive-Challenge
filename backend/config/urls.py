@@ -12,6 +12,11 @@ Public surface:
 * ``/reports/``    - competition, classroom, question and tournament reports
 * ``/accounts/``   - sign in / sign out
 
+Teacher surface:
+
+* ``/teacher/``    - simplified teacher workspace
+* ``/workspace/``  - alias for the teacher workspace
+
 Administrator-only surface:
 
 * ``/admin/``      - Django admin, for teachers, classrooms and screens
@@ -24,6 +29,8 @@ from core.dashboard import DashboardView
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+    path("teacher/", include("teacher.urls")),
+    path("workspace/", include("teacher.urls")),
     path("accounts/", include("accounts.urls")),
     path("dashboard/", DashboardView.as_view(), name="dashboard"),
     path("screen/", include("screens.urls")),

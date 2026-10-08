@@ -1,0 +1,48 @@
+{% extends "teacher/base.html" %}
+
+{% block title %}Question Bank{% endblock %}
+
+{% block content %}
+  <section class="page-heading">
+    <h1 class="page-heading__title">Question Bank</h1>
+    <p class="page-heading__subtitle">Manage your questions</p>
+  </section>
+
+  <div class="page-actions">
+    <a class="button" href="{% url 'teacher:create_question' %}">Add Question</a>
+  </div>
+
+  {% if questions %}
+    <section class="panel">
+      <table class="table">
+        <thead>
+          <tr>
+            <th scope="col">Question</th>
+            <th scope="col">Type</th>
+            <th scope="col">Duration</th>
+            <th scope="col">Active</th>
+            <th scope="col">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for question in questions %}
+            <tr>
+              <td>{{ question.text|truncatewords:10 }}</td>
+              <td>{{ question.get_question_type_display }}</td>
+              <td>{{ question.duration_seconds }}s</td>
+              <td>{{ question.active }}</td>
+              <td>
+                <a href="{% url 'teacher:edit_question' pk=question.pk %}">Edit</a>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </section>
+  {% else %}
+    <section class="panel">
+      <p class="panel__body">No questions in the bank. Add one to get started.</p>
+      <a class="button" href="{% url 'teacher:create_question' %}">Add Question</a>
+    </section>
+  {% endif %}
+{% endblock %}

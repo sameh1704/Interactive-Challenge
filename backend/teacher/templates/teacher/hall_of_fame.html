@@ -1,0 +1,47 @@
+{% extends "teacher/base.html" %}
+
+{% block title %}Hall of Fame{% endblock %}
+
+{% block content %}
+  <section class="page-heading">
+    <h1 class="page-heading__title">Hall of Fame</h1>
+    <p class="page-heading__subtitle">Completed tournaments and champions</p>
+  </section>
+
+  {% if records %}
+    {% for record in records %}
+      <section class="panel">
+        <h2 class="panel__heading">{{ record.tournament.name }}</h2>
+        <p class="panel__meta">
+          {{ record.tournament.season }} &middot; {{ record.tournament.grade }}
+        </p>
+        {% if record.rows %}
+          <table class="table">
+            <thead>
+              <tr>
+                <th scope="col">Rank</th>
+                <th scope="col">Classroom</th>
+                <th scope="col">Score</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for row in record.rows %}
+                <tr>
+                  <td>{{ row.rank }}</td>
+                  <td>{{ row.participant_name }}</td>
+                  <td>{{ row.score }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        {% else %}
+          <p class="panel__body">No standings recorded.</p>
+        {% endif %}
+      </section>
+    {% endfor %}
+  {% else %}
+    <section class="panel">
+      <p class="panel__body">No completed tournaments yet.</p>
+    </section>
+  {% endif %}
+{% endblock %}

@@ -1,0 +1,50 @@
+{% extends "teacher/base.html" %}
+
+{% block title %}My Competitions{% endblock %}
+
+{% block content %}
+  <section class="page-heading">
+    <h1 class="page-heading__title">My Competitions</h1>
+    <p class="page-heading__subtitle">Manage your live rounds</p>
+  </section>
+
+  <div class="page-actions">
+    <a class="button" href="{% url 'teacher:create_competition' %}">Create Competition</a>
+  </div>
+
+  {% if competitions %}
+    <section class="panel">
+      <table class="table">
+        <thead>
+          <tr>
+            <th scope="col">Title</th>
+            <th scope="col">State</th>
+            <th scope="col">Questions</th>
+            <th scope="col">Classrooms</th>
+            <th scope="col">Created</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for competition in competitions %}
+            <tr>
+              <td>
+                <a href="{% url 'teacher:competition_detail' pk=competition.pk %}">
+                  {{ competition.title }}
+                </a>
+              </td>
+              <td>{{ competition.state }}</td>
+              <td>{{ competition.questions.count }}</td>
+              <td>{{ competition.classrooms.count }}</td>
+              <td>{{ competition.created_at|date:"Y-m-d H:i" }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </section>
+  {% else %}
+    <section class="panel">
+      <p class="panel__body">No competitions found. Create one to get started.</p>
+      <a class="button" href="{% url 'teacher:create_competition' %}">Create Competition</a>
+    </section>
+  {% endif %}
+{% endblock %}

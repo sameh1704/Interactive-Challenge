@@ -1,0 +1,82 @@
+{% extends "teacher/base.html" %}
+
+{% block title %}Teacher Dashboard{% endblock %}
+
+{% block content %}
+  <section class="page-heading">
+    <h1 class="page-heading__title">Teacher Dashboard</h1>
+    <p class="page-heading__subtitle">
+      Signed in as {{ user.get_full_name }} &middot; {{ role_display }}
+    </p>
+  </section>
+
+  <section class="stats" aria-label="Dashboard statistics">
+    <div class="stat">
+      <span class="stat__value">{{ my_competitions.draft }}</span>
+      <span class="stat__label">Draft Competitions</span>
+    </div>
+    <div class="stat">
+      <span class="stat__value">{{ my_competitions.upcoming }}</span>
+      <span class="stat__label">Upcoming Competitions</span>
+    </div>
+    <div class="stat">
+      <span class="stat__value">{{ recent_results|length }}</span>
+      <span class="stat__label">Recently Finished</span>
+    </div>
+    <div class="stat">
+      <span class="stat__value">{{ question_bank_total }}</span>
+      <span class="stat__label">Question Bank</span>
+    </div>
+  </section>
+
+  {% if primary_actions %}
+    <section class="panel">
+      <h2 class="panel__heading">Quick Actions</h2>
+      <div class="page-actions">
+        {% for action in primary_actions %}
+          <a class="button" href="{{ action.url }}">{{ action.title }}</a>
+        {% endfor %}
+      </div>
+    </section>
+  {% endif %}
+
+  {% if active_tournament %}
+    <section class="panel">
+      <h2 class="panel__heading">Active Tournament</h2>
+      <p><strong>{{ active_tournament.name }}</strong></p>
+      <p class="panel__body">
+        <a href="{% url 'tournaments:detail' pk=active_tournament.pk %}">View tournament &rarr;</a>
+      </p>
+    </section>
+  {% endif %}
+
+  {% if my_competitions.recent %}
+    <section class="panel">
+      <h2 class="panel__heading">Recently Finished</h2>
+      <table class="table">
+        <thead>
+          <tr>
+            <th scope="col">Competition</th>
+            <th scope="col">State</th>
+            <th scope="col">Finished</th>
+            <th scope="col">Questions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for comp in my_competitions.recent %}
+            <tr>
+              <td>{{ comp.title }}</td>
+              <td>
+                <span class="badge {% if comp.is_finished %}status-online{% else %}status-offline{% endif %}">
+                  {{ comp.state }}
+                </span>
+              </td>
+              <td>{{ comp.finished_at|default:"—" }}</td>
+              <td>{{ comp.questions.count }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </section>
+  {% endif %}
+{% endblock %}

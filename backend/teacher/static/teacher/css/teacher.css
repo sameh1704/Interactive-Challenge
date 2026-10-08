@@ -1,0 +1,197 @@
+/* Teacher wizard progress indicator */
+
+.wizard-progress {
+  margin-bottom: 2rem;
+}
+
+.wizard-progress__items {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  position: relative;
+}
+
+.wizard-progress__item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  z-index: 1;
+}
+
+.wizard-progress__number {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.9rem;
+  border: 2px solid var(--colour-border);
+  background: var(--colour-surface);
+  color: var(--colour-muted);
+  margin-bottom: 0.4rem;
+}
+
+.wizard-progress__item--active .wizard-progress__number {
+  border-color: var(--colour-accent);
+  color: var(--colour-accent);
+  background: var(--colour-bg);
+}
+
+.wizard-progress__item--complete .wizard-progress__number {
+  border-color: var(--colour-accent);
+  color: var(--colour-accent);
+  background: var(--colour-accent);
+}
+
+.wizard-progress__item--pending .wizard-progress__number {
+  border-color: var(--colour-border);
+  color: var(--colour-muted);
+}
+
+.wizard-progress__label {
+  font-size: 0.75rem;
+  color: var(--colour-muted);
+  line-height: 1.2;
+}
+
+.wizard-progress__item--active .wizard-progress__label,
+.wizard-progress__item--complete .wizard-progress__label {
+  color: var(--colour-text);
+  font-weight: 600;
+}
+
+/* Field help icon */
+.field__help-icon {
+  cursor: pointer;
+  color: var(--colour-muted);
+  font-size: 0.8rem;
+  margin-left: 0.3rem;
+}
+
+/* Classroom and question cards */
+.classroom-card,
+.question-card {
+  display: block;
+  padding: 1rem 1.25rem;
+  border: 1px solid var(--colour-border);
+  border-radius: var(--radius);
+  background: var(--colour-surface-raised);
+  margin-bottom: 0.75rem;
+  cursor: pointer;
+  transition: border-color 0.2s, background-color 0.2s;
+}
+
+.classroom-card:hover,
+.question-card:hover {
+  border-color: var(--colour-accent);
+  background: var(--colour-bg);
+}
+
+.classroom-card--selected,
+.question-card--selected {
+  border-color: var(--colour-accent);
+  background: var(--colour-bg);
+}
+
+.classroom-card__content,
+.question-card__content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.classroom-card__header,
+.question-card__preview {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.classroom-card__name {
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.classroom-card__selected {
+  color: var(--colour-accent);
+  font-size: 0.8rem;
+}
+
+.classroom-card__meta,
+.question-card__meta,
+.question-card__duration {
+  font-size: 0.85rem;
+  color: var(--colour-muted);
+}
+
+.classroom-card__meta + .classroom-card__meta,
+.question-card__meta > span + span {
+  margin-left: 0.5rem;
+}
+
+/* Question bank */
+.question-bank {
+  max-height: 40rem;
+  overflow-y: auto;
+  padding-right: 0.5rem;
+}
+
+/* Review summary */
+.review-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.review-block h3 {
+  margin: 0 0 0.75rem;
+  font-size: 1rem;
+  color: var(--colour-accent);
+}
+
+.review-block p,
+.review-block li {
+  margin: 0.25rem 0;
+}
+
+.review-block ul {
+  margin: 0;
+  padding-left: 1.25rem;
+}
+
+/* Field helper text */
+.field__help {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--colour-muted);
+  margin-top: 0.25rem;
+}
+
+/* Visually hidden (for accessible checkbox labels) */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Inline fields */
+.field--inline {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.field--inline input,
+.field--inline select {
+  flex: 1;
+}

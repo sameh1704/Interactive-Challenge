@@ -1,0 +1,23 @@
+{% extends "teacher/base.html" %}
+
+{% block title %}Reports{% endblock %}
+
+{% block content %}
+  <section class="page-heading">
+    <h1 class="page-heading__title">Reports</h1>
+    <p class="page-heading__subtitle">Competition and classroom reports</p>
+  </section>
+
+  <section class="panel">
+    <h2 class="panel__heading">Available Reports</h2>
+    <ul class="panel__list">
+      <li>Competition report - performance by competition</li>
+      <li>Classroom report - performance by classroom</li>
+      <li>Question report - statistics by question</li>
+      <li>Tournament report - championship standings</li>
+    </ul>
+    <div class="page-actions">
+      <a class="button" href="{% url 'reports:index' %}">Open Reports &rarr;</a>
+    </div>
+  </section>
+{% endblock %}
