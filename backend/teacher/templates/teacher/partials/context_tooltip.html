@@ -1,0 +1,8 @@
+{% load i18n %}
+<details class="context-tip">
+  <summary>{% translate label|default:"Why is this?" %}</summary>
+  <div class="context-tip__content">
+    <p>{% translate text %}</p>
+    {% if arabic %}<p class="context-hint__arabic" lang="ar" dir="rtl">{{ arabic }}</p>{% endif %}
+  </div>
+</details>

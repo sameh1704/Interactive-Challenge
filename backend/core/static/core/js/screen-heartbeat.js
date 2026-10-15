@@ -20,6 +20,8 @@
     return;
   }
 
+  var onlineLabel = root.getAttribute("data-label-online") || "Online";
+  var offlineLabel = root.getAttribute("data-label-offline") || "Offline";
   var screenId = root.getAttribute("data-screen-id");
   var intervalMs = parseInt(root.getAttribute("data-heartbeat-interval"), 10) * 1000;
   if (isNaN(intervalMs) || intervalMs < 5000) {
@@ -76,11 +78,11 @@
       send()
         .then(function (payload) {
           var online = payload.status === "online";
-          setStatus(online ? "Online" : "Offline", online);
+          setStatus(online ? onlineLabel : offlineLabel, online);
           schedule(intervalMs);
         })
         .catch(function () {
-          setStatus("Offline", false);
+          setStatus(offlineLabel, false);
           schedule(RETRY_DELAY_MS);
         });
     }, delay);
@@ -89,11 +91,11 @@
   send()
     .then(function (payload) {
       var online = payload.status === "online";
-      setStatus(online ? "Online" : "Offline", online);
+      setStatus(online ? onlineLabel : offlineLabel, online);
       schedule(intervalMs);
     })
     .catch(function () {
-      setStatus("Offline", false);
+      setStatus(offlineLabel, false);
       schedule(RETRY_DELAY_MS);
     });
 })();

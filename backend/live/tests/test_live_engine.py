@@ -44,6 +44,8 @@ from core.tests.utils import (
 from live import clock_runner, groups, heartbeat, presence, services
 from live.events import (
     ANSWERING_CLOSED,
+    RECONNECT_NOW,
+    WAITING,
     COMPETITION_FINISHED,
     COMPETITION_STARTED,
     NEXT_QUESTION,
@@ -457,16 +459,30 @@ class CompetitionStartTests(LiveTestCase):
 
     async def _test_starting_a_competition_broadcasts_to_every_screen_impl(self) -> None:
         """A screen joins a started round, and every one of them hears it open."""
-        # There is nothing to join before the teacher presses start, so the
-        # screen is refused outright rather than left waiting on a socket that
-        # would never receive anything.
-        _, connected_before_start = await self._connect_screen(self.screen)
-        self.assertFalse(connected_before_start)
+        # Before the teacher presses start there is no round to join, so the
+        # screen is accepted as *waiting* and holds its socket - rather than
+        # refused and left retrying, which would put every screen in the school
+        # on the same client address that the Screen ID limit counts. The screen
+        # is then brought in by the nudge, without reconnecting.
+        before_start, connected_before_start = await self._connect_screen(self.screen)
+        self.assertTrue(connected_before_start)
+        waiting, _ = await drain_until(before_start, WAITING)
+        self.assertEqual(waiting["state"], "waiting")
 
         teacher, _ = await self._connect_teacher(self.teacher, self.competition)
         await self._skip_intro(teacher)
         await send_message(teacher, {"type": "start_competition"})
         await drain_until(teacher, COMPETITION_STARTED)
+
+        # The waiting screen is told to ask again - not sent the round - and the
+        # socket it opens afterwards joins the round properly.
+        nudge, _ = await drain_until(before_start, RECONNECT_NOW)
+        self.assertEqual(nudge["reason"], COMPETITION_STARTED)
+
+        rejoined, connected = await self._connect_screen(self.screen)
+        self.assertTrue(connected)
+        joined, _ = await drain_until(rejoined, WELCOME)
+        self.assertEqual(joined["competition_id"], self.competition.pk)
 
         extra_screens = [
             await self.make_screen(name=f"Board {index}", classroom=self.classroom)

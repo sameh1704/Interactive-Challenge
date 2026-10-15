@@ -214,6 +214,7 @@ INSTALLED_APPS = [
     "accounts",
     "classrooms",
     "screens",
+    "subjects",
     "questions",
     "competitions",
     "live",
@@ -227,9 +228,11 @@ MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.middleware.locale.LocaleMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "accounts.middleware.StageDeputyBoundaryMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
@@ -254,6 +257,10 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "django.template.context_processors.i18n",
+                # The active light/dark theme, for the `data-theme` attribute on
+                # <html> and the switcher form in the shared masthead.
+                "core.context_processors.theme_context",
             ],
         },
     },
@@ -429,10 +436,95 @@ LOGIN_RATE_LIMIT_ACCOUNT_FACTOR = env_int("LOGIN_RATE_LIMIT_ACCOUNT_FACTOR", 5)
 # Internationalisation
 # ---------------------------------------------------------------------------
 
-LANGUAGE_CODE = "en-us"
+LANGUAGE_CODE = "en"
+LANGUAGES = [
+    ("en", "English"),
+    ("ar", "العربية"),
+]
+LOCALE_PATHS = [BASE_DIR / "locale"]
+
+# How long the language cookie survives, in seconds.
+#
+# Django's own default is None, which makes the cookie a *session* cookie: it
+# disappears the moment the browser closes. That is wrong for this deployment.
+# A teacher who picks Arabic should not be handed English again the next morning
+# because the browser was restarted overnight, and a teacher signing out at the
+# end of a lesson and back in the next one must not have to pick again.
+#
+# It is deliberately keyed to the same lifetime as the session cookie rather than
+# a longer one: the language is a preference held alongside a signed-in identity,
+# so it should expire with the session rather than linger on a shared staff-room
+# machine for weeks. It is stored in its own cookie, not in the Django session,
+# so signing out (which flushes the session) does not clear it.
+LANGUAGE_COOKIE_AGE = env_int("LANGUAGE_COOKIE_AGE", SESSION_COOKIE_AGE)
+
+# The cookie Django's `set_language` view writes and `LocaleMiddleware` reads on
+# every following request. Django 5.2's `get_language_from_request` reads the
+# cookie, not the session, so this cookie is the carrier of the active language
+# between requests. Keeping Django's own name also keeps the view compatible with
+# the documentation, and any bookmark that carries the cookie keeps working.
+LANGUAGE_COOKIE_NAME = env_str("LANGUAGE_COOKIE_NAME", "django_language")
+LANGUAGE_COOKIE_PATH = env_str("LANGUAGE_COOKIE_PATH", "/")
+LANGUAGE_COOKIE_DOMAIN = env_str("LANGUAGE_COOKIE_DOMAIN", "")
+
+# The language cookie carries no identity and nothing sensitive: it is a
+# two-character display preference, and the page already prints the chosen
+# language. There is nothing here for JavaScript to steal, and marking it
+# unreadable would only make a future client-side switch unable to show the
+# current choice.
+LANGUAGE_COOKIE_HTTPONLY = False
+
+# SameSite=Lax: the language switch is a POST (the masthead switcher posts to
+# `/i18n/setlang/`), and Lax both protects that POST and still sends the cookie
+# on every ordinary top-level navigation afterwards.
+LANGUAGE_COOKIE_SAMESITE = "Lax"
+
+# Secure flag: Django's default is False, which is correct for a school server
+# still serving plain HTTP. Production mirrors SESSION_COOKIE_SECURE, so the
+# language cookie is flagged Secure on exactly the same transports that can
+# carry the session cookie.
+
 TIME_ZONE = env_str("TIME_ZONE", "UTC")
 USE_I18N = True
 USE_TZ = True
+
+# --- theme cookie (light / dark) ------------------------------------------------
+#
+# The theme is a per-device display preference, so it is a cookie and not part of
+# the session (which logout flushes) and not a field on the user (which would
+# make one teacher's choice follow another onto a shared machine). See
+# `core/theme.py` for the reasoning in full.
+#
+# It is not HttpOnly: `theme-manager.js` writes it so the switch can apply
+# without a page reload, and it is written server-side too, so the deployment's
+# attributes are the ones the browser keeps. The value is one of two words and
+# grants access to nothing.
+THEME_COOKIE_NAME = env_str("THEME_COOKIE_NAME", "almanar_theme")
+
+# A year: the requirement is that the choice survives a browser restart, which a
+# session cookie cannot do. It is not keyed to the twelve-hour session because a
+# display preference is not a credential - it is the same argument as the desk
+# lamp being left on. `almanar_theme` is not sensitive, so a long life carries no
+# risk that a short one would avoid.
+THEME_COOKIE_AGE = env_int("THEME_COOKIE_AGE", 365 * 24 * 60 * 60)
+
+THEME_COOKIE_PATH = env_str("THEME_COOKIE_PATH", "/")
+THEME_COOKIE_DOMAIN = env_str("THEME_COOKIE_DOMAIN", "")
+
+# The toggle posts a form, so the POST needs SameSite protection; the cookie it
+# leaves behind must then be sent on every ordinary top-level navigation. Lax is
+# the value that does both.
+THEME_COOKIE_SAMESITE = "Lax"
+
+# Not HttpOnly, so the JavaScript can write it (see above). The value it carries
+# is not a secret and not personal data: it is one of two words.
+THEME_COOKIE_HTTPONLY = False
+
+# Secure flag defaults to off, matching Django and matching a school server that
+# is still serving plain HTTP. Production mirrors SESSION_COOKIE_SECURE, so the
+# cookie is flagged Secure on exactly the transports that can already carry the
+# session - the same rule the language cookie follows.
+THEME_COOKIE_SECURE = False
 
 
 # ---------------------------------------------------------------------------

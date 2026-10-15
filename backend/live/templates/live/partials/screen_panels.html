@@ -1,0 +1,86 @@
+{% load i18n %}
+ {% comment %}
+The panels of a live classroom screen, once, shared by both addresses a screen
+can be opened from.
+A screen is registered with its own URL (`/screen/?screen_id=AM-XXXXXX`, the one
+the Administrator copies from the admin), and the same display is also served at
+`/live/screen/`. Both pages run screen.js against exactly this markup, which is
+why it lives here rather than in either template: two copies would drift, and the
+symptom of that drift is a screen that shows the wrong thing in front of a
+classroom.
+Each panel is a state; screen.js shows exactly one. 
+ {% endcomment %}
+    <section class="screen__panel" data-panel="connecting">
+      <p class="screen__state">{% translate "Connecting" %}</p>
+      <p class="screen__lead">{% translate "Joining the competition…" %}</p>
+    </section>
+
+    <section class="screen__panel" data-panel="offline" hidden>
+      <p class="screen__state">{% translate "Reconnecting" %}</p>
+      <p class="screen__lead">
+        {% translate "The connection to the server dropped. This screen will rejoin by itself." %}
+      </p>
+    </section>
+
+    <section class="screen__panel" data-panel="waiting" hidden>
+      <p class="screen__state">{% translate "Waiting" %}</p>
+      <p class="screen__lead">
+        {% translate "Get ready. The next competition will appear here." %}
+      </p>
+    </section>
+
+    <section class="screen__panel" data-panel="question" hidden>
+      <h1 class="screen__question" data-role="question-text"></h1>
+      <img class="screen__image" data-role="question-image" alt="" hidden>
+
+      <div class="screen__options" data-role="options" hidden></div>
+
+      <ol class="screen__order-list" data-role="ordering" hidden></ol>
+
+      <div class="screen__categories" data-role="classification" hidden></div>
+      <div class="screen__item-pool" data-role="item-pool" hidden></div>
+
+      <form class="screen__shortanswer" data-role="shortanswer" hidden>
+        <input
+          class="screen__input"
+          data-role="shortanswer-input"
+          type="text"
+          autocomplete="off"
+          autocapitalize="off"
+          spellcheck="false"
+          aria-label="{% translate 'Your answer' %}">
+        <button class="screen__submit" type="submit">{% translate "Send answer" %}</button>
+      </form>
+
+      <button class="screen__submit" type="button" data-role="submit" hidden>
+        {% translate "Send answer" %}
+      </button>
+    </section>
+
+    <section class="screen__panel" data-panel="locked" hidden>
+      <div class="screen__lock-icon" aria-hidden="true">&#10003;</div>
+      <p class="screen__lead" data-role="locked-text">
+        {% translate "Answer sent. Waiting for the teacher." %}
+      </p>
+    </section>
+
+    <section class="screen__panel" data-panel="closed" hidden>
+      <p class="screen__state">{% translate "Answers closed" %}</p>
+      <p class="screen__lead">{% translate "The teacher has closed this question." %}</p>
+    </section>
+
+    <section class="screen__panel" data-panel="result" hidden>
+      <p class="screen__verdict" data-role="verdict"></p>
+      <p class="screen__key" data-role="correct-answer" hidden></p>
+      <p class="screen__explanation" data-role="explanation" hidden></p>
+    </section>
+
+    <section class="screen__panel" data-panel="board" hidden>
+      <p class="screen__state">{% translate "Leaderboard" %}</p>
+      <ol class="screen__board" data-role="board"></ol>
+    </section>
+
+    <section class="screen__panel" data-panel="finished" hidden>
+      <p class="screen__state">{% translate "Finished" %}</p>
+      <p class="screen__lead" data-role="final-summary"></p>
+    </section>

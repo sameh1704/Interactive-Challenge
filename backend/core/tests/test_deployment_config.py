@@ -54,6 +54,7 @@ ENV_EXAMPLE = PROJECT_ROOT / ".env.example"
 #: answer: by the time settings are built the environment has already overridden
 #: whatever the default was.
 BASE_SETTINGS = Path(settings.BASE_DIR) / "config" / "settings" / "base.py"
+DOCKERFILE = PROJECT_ROOT / "backend" / "Dockerfile"
 
 #: The container image carries only backend/ and tests/, so these files exist in a
 #: source checkout and not inside challenge-web. The tests skip rather than fail
@@ -290,17 +291,80 @@ class ProductionComposeTests(SimpleTestCase):
         for name in ("DJANGO_SECRET_KEY", "DATABASE_PASSWORD", "ALLOWED_HOSTS"):
             self.assertIn(f"${{{name}:?{name} is required}}", self.prod)
 
+    def test_secure_cookies_are_not_on_by_default_in_the_overlay(self):
+        """The site is served over plain HTTP, where a Secure cookie dies.
+
+        A browser will not store or send a cookie marked Secure over an
+        ``http://`` origin. With ``True`` as the fallback, a container that does
+        not read the env file silently gets the flags turned on, and every
+        sign-in then fails with a 403 "CSRF verification failed" - with no hint
+        which setting caused it. That is exactly what happened to this
+        deployment: the stack was started with the base compose file alone, so the
+        overlay's ``SESSION_COOKIE_SECURE: ${SESSION_COOKIE_SECURE:-False}`` was
+        never read and the settings fell back to True.
+
+        The default has to be the safe one for the transport actually in use.
+        """
+        for name in ("SESSION_COOKIE_SECURE", "CSRF_COOKIE_SECURE"):
+            self.assertIn(
+                f"{name}: ${{{name}:-False}}",
+                self.prod,
+                f"{name} must default to False: this deployment is plain HTTP",
+            )
+
+    def test_every_environment_key_the_application_reads_is_passed_by_the_overlay(self):
+        """A flag the settings read must be in the environment, or it silently
+        takes its default.
+
+        This is the test that would have caught the login bug. The overlay passed
+        CSRF_TRUSTED_ORIGINS but not the two cookie flags, so the container used
+        production defaults while the deployment was plain HTTP.
+        """
+        # Everything production.py reads from the environment.
+        from django.conf import settings
+
+        settings_module = PROJECT_ROOT / "backend" / "config" / "settings" / "production.py"
+        read_names = set(re.findall(r'^\s*\w+\s*=\s*env_bool\("([A-Z_]+)"', settings_module.read_text(), re.MULTILINE))
+        read_names |= set(re.findall(r'^\s*\w+\s*=\s*env_int\("([A-Z_]+)"', settings_module.read_text(), re.MULTILINE))
+
+        # LANGUAGES/LOCALE_PATHS and friends come from base.py; only the
+        # production file is checked here, and only for the cookie flags, which
+        # are the ones that break sign-in.
+        critical = {"SESSION_COOKIE_SECURE", "CSRF_COOKIE_SECURE"}
+        missing = critical - read_names
+        self.assertFalse(
+            missing,
+            f"production.py does not read {sorted(missing)} from the environment",
+        )
+        for name in critical & read_names:
+            self.assertIn(f"{name}: ${{{name}", self.prod, f"{name} must reach the container")
+
     def test_migrations_run_once_in_a_prepare_service_not_in_web(self):
         self.assertIn("challenge-prepare:", self.prod)
         self.assertIn("python manage.py migrate --noinput", self.prod)
         self.assertIn('restart: "no"', self.prod)
 
     def test_collectstatic_runs_with_the_production_module(self):
-        """Production uses a manifest storage backend, so the image's
-        development-time collectstatic leaves every static file unresolvable."""
-        prepare = self.prod.split("challenge-prepare:", 1)[1]
+        """The shared production static volume must receive a manifest."""
+        prepare = self.prod.split("\n  challenge-prepare:\n", 1)[1]
         self.assertIn("python manage.py collectstatic --noinput --clear", prepare)
         self.assertIn("DJANGO_SETTINGS_MODULE_NAME: production", prepare)
+        self.assertIn("DJANGO_SETTINGS_MODULE: config.settings.production", prepare)
+
+    def test_web_waits_for_prepare_before_serving(self):
+        web_start = self.prod.index("\n  challenge-web:\n")
+        prepare_start = self.prod.index("\n  challenge-prepare:\n", web_start)
+        web = self.prod[web_start:prepare_start]
+        self.assertIn("condition: service_completed_successfully", web)
+
+    def test_image_build_collectstatic_uses_production_storage(self):
+        if not DOCKERFILE.exists():
+            self.skipTest("The container image does not include backend/Dockerfile.")
+        dockerfile = DOCKERFILE.read_text(encoding="utf-8")
+        collectstatic = dockerfile.split("python manage.py collectstatic", 1)[0]
+        self.assertIn("DJANGO_ENV=production", collectstatic)
+        self.assertIn("DJANGO_SETTINGS_MODULE=config.settings.production", collectstatic)
+        self.assertIn("python manage.py collectstatic --noinput --clear", dockerfile)
 
     def test_the_datastores_are_referenced_by_service_name_not_by_address(self):
         self.assertIn("DATABASE_HOST: challenge-db", self.prod)

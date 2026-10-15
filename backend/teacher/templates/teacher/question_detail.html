@@ -1,0 +1,73 @@
+{% extends "teacher/base.html" %}
+{% load i18n %}
+
+{% block title %}{{ question.text|truncatewords:6 }} &middot; {% translate "Question detail" %}{% endblock %}
+
+{% block content %}
+  <section class="page-heading">
+    <h1 class="page-heading__title">{{ question.text|truncatewords:12 }}</h1>
+    <p class="page-heading__subtitle">
+      {{ question.subject.name }}
+      {% if question.topic %} &middot; {{ question.topic.name }}{% endif %}
+      &middot; {{ question.get_question_type_display }}
+    </p>
+  </section>
+  {% translate "This page shows what is stored for the question. The live preview in the builder hides the answer key, so check it here before using it in a competition." as hint_text %}
+{% include "teacher/partials/context_hint.html" with text=hint_text %}
+
+  <section class="stats" aria-label="{% translate 'Question details' %}">
+    <div class="stat">
+      <span class="stat__value">{{ question.get_question_type_display }}</span>
+      <span class="stat__label">{% translate "Type" %}</span>
+    </div>
+    <div class="stat">
+      <span class="stat__value">{{ question.duration_seconds }}</span>
+      <span class="stat__label">{% translate "Seconds" %}</span>
+    </div>
+    <div class="stat">
+      <span class="stat__value">{% if question.active %}{% translate "Active" %}{% else %}{% translate "Inactive" %}{% endif %}</span>
+      <span class="stat__label">{% translate "Status" %}</span>
+    </div>
+    <div class="stat">
+      <span class="stat__value">{{ question.created_at|date:"Y-m-d" }}</span>
+      <span class="stat__label">{% translate "Created" %}</span>
+    </div>
+  </section>
+
+  {% comment %}
+  The question as a student would see it, read from the stored record rather
+  than from the form. This is the same preview the builder renders, minus the
+  teacher-only annotation, so the two pages cannot disagree about the question.
+  {% endcomment %}
+  <section class="panel">
+    <h2 class="panel__heading">{% translate "Question" %}</h2>
+    {% include "teacher/partials/preview.html" with preview_data=question_as_preview %}
+  </section>
+
+  <section class="panel" aria-labelledby="answer-key-heading">
+    <h2 class="panel__heading" id="answer-key-heading">{% translate "Stored answer key" %}</h2>
+    {% if question.question_type == "true_false" %}
+      <p class="panel__body">
+        {% translate "The correct answer is" %}
+        <strong>{% if question.correct_answer %}{% translate "True" %}{% else %}{% translate "False" %}{% endif %}</strong>
+      </p>
+    {% elif question.options %}
+      <ul class="review-block__options">
+        {% for option in question.options %}
+          <li class="{% if option == question.correct_option %}is-correct{% endif %}">
+            {{ option }}
+            {% if option == question.correct_option %}
+              <span class="review-block__mark" aria-hidden="true">&#10003;</span>
+              <span class="visually-hidden">{% translate "correct answer" %}</span>
+            {% endif %}
+          </li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+  </section>
+
+  <div class="page-actions">
+    <a class="button button--quiet" href="{% url 'teacher:questions' %}">{% translate "Back to the bank" %}</a>
+    <a class="button" href="{% url 'teacher:edit_question' pk=question.pk %}">{% translate "Edit question" %}</a>
+  </div>
+{% endblock %}

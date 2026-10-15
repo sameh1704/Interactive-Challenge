@@ -1,0 +1,10 @@
+{% load i18n %}
+<aside class="first-use" data-first-use="{{ key }}" aria-labelledby="{{ key }}-title">
+  <div>
+    <h2 class="first-use__title" id="{{ key }}-title">{% translate title %}</h2>
+    <p>{% translate text %}</p>
+  </div>
+  <button class="button button--quiet first-use__dismiss" type="button" data-dismiss-first-use>
+    {% translate "Don't show again" %}
+  </button>
+</aside>

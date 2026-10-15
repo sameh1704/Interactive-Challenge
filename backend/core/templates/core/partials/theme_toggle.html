@@ -1,0 +1,35 @@
+{% comment %}
+The light/dark switch, shared by the site masthead and the teacher workspace.
+
+Two controls rather than one, matching the language switcher beside it, so the
+current theme is always legible on screen and a teacher never has to remember
+which state the button was in. Each carries `aria-pressed`, so the pair reads to a
+screen reader as a switch with a state rather than as two unrelated links.
+
+It is a form on purpose. JavaScript turns it into an instant, no-reload switch
+(theme-manager.js applies the theme, then posts here so the cookie is written with
+the server's own attributes), but with JavaScript switched off the form still
+works: it posts, the server stores the cookie, and the page comes back in the theme
+that was asked for.
+
+Block comment form, not braces: the brace form cannot span lines and would print
+this prose into the masthead.
+{% endcomment %}
+{% load i18n %}
+<form method="post" action="{% url 'core:set_theme' %}" class="theme-switcher"
+      data-theme-form role="group" aria-label="{% translate 'Theme' %}"
+      data-theme-key="{{ theme_cookie_name }}" data-theme-max-age="{{ theme_cookie_age }}">
+  {% csrf_token %}
+  <input type="hidden" name="next" value="{{ request.get_full_path }}">
+  <button type="submit" name="theme" value="light" class="theme-switcher__button"
+          data-theme-toggle
+          aria-pressed="{% if theme.is_light %}true{% else %}false{% endif %}">
+    {% translate "Light" %}
+  </button>
+  <span aria-hidden="true">|</span>
+  <button type="submit" name="theme" value="dark" class="theme-switcher__button"
+          data-theme-toggle
+          aria-pressed="{% if theme.is_dark %}true{% else %}false{% endif %}">
+    {% translate "Dark" %}
+  </button>
+</form>

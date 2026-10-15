@@ -32,6 +32,7 @@ from django.views.generic import TemplateView
 
 from competitions.models import Competition
 from live.services import CompetitionControlError, assert_can_control
+from screens import targeting as screen_targeting
 from screens.models import InteractiveScreen
 
 logger = logging.getLogger(__name__)
@@ -63,6 +64,23 @@ def normalise_screen_id(raw: str | None) -> str:
     cannot merge two different screens.
     """
     return (raw or "").strip().upper()
+
+
+def screen_page_context(screen) -> dict:
+    """Everything a screen page needs to render itself.
+
+    Deliberately not a competition id: the server decides which round a screen
+    joins, from the screen's classroom. Both addresses a screen can be opened
+    from - the registered ``/screen/`` URL and ``/live/screen/`` - render the
+    same template with this context, so there is one description of what a screen
+    shows and no chance of the two disagreeing.
+    """
+    return {
+        "screen": screen,
+        "classroom": screen.classroom,
+        "websocket_path": "/ws/live/screen/",
+        "heartbeat_interval_seconds": settings.SCREEN_HEARTBEAT_INTERVAL_SECONDS,
+    }
 
 
 class LiveScreenView(TemplateView):
@@ -110,14 +128,7 @@ class LiveScreenView(TemplateView):
         return render(
             request,
             self.template_name,
-            {
-                "screen": screen,
-                "classroom": screen.classroom,
-                # Only what this screen needs to render itself. Deliberately not
-                # a competition id: the server decides which round a screen joins.
-                "websocket_path": "/ws/live/screen/",
-                "heartbeat_interval_seconds": settings.SCREEN_HEARTBEAT_INTERVAL_SECONDS,
-            },
+            screen_page_context(screen),
         )
 
 
@@ -169,6 +180,12 @@ class TeacherLiveDashboardView(TemplateView):
             {
                 "competition": competition,
                 "participating_classrooms": participating,
+                # The screens the teacher is relying on for this round: registered,
+                # per classroom, with live presence. The WebSocket's "screens
+                # connected" count is only who is attached *now*; this is what the
+                # round is expected to reach, so an offline screen is visible
+                # before the teacher starts rather than missing from the tally.
+                "targeting": screen_targeting.for_competition(competition),
                 "state": competition.state,
                 "state_display": competition.get_state_display(),
                 # A round that has never been started has `state == waiting` but
@@ -197,4 +214,5 @@ __all__ = [
     "TeacherLiveDashboardView",
     "control_state_for",
     "normalise_screen_id",
+    "screen_page_context",
 ]

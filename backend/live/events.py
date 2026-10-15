@@ -16,6 +16,15 @@ from django.utils import timezone
 # what it is and what competition it is currently attached to.
 WELCOME = "welcome"
 
+# Sent to a screen that identified itself while no round was running. The screen
+# is accepted and holds its socket: it is waiting, not failing.
+WAITING = "waiting"
+
+# Sent to a waiting screen when a round starts, telling it to identify itself
+# again. It is not an invitation to join: membership is decided when the screen
+# asks.
+RECONNECT_NOW = "reconnect_now"
+
 # The teacher has started the round.
 COMPETITION_STARTED = "competition_started"
 

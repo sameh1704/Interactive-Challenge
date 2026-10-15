@@ -47,7 +47,7 @@
       empty.setAttribute("data-role", "empty");
       var cell = document.createElement("td");
       cell.colSpan = 5;
-      cell.textContent = "No classrooms are taking part yet.";
+      cell.textContent = root.getAttribute("data-label-empty") || "No classrooms are taking part yet.";
       empty.appendChild(cell);
       body.appendChild(empty);
       return;
@@ -95,7 +95,7 @@
     socket = new WebSocket(scheme + "//" + window.location.host + path);
 
     socket.addEventListener("open", function () {
-      setConnection("Live", "live");
+      setConnection(root.getAttribute("data-label-live") || "Live", "live");
     });
 
     socket.addEventListener("message", function (event) {
@@ -125,7 +125,7 @@
     });
 
     socket.addEventListener("close", function () {
-      setConnection("Reconnecting…", "offline");
+      setConnection(root.getAttribute("data-label-reconnecting") || "Reconnecting…", "offline");
       window.clearTimeout(retryTimer);
       retryTimer = window.setTimeout(connect, RECONNECT_DELAY_MS);
     });

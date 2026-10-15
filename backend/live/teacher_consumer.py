@@ -29,10 +29,12 @@ from live import events, groups, services
 from live.consumers_base import CLOSE_UNAUTHORISED, BaseLiveConsumer, error_payload
 from live.services import CompetitionControlError
 
+from live.control_scope import ControlScopeMixin
+
 logger = logging.getLogger(__name__)
 
 
-class TeacherConsumer(BaseLiveConsumer):
+class TeacherConsumer(ControlScopeMixin, BaseLiveConsumer):
     """A signed-in member of staff running a competition."""
 
     async def connect(self) -> None:
@@ -87,7 +89,7 @@ class TeacherConsumer(BaseLiveConsumer):
             await self.channel_layer.group_discard(self.group, self.channel_name)
         logger.info("Teacher WebSocket closed (code=%s).", code)
 
-    async def receive(self, text_data: str = None, bytes_data: bytes = None) -> None:
+    async def receive_authorized(self, text_data: str = None, bytes_data: bytes = None) -> None:
         if not text_data:
             return
         try:
@@ -201,22 +203,12 @@ class TeacherConsumer(BaseLiveConsumer):
         committed by the time we get here, so a client that reconnects
         immediately reads the same state from the database.
         """
+        from live import publish
+
         if transition is None:
             return
 
-        competition_id = transition.competition.pk
-        payload = {
-            "type": transition.event,
-            **transition.payload,
-        }
-
-        await self.channel_layer.group_send(
-            groups.screen_group(competition_id), {"type": transition.event, "payload": payload}
-        )
-        await self.channel_layer.group_send(
-            groups.teacher_group(competition_id),
-            {"type": transition.event, "payload": payload},
-        )
+        await publish.publish_transition(self.channel_layer, transition)
 
         # Arm or cancel the server clock to match the new state. This is what
         # makes the timing authoritative rather than browser-driven.

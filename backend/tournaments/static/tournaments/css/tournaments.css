@@ -7,7 +7,7 @@
  */
 
 .stage {
-  border-top: 1px solid var(--line, #e2e8f0);
+  border-top: 1px solid var(--colour-border);
   padding: 1rem 0;
 }
 
@@ -50,7 +50,7 @@
 .inline-form input[type="text"],
 .inline-form input[type="number"] {
   padding: 0.35rem 0.5rem;
-  border: 1px solid var(--line, #cbd5e1);
+  border: 1px solid var(--colour-border);
   border-radius: 4px;
   font: inherit;
   min-width: 8rem;
@@ -61,9 +61,9 @@
   flex-direction: column;
   gap: 0.35rem;
   padding: 0.6rem 0.8rem;
-  border: 1px solid #f59e0b;
+  border: 1px solid var(--colour-warn-border);
   border-radius: 6px;
-  background: #fffbeb;
+  background: var(--colour-warn-surface);
 }
 
 .tie-form__choice {
@@ -78,35 +78,44 @@
  * and participant lifecycles the same treatment, so a reader learns one mapping
  * and can apply it everywhere. Colours are never the only signal: every badge
  * carries its status word as text.
+ *
+ * Each state reads a surface / border / ink triple out of the theme tokens, so
+ * the badge is a tinted panel in the dark theme rather than a pale rectangle
+ * with dark text. The mapping below is unchanged.
  */
 .status-draft,
 .status-pending,
 .status-entered {
-  background: #e2e8f0;
-  color: #334155;
+  background: var(--colour-state-neutral-surface);
+  border-color: var(--colour-state-neutral-border);
+  color: var(--colour-state-neutral-ink);
 }
 
 .status-open,
 .status-ready {
-  background: #dbeafe;
-  color: #1e40af;
+  background: var(--colour-state-info-surface);
+  border-color: var(--colour-state-info-border);
+  color: var(--colour-state-info-ink);
 }
 
 .status-running,
 .status-qualified {
-  background: #fef3c7;
-  color: #92400e;
+  background: var(--colour-state-active-surface);
+  border-color: var(--colour-state-active-border);
+  color: var(--colour-state-active-ink);
 }
 
 .status-completed,
 .status-champion {
-  background: #dcfce7;
-  color: #166534;
+  background: var(--colour-state-good-surface);
+  border-color: var(--colour-state-good-border);
+  color: var(--colour-state-good-ink);
 }
 
 .status-cancelled,
 .status-eliminated,
 .status-withdrawn {
-  background: #fee2e2;
-  color: #991b1b;
+  background: var(--colour-state-bad-surface);
+  border-color: var(--colour-state-bad-border);
+  color: var(--colour-state-bad-ink);
 }

@@ -1,0 +1,60 @@
+{% load i18n %}
+{% comment %}
+  What a student screen will show - no more, no less.
+
+  This is deliberately not a debugging view. The correct answer, the
+  classification's correct categories and the accepted-answer list are the
+  teacher's working material; a preview that prints them next to the question
+  is a preview that can leak the answer onto a shared teacher display. The
+  explanation is not here either: it is revealed after answering closes, so
+  showing it now would show the outcome of a round that has not happened.
+
+  The hint IS here, because a hint is shown to the room while the question is
+  open.
+{% endcomment %}
+<div class="question-preview" id="question-preview-content">
+  {% if preview_data.image_url %}
+    <img class="question-preview__image" src="{{ preview_data.image_url }}" alt="">
+  {% endif %}
+  <p class="question-preview__text">{% if preview_data.text %}{{ preview_data.text }}{% else %}{% translate "Your question will appear here." %}{% endif %}</p>
+
+  {% if preview_data.question_type == "multiple_choice" %}
+    <ul class="question-preview__options">
+      {% for option in preview_data.options %}
+        <li>{{ option }}</li>
+      {% endfor %}
+    </ul>
+  {% elif preview_data.question_type == "true_false" %}
+    <div class="question-preview__options">
+      <p>{% translate "True" %}</p>
+      <p>{% translate "False" %}</p>
+    </div>
+  {% elif preview_data.question_type == "ordering" %}
+    <p class="question-preview__meta">{% translate "The items students will arrange:" %}</p>
+    <ul class="question-preview__options">
+      {% for item in preview_data.type_config.items %}
+        <li>{{ item }}</li>
+      {% endfor %}
+    </ul>
+  {% elif preview_data.question_type == "classification" %}
+    <p class="question-preview__meta">{% translate "The items students will sort:" %}</p>
+    <ul class="question-preview__options">
+      {% for assignment in preview_data.type_config.assignments %}
+        <li>{{ assignment.label }}</li>
+      {% endfor %}
+    </ul>
+    <p class="question-preview__meta">{% translate "They will sort them into these categories:" %}</p>
+    <ul class="question-preview__options">
+      {% for category in preview_data.type_config.categories %}
+        <li>{{ category }}</li>
+      {% endfor %}
+    </ul>
+  {% elif preview_data.question_type == "short_answer" %}
+    <p class="question-preview__answer-input">{% translate "Student answer" %}</p>
+  {% endif %}
+
+  {% if preview_data.hint %}
+    <p class="question-preview__note"><strong>{% translate "Hint:" %}</strong> {{ preview_data.hint }}</p>
+  {% endif %}
+  <p class="question-preview__meta">{{ preview_data.duration_seconds }} {% translate "seconds" %}</p>
+</div>

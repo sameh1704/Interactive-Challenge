@@ -1,0 +1,7 @@
+{% load i18n %}
+<p class="context-hint">
+  <span>{% translate text %}</span>
+  {% if arabic %}
+    <span class="context-hint__arabic" lang="ar" dir="rtl">{{ arabic }}</span>
+  {% endif %}
+</p>

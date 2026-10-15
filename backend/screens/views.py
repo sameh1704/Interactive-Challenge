@@ -65,9 +65,17 @@ def throttled(request: HttpRequest, screen_id: str = ""):
 def screen_status(request: HttpRequest):
     """The page a screen device opens, e.g. ``/screen/?screen_id=AM-7KQ4XB``.
 
-    Renders either the screen's own status page or a generic "not registered"
-    page. Being unregistered and being throttled produce the same page; only the
-    status and ``Retry-After`` differ.
+    This URL is the screen's permanent address and the live display: a screen
+    opens it once, then waits. It carries no competition, no round and no
+    question, so nothing on the classroom machine has to be re-typed when the
+    next competition starts, and the server works out which round the screen
+    belongs to from the classroom it is assigned to.
+
+    Renders the same live screen template ``/live/screen/`` renders, with the
+    same context, so there is one description of what a screen shows. Renders
+    either that or a generic "not registered" page; being unregistered and being
+    throttled produce the same page, and only the status and ``Retry-After``
+    differ.
     """
     if not core_ratelimit.screen_identifier_allowed(client_ip(request)):
         return throttled(request)
@@ -84,16 +92,11 @@ def screen_status(request: HttpRequest):
             status=404,
         )
 
-    return render(
-        request,
-        "screens/status.html",
-        {
-            "screen": screen,
-            "classroom": screen.classroom,
-            "status_display": screen.status_display,
-            "heartbeat_interval_seconds": settings.SCREEN_HEARTBEAT_INTERVAL_SECONDS,
-        },
-    )
+    # One template, one context, both addresses. See live.views for the shape of
+    # this context and why it holds no competition id.
+    from live.views import screen_page_context
+
+    return render(request, "live/screen.html", screen_page_context(screen))
 
 
 @require_POST

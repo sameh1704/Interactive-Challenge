@@ -28,6 +28,7 @@ from django.core.validators import MaxLengthValidator, MinLengthValidator
 from django.db import models
 from django.db.models.functions import Lower
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 
 # Ambiguous glyphs (0/O, 1/I/L) are excluded: a Screen ID is read aloud to an
 # operator and typed by hand, so it must survive that.
@@ -49,8 +50,8 @@ def generate_screen_id() -> str:
 class ScreenStatus(models.TextChoices):
     """Reported presence of a screen."""
 
-    ONLINE = "online", "Online"
-    OFFLINE = "offline", "Offline"
+    ONLINE = "online", _("Online")
+    OFFLINE = "offline", _("Offline")
 
 
 class InteractiveScreenQuerySet(models.QuerySet):
@@ -84,7 +85,12 @@ class InteractiveScreen(models.Model):
         editable=False,
         default=generate_screen_id,
         validators=[MinLengthValidator(9), MaxLengthValidator(16)],
-        help_text="Permanent identity of this screen. Generated once, never changed.",
+        help_text=(
+            "Permanent identity of this screen. Generated once, never changed. "
+            "Open this screen's registration URL on the machine in the classroom "
+            "once; it stays there for every competition, because the server works "
+            "out which competition to show from the classroom."
+        ),
     )
     name = models.CharField(
         max_length=120,
@@ -131,8 +137,8 @@ class InteractiveScreen(models.Model):
     objects = InteractiveScreenQuerySet.as_manager()
 
     class Meta:
-        verbose_name = "interactive screen"
-        verbose_name_plural = "interactive screens"
+        verbose_name = _("interactive screen")
+        verbose_name_plural = _("interactive screens")
         ordering = ["name"]
         indexes = [
             models.Index(fields=["last_seen"], name="screens_last_seen_idx"),
@@ -176,7 +182,13 @@ class InteractiveScreen(models.Model):
 
     @property
     def registration_path(self) -> str:
-        """Relative URL a screen device opens to identify itself."""
+        """Relative URL a screen device opens to identify itself.
+
+        ``/screen/?screen_id=AM-XXXXXX`` - the screen's permanent address. It
+        carries no competition, round or question, so the browser in the classroom
+        is opened once and left alone; the server decides what to show from the
+        screen's classroom. See :mod:`live.views.screen_page_context`.
+        """
         from django.urls import reverse
 
         return f"{reverse('screens:status')}?screen_id={self.screen_id}"

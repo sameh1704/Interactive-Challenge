@@ -30,6 +30,9 @@ from django.urls import reverse
 from accounts.roles import Role
 from classrooms.models import Classroom
 from core.admin_config import ChallengeAdminConfig
+from core.tests.factories import create_subject
+from live.views import screen_page_context
+from screens.models import InteractiveScreen
 from core.admin_site import ChallengeAdminSite, operational_metrics
 from questions.models import Question
 from screens.models import InteractiveScreen
@@ -155,7 +158,18 @@ class AdminStylingTests(SimpleTestCase):
         self.assertIn("core/css/admin.css", source)
 
     def test_admin_css_reuses_the_project_tokens_rather_than_defining_its_own(self) -> None:
-        """The two files must share one palette, not two that happen to agree."""
+        """The two files must share one palette, not two that happen to agree.
+
+        Asserted as the property that actually matters: admin.css defines no
+        ``--colour-*`` token of its own, every custom property it does define is
+        an alias onto one of the site's, and nothing it references is missing.
+
+        The alias part matters. Django's admin has its own variable names
+        (``--body-bg``, ``--header-color``), and admin.css maps each of them onto
+        a ``--colour-*`` token rather than hard-coding a second palette. That is
+        the whole point of the exercise: the site palette now carries a light and
+        a dark theme, and the admin follows both without knowing either exists.
+        """
         from django.contrib.staticfiles import finders
 
         admin_css = finders.find("core/css/admin.css")
@@ -167,18 +181,46 @@ class AdminStylingTests(SimpleTestCase):
         with open(site_css, encoding="utf-8") as handle:
             site_source = handle.read()
 
-        tokens = set(re.findall(r"(--colour-[a-z-]+|--radius|--font-stack):", site_source))
-        self.assertTrue(tokens, "no design tokens found in site.css")
+        # 1. The admin does not redefine the site's palette under its own values.
+        redefined = [
+            name
+            for name in re.findall(r"^\s*(--colour-[\w-]+)\s*:", admin_source, re.MULTILINE)
+        ]
+        self.assertEqual(
+            redefined,
+            [],
+            "admin.css redefines site design tokens instead of reusing them",
+        )
 
-        missing = sorted(
-            token
-            for token in tokens
-            if not re.search(rf"var\(\s*{re.escape(token)}\s*[,)]", admin_source)
+        # 2. No colour literal of its own: the admin paints entirely from tokens.
+        #    The one rgba() that survives is a drop shadow, which is a depth cue
+        #    and not a surface: it does not change with the palette, and inverting
+        #    it would make the buttons look raised in light and pasted on in dark.
+        body = re.sub(r"/\*.*?\*/", "", admin_source, flags=re.DOTALL)
+        body = re.sub(r"^\s*--[\w-]+\s*:[^;]*;", "", body, flags=re.MULTILINE)
+        literals = re.findall(
+            r"#[0-9a-fA-F]{3,8}\b|(?<![\w-])(?:white|black)(?![\w-])", body
         )
         self.assertEqual(
-            missing,
+            literals,
             [],
-            f"admin.css redefines or ignores these design tokens: {missing}",
+            f"admin.css paints with literal colours instead of tokens: {sorted(set(literals))}",
+        )
+
+        # 3. Nothing it references is missing. Its own definitions are Django
+        #    admin's variable names (--body-bg, --header-color, ...) mapped onto
+        #    site tokens, so they resolve through those; both sets are allowed.
+        admin_definitions = set(
+            re.findall(r"^\s*(--[\w-]+)\s*:", admin_source, re.MULTILINE)
+        )
+        defined = set(re.findall(r"^\s*(--[\w-]+)\s*:", site_source, re.MULTILINE))
+        defined |= admin_definitions
+        referenced = set(re.findall(r"var\(\s*(--[\w-]+)\s*[,)]", admin_source))
+        self.assertTrue(referenced, "admin.css does not use the shared tokens at all")
+        self.assertEqual(
+            referenced - defined,
+            set(),
+            "admin.css references tokens the site stylesheet does not define",
         )
 
     def test_admin_css_declares_no_brand_colour_of_its_own(self) -> None:
@@ -223,7 +265,12 @@ class AdminOverviewMetricsTests(TestCase):
         Classroom.objects.create(name="Overview Lab")
         Classroom.objects.create(name="Overview Retired", active=False)
         InteractiveScreen.objects.create(name="Overview board")
-        Question.objects.create(text="Overview q", options=["a", "b"], correct_option="a")
+        Question.objects.create(
+            text="Overview q",
+            subject=create_subject(name="Mathematics", slug="overview-maths"),
+            options=["a", "b"],
+            correct_option="a",
+        )
         Tournament.objects.create(name="Overview championship", created_by=self.admin)
 
         tiles = {t["label"]: t for t in operational_metrics()["tiles"]}
@@ -403,28 +450,33 @@ class ClassroomScreenInterfaceIsUntouchedTests(SimpleTestCase):
     The brief is explicit that the desktop admin treatment must not be forced
     onto a board. These assert the screen page does not acquire the admin's
     chrome or stylesheet.
+
+    The screen page is ``live/screen.html``, which is what ``/screen/`` serves -
+    the address the administrator puts on the classroom machine. It was
+    ``screens/status.html`` before UI-8 made that URL the display itself.
     """
 
-    def test_the_admin_stylesheet_is_not_loaded_by_the_screen_page(self) -> None:
+    def screen_page(self, request) -> str:
         from django.template.loader import render_to_string
+
+        return render_to_string(
+            "live/screen.html",
+            screen_page_context(InteractiveScreen(name="Untouched board")),
+            request=request,
+        )
+
+    def test_the_admin_stylesheet_is_not_loaded_by_the_screen_page(self) -> None:
         from django.test import RequestFactory
 
-        screen = InteractiveScreen(name="Untouched board")
         request = RequestFactory().get("/screen/?screen_id=AM-XXXXXX")
-        body = render_to_string(
-            "screens/status.html", {"screen": screen, "classroom": None}, request=request
-        )
+        body = self.screen_page(request)
         self.assertNotIn("core/css/admin.css", body)
         self.assertNotIn("admin-sidebar", body)
 
     def test_the_screen_page_still_uses_the_projects_own_stylesheet(self) -> None:
-        from django.template.loader import render_to_string
         from django.test import RequestFactory
 
-        screen = InteractiveScreen(name="Untouched board")
         request = RequestFactory().get("/screen/?screen_id=AM-XXXXXX")
-        body = render_to_string(
-            "screens/status.html", {"screen": screen, "classroom": None}, request=request
-        )
+        body = self.screen_page(request)
         # Hashed by the production manifest storage, so match the pattern.
-        self.assertRegex(body, r"core/css/site\.[0-9a-f]+\.css")
+        self.assertRegex(body, r"live/css/screen\.[0-9a-f]+\.css")

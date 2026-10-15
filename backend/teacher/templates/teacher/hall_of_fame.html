@@ -1,12 +1,15 @@
 {% extends "teacher/base.html" %}
+{% load i18n %}
 
-{% block title %}Hall of Fame{% endblock %}
+{% block title %}{% translate "Hall of Fame" %}{% endblock %}
 
 {% block content %}
   <section class="page-heading">
-    <h1 class="page-heading__title">Hall of Fame</h1>
-    <p class="page-heading__subtitle">Completed tournaments and champions</p>
+    <h1 class="page-heading__title">{% translate "Hall of Fame" %}</h1>
+    <p class="page-heading__subtitle">{% translate "Completed tournaments and champions" %}</p>
   </section>
+  {% translate "Only finalized tournaments appear here; these standings are preserved as historical results." as hint_text %}
+{% include "teacher/partials/context_hint.html" with text=hint_text %}
 
   {% if records %}
     {% for record in records %}
@@ -16,32 +19,34 @@
           {{ record.tournament.season }} &middot; {{ record.tournament.grade }}
         </p>
         {% if record.rows %}
-          <table class="table">
-            <thead>
-              <tr>
-                <th scope="col">Rank</th>
-                <th scope="col">Classroom</th>
-                <th scope="col">Score</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for row in record.rows %}
+          <div class="table-scroll" role="region" aria-label="{% translate 'Tournament standings' %}" tabindex="0">
+            <table class="table">
+              <thead>
                 <tr>
-                  <td>{{ row.rank }}</td>
-                  <td>{{ row.participant_name }}</td>
-                  <td>{{ row.score }}</td>
+                  <th scope="col">{% translate "Rank" %}</th>
+                  <th scope="col">{% translate "Classroom" %}</th>
+                  <th scope="col">{% translate "Score" %}</th>
                 </tr>
-              {% endfor %}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {% for row in record.rows %}
+                  <tr>
+                    <td>{{ row.rank }}</td>
+                    <td>{{ row.participant_name }}</td>
+                    <td>{{ row.score }}</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
         {% else %}
-          <p class="panel__body">No standings recorded.</p>
+          <p class="panel__body">{% translate "No standings recorded." %}</p>
         {% endif %}
       </section>
     {% endfor %}
   {% else %}
-    <section class="panel">
-      <p class="panel__body">No completed tournaments yet.</p>
-    </section>
+    {% translate "No champions recorded yet" as hall_empty_title %}
+    {% translate "No completed tournaments yet." as hall_empty_text %}
+    {% include "teacher/partials/empty_state.html" with key="hall-empty" title=hall_empty_title text=hall_empty_text %}
   {% endif %}
 {% endblock %}

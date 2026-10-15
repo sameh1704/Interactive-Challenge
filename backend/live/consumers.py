@@ -60,6 +60,10 @@ class ScreenConsumer(BaseLiveConsumer):
         self.connected = False
         self.accepted = False
 
+        if not await self._session_allows_device():
+            await self.close(code=CLOSE_UNAUTHORISED)
+            return
+
         # A screen's identity arrives as a query parameter. It is accepted at
         # connect time and re-checked on the `identify` message.
         self.screen_id = normalise_screen_id(self._query_param("screen_id"))
@@ -79,6 +83,25 @@ class ScreenConsumer(BaseLiveConsumer):
         self.accepted = True
         await self._join_and_welcome(result)
 
+    @database_sync_to_async
+    def _session_allows_device(self):
+        # Devices normally have no user session. If a staff session is present,
+        # refresh its role so a converted deputy cannot keep a device socket.
+        from django.contrib.auth import get_user_model
+        from accounts.roles import Role
+        user = self.scope.get("user")
+        if not getattr(user, "is_authenticated", False):
+            return True
+        return get_user_model().objects.filter(pk=user.pk, is_active=True).exclude(
+            role=Role.STAGE_DEPUTY
+        ).exists()
+
+    async def send_json(self, content, close=False):
+        if not await self._session_allows_device():
+            await self.close(code=CLOSE_UNAUTHORISED)
+            return
+        await super().send_json(content, close=close)
+
     async def disconnect(self, code) -> None:
         self.connected = False
         if self.competition_id and self.accepted:
@@ -89,6 +112,9 @@ class ScreenConsumer(BaseLiveConsumer):
         logger.info("Screen WebSocket closed (code=%s).", code)
 
     async def receive(self, text_data: str = None, bytes_data: bytes = None) -> None:
+        if not await self._session_allows_device():
+            await self.close(code=CLOSE_UNAUTHORISED)
+            return
         if not text_data:
             return
         try:
@@ -231,11 +257,12 @@ class ScreenConsumer(BaseLiveConsumer):
 
         competition = await self._active_competition()
         if competition is None:
-            return {
-                "ok": False,
-                "code": "no_active_competition",
-                "message": "There is no competition waiting for screens.",
-            }
+            # No round is running. This is not a refusal: the screen is
+            # registered, assigned to a live classroom, and simply has nothing
+            # to show yet. It is accepted and joins the waiting group, so its
+            # page reads "waiting" rather than "reconnecting", and it is told
+            # the moment a round starts. See groups.waiting_group.
+            return {"ok": True, "screen": screen, "competition": None}
 
         if not await self._classroom_included(competition.pk, screen.classroom_id):
             # The authorisation boundary. The screen is registered and healthy,
@@ -261,14 +288,36 @@ class ScreenConsumer(BaseLiveConsumer):
 
         self.screen = screen
         self.competition = competition
-        self.competition_id = competition.pk
+        self.competition_id = competition.pk if competition else None
         self.connected = True
-        self.group = groups.screen_group(competition.pk)
+        self.group = (
+            groups.screen_group(competition.pk) if competition else groups.waiting_group()
+        )
 
         if previous_group and previous_group != self.group:
             await self.channel_layer.group_discard(previous_group, self.channel_name)
 
         await self.channel_layer.group_add(self.group, self.channel_name)
+
+        if competition is None:
+            # Waiting, not broken. The page's "waiting" panel is already up; this
+            # names the reason so the footer does not say "reconnecting".
+            await self.send_json(
+                {
+                    "type": events.WAITING,
+                    "screen": {
+                        "screen_id": screen.screen_id,
+                        "name": screen.name,
+                        "classroom": screen.classroom.display_name,
+                    },
+                    "state": "waiting",
+                    "message": "No competition is running. This screen will show the next round automatically.",
+                    "server_time": timezone.now().isoformat(),
+                }
+            )
+            await self._announce_presence()
+            return
+
         from live.presence import register_member
 
         register_member(self.group, self.channel_name)
@@ -302,7 +351,32 @@ class ScreenConsumer(BaseLiveConsumer):
     # -- outbound event handlers -------------------------------------------
 
     async def competition_started(self, event) -> None:
-        await self.send_json({**event["payload"], "type": events.COMPETITION_STARTED})
+        """A round has begun.
+
+        A screen already in this round simply receives it. A screen that was
+        *waiting* - its classroom was not in any round when it connected - is
+        told to ask again, and reconnects: identification then runs through the
+        same `connect` path any other socket takes, and the screen joins its
+        classroom's round or keeps waiting. Nothing is joined from inside this
+        handler, because it runs in the middle of a broadcast the teacher is
+        waiting on, and a slow identification there would delay the teacher's own
+        socket for every round in the building.
+        """
+        if self.competition_id:
+            await self.send_json({**event["payload"], "type": events.COMPETITION_STARTED})
+            return
+
+        # Deliberately no `close()` from here: this handler runs inside another
+        # consumer's broadcast, and closing a socket from inside it cancels the
+        # task the broadcaster is waiting on. The screen closes its own socket
+        # when it gets this - see screen.js `reconnect_now`.
+        await self.send_json(
+            {
+                "type": events.RECONNECT_NOW,
+                "reason": "competition_started",
+                "server_time": timezone.now().isoformat(),
+            }
+        )
 
     async def question_started(self, event) -> None:
         await self.send_json({**event["payload"], "type": events.QUESTION_STARTED})

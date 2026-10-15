@@ -1,4 +1,176 @@
+/* --- lifecycle and start ------------------------------------------------- */
+
+/* The lifecycle panel is the one place a teacher reads where a competition
+   stands, so its state badge is paired with a sentence: "Planned for 10:30 -
+   waiting for teacher to start" cannot be misread as a round in progress. */
+.lifecycle__state {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0;
+}
+
+.lifecycle__state .badge {
+  flex: none;
+}
+
+/* The start form repeats the classrooms and screens a round will reach, so the
+   teacher presses Start with the same facts they just read on the page. */
+.start-competition__summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 1.25rem;
+  margin: 0 0 0.75rem;
+  padding: 0.6rem 0.85rem;
+  border: 1px solid var(--colour-border);
+  border-radius: var(--radius);
+  background: var(--colour-surface-raised);
+  list-style: none;
+}
+
+.button--primary {
+  border-color: var(--colour-accent);
+  background: var(--colour-accent);
+  color: var(--colour-on-accent);
+  font-weight: 700;
+}
+
+.button--primary:hover {
+  border-color: var(--colour-accent-strong);
+  background: var(--colour-accent-strong);
+}
+
+.button--primary:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+/* --- question bank ------------------------------------------------------- */
+
+/* A stat that is a link keeps its tile shape and gains the affordance. */
+.stat--link {
+  display: block;
+  border: 1px solid var(--colour-border);
+  border-radius: var(--radius);
+  background: var(--colour-surface);
+  color: inherit;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.stat--link:hover {
+  border-color: var(--colour-accent);
+}
+
+.stat--link:focus-visible {
+  outline: 2px solid var(--colour-focus);
+  outline-offset: 2px;
+}
+
+/* The bank's filters sit as one row on a desktop screen and stack on a phone,
+   where four stacked dropdowns would otherwise push the questions below the
+   fold on the smallest supported viewport. */
+.bank-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.75rem;
+}
+
+.bank-filters .field {
+  flex: 1 1 12rem;
+}
+
+.bank-count {
+  margin: 0;
+  color: var(--colour-muted);
+  font-size: 0.9rem;
+}
+
+.bank-count__total {
+  margin-inline-start: 0.35rem;
+}
+
+/* Row actions: a retired question and a live one are the same body, differing
+   only in the active flag, so their rows are the same shape too. */
+.bank-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0.75rem;
+}
+
+.bank-actions .link-button,
+.bank-actions a {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.bank-actions .link-button:hover,
+.bank-actions a:hover {
+  text-decoration-thickness: 2px;
+}
+
+.bank-actions .link-button:focus-visible,
+.bank-actions a:focus-visible {
+  outline: 2px solid var(--colour-focus);
+  outline-offset: 2px;
+}
+
+/* Paging: the current page is text, never a link to itself. */
+.pagination {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 1rem;
+  padding: 0.75rem 0.9rem;
+  border: 1px solid var(--colour-border);
+  border-radius: var(--radius);
+  background: var(--colour-surface);
+}
+
+.pagination__step {
+  padding: 0.25rem 0.5rem;
+}
+
+.pagination__current {
+  color: var(--colour-muted);
+}
+
+/* The answer key on the detail page: the correct option is marked with a tick
+   and named in the accessible text, so it is not colour-only signalling. */
+.review-block__options .is-correct {
+  font-weight: 700;
+}
+
+.review-block__mark {
+  margin-inline-start: 0.35rem;
+}
+
+@media (max-width: 32rem) {
+  .bank-filters .field {
+    flex: 1 1 100%;
+  }
+
+  .bank-count {
+    font-size: 0.85rem;
+  }
+}
+
 /* Teacher wizard progress indicator */
+
+.masthead__nav {
+  flex-wrap: wrap;
+  max-width: 100%;
+  min-width: 0;
+}
 
 .wizard-progress {
   margin-bottom: 2rem;
@@ -9,6 +181,9 @@
   justify-content: space-between;
   gap: 0.5rem;
   position: relative;
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
 .wizard-progress__item {
@@ -69,7 +244,9 @@
   cursor: pointer;
   color: var(--colour-muted);
   font-size: 0.8rem;
-  margin-left: 0.3rem;
+  /* Logical: the icon sits beside the text it explains, on whichever edge the
+     running text starts from. */
+  margin-inline-start: 0.3rem;
 }
 
 /* Classroom and question cards */
@@ -130,14 +307,16 @@
 
 .classroom-card__meta + .classroom-card__meta,
 .question-card__meta > span + span {
-  margin-left: 0.5rem;
+  margin-inline-start: 0.5rem;
 }
 
 /* Question bank */
 .question-bank {
   max-height: 40rem;
   overflow-y: auto;
-  padding-right: 0.5rem;
+  /* The scrollbar is pushed off the far edge of the text column, so it is
+     `inline-end` and follows the reading direction. */
+  padding-inline-end: 0.5rem;
 }
 
 /* Review summary */
@@ -160,7 +339,7 @@
 
 .review-block ul {
   margin: 0;
-  padding-left: 1.25rem;
+  padding-inline-start: 1.25rem;
 }
 
 /* Field helper text */
@@ -169,6 +348,100 @@
   font-size: 0.8rem;
   color: var(--colour-muted);
   margin-top: 0.25rem;
+}
+
+/* Contextual help stays in document flow so it works on touch and small screens. */
+.context-hint {
+  display: grid;
+  gap: 0.2rem;
+  margin: 0.45rem 0;
+  color: var(--colour-muted);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.context-hint__arabic {
+  display: block;
+  text-align: start;
+  unicode-bidi: plaintext;
+}
+
+.context-tip {
+  margin: 0.5rem 0;
+}
+
+.context-tip summary {
+  display: inline-block;
+  min-height: 2.5rem;
+  padding: 0.45rem 0.65rem;
+  border: 1px solid var(--colour-border);
+  border-radius: var(--radius);
+  color: var(--colour-accent);
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.context-tip summary:hover {
+  background: var(--colour-bg);
+}
+
+.context-tip summary:focus-visible,
+.first-use__dismiss:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--colour-accent) 35%, transparent);
+  outline-offset: 2px;
+}
+
+.context-tip__content {
+  max-width: 42rem;
+  padding: 0.6rem 0.8rem;
+  border-inline-start: 3px solid var(--colour-accent);
+  background: var(--colour-bg);
+}
+
+.context-tip__content p {
+  margin: 0.25rem 0;
+}
+
+.first-use {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin: 0 0 1rem;
+  padding: 1rem;
+  border: 1px solid var(--colour-border);
+  border-inline-start: 4px solid var(--colour-accent);
+  border-radius: var(--radius);
+  background: var(--colour-surface-raised);
+}
+
+.first-use[hidden] {
+  display: none;
+}
+
+.first-use__title {
+  margin: 0 0 0.3rem;
+  font-size: 1rem;
+}
+
+.first-use p {
+  margin: 0;
+  line-height: 1.5;
+}
+
+.empty-state {
+  padding-block: 1rem;
+}
+
+.table-scroll {
+  max-width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+}
+
+.table-scroll:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--colour-accent) 35%, transparent);
+  outline-offset: 2px;
 }
 
 /* Visually hidden (for accessible checkbox labels) */
@@ -194,4 +467,453 @@
 .field--inline input,
 .field--inline select {
   flex: 1;
+}
+
+/* Tournament Wizard */
+.tournament-wizard {
+  max-width: 58rem;
+  margin-inline: auto;
+}
+
+.tournament-wizard__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+  gap: 0.75rem 1rem;
+}
+
+.tournament-wizard__cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  gap: 0.25rem 0.75rem;
+}
+
+.tournament-wizard__checkbox {
+  flex: 0 0 auto;
+  width: 1.1rem;
+  height: 1.1rem;
+  margin-top: 0.15rem;
+  accent-color: var(--colour-accent);
+}
+
+.tournament-wizard__templates,
+.tournament-wizard__competition {
+  min-width: 0;
+  margin: 0 0 1.25rem;
+  padding: 1rem;
+  border: 1px solid var(--colour-border);
+  border-radius: var(--radius);
+}
+
+.tournament-wizard__template {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.7rem;
+  padding: 0.8rem 0;
+}
+
+.tournament-wizard__template + .tournament-wizard__template {
+  border-top: 1px solid var(--colour-border);
+}
+
+.tournament-wizard__template > span {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.tournament-wizard__rule {
+  margin: 1rem 0;
+  padding: 1rem;
+  border-inline-start: 3px solid var(--colour-accent);
+  border-radius: 0.25rem;
+  background: var(--colour-bg);
+  line-height: 1.6;
+}
+
+.tournament-wizard__review-stages {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.tournament-summary {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.tournament-summary__stage {
+  padding: 1rem;
+  border: 1px solid var(--colour-border);
+  border-radius: var(--radius);
+  background: var(--colour-surface-raised);
+}
+
+.tournament-summary__stage h3 {
+  margin-top: 0;
+}
+
+.tournament-summary__table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.tournament-summary__table th,
+.tournament-summary__table td {
+  padding: 0.7rem;
+  border-bottom: 1px solid var(--colour-border);
+  text-align: start;
+  vertical-align: top;
+}
+
+@media (max-width: 600px) {
+  .masthead__nav {
+    flex: 1 1 100%;
+    justify-content: flex-start;
+    gap: 0.45rem 0.8rem;
+  }
+
+  .first-use {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .wizard-progress__items {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+  }
+
+  .wizard-progress__item {
+    flex: 0 0 30%;
+  }
+
+  .tournament-summary__table th,
+  .tournament-summary__table td {
+    padding: 0.5rem 0.3rem;
+  }
+
+  .context-tip__content {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+  }
+}
+
+/* Question Builder */
+.question-builder {
+  /* Alias names kept for readability inside this file, but each one resolves to
+     a real theme token: the dark theme therefore reaches the builder too, which
+     it did not while these were plain literals behind a fallback colour. */
+  --builder-accent: var(--colour-accent);
+  --builder-border: var(--colour-border);
+  --builder-muted: var(--colour-muted);
+}
+
+.question-builder__layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(18rem, 23rem);
+  align-items: start;
+  gap: 1.25rem;
+}
+
+.question-builder__fields {
+  min-width: 0;
+}
+
+.question-builder__section {
+  margin-bottom: 1rem;
+}
+
+.question-builder__section h2,
+.question-builder__preview h2 {
+  margin-top: 0;
+  font-size: 1.1rem;
+}
+
+.question-builder__section h3,
+.question-builder__subsection h4 {
+  margin: 1.25rem 0 0.5rem;
+  font-size: 0.98rem;
+}
+
+.question-type-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: 0.6rem;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.question-type {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  min-height: 2.8rem;
+  padding: 0.7rem;
+  border: 1px solid var(--builder-border);
+  border-radius: var(--radius, 0.5rem);
+  cursor: pointer;
+}
+
+.question-type:has(input:checked) {
+  border-color: var(--builder-accent);
+  /* Mixed with the surface, not with white: mixing with a literal makes the
+     selected card a pale patch on a dark page. */
+  background: color-mix(in srgb, var(--builder-accent) 8%, var(--colour-surface));
+}
+
+.question-type.is-selected {
+  border-color: var(--builder-accent);
+  background: color-mix(in srgb, var(--builder-accent) 8%, var(--colour-surface));
+}
+
+.question-type input {
+  accent-color: var(--builder-accent);
+}
+
+.question-type-fields {
+  margin-top: 1rem;
+}
+
+.question-builder__field {
+  margin: 1rem 0;
+}
+
+.question-builder__field > label,
+.question-builder__field > label:first-child {
+  display: block;
+  margin-bottom: 0.35rem;
+  font-weight: 600;
+}
+
+.question-builder input[type="text"],
+.question-builder input[type="number"],
+.question-builder input[type="file"],
+.question-builder textarea,
+.question-builder select {
+  max-width: 100%;
+  padding: 0.6rem 0.7rem;
+  border: 1px solid var(--builder-border);
+  border-radius: 0.35rem;
+  font: inherit;
+  /* Un-themed form controls keep the browser's white background whatever the
+     theme does, which in the dark theme leaves a bright hole in the builder and
+     text that is nearly invisible against it. */
+  background: var(--colour-surface);
+  color: var(--colour-text);
+}
+
+.question-builder input[type="text"],
+.question-builder textarea,
+.question-builder select {
+  width: 100%;
+}
+
+.question-builder input[type="number"] {
+  width: 10rem;
+}
+
+.question-builder input::placeholder,
+.question-builder textarea::placeholder {
+  color: var(--builder-muted);
+}
+
+.question-builder input:focus,
+.question-builder textarea:focus,
+.question-builder select:focus {
+  border-color: var(--builder-accent);
+  outline: 2px solid color-mix(in srgb, var(--builder-accent) 20%, transparent);
+}
+
+.question-builder__row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.55rem;
+  margin-bottom: 0.6rem;
+}
+
+.question-builder__row--assignment {
+  grid-template-columns: minmax(0, 1fr) minmax(8rem, 0.8fr) auto;
+}
+
+/* The ordering rows carry a handle, a position marker, the item, and three
+   controls, so they need their own column plan rather than the two-colour one
+   the option rows use. */
+#ordering-items .question-builder__row {
+  grid-template-columns: auto auto minmax(0, 1fr) auto auto auto;
+}
+
+.question-builder__handle {
+  color: var(--builder-muted);
+  cursor: grab;
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+.question-builder__position {
+  min-width: 1.4rem;
+  color: var(--builder-muted);
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+  text-align: end;
+}
+
+.question-builder__row button,
+.question-builder__move {
+  padding: 0.35rem 0.55rem;
+  border: 1px solid var(--builder-border);
+  border-radius: 0.35rem;
+  background: var(--colour-surface);
+  color: inherit;
+  cursor: pointer;
+}
+
+.question-builder__row button:hover,
+.question-builder__move:hover {
+  border-color: var(--builder-accent);
+}
+
+.question-builder__move:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.question-builder__choice-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.question-builder__choice-row label,
+.question-builder__checkbox {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.question-builder__checkbox {
+  margin: 1rem 0;
+}
+
+.question-builder__subsection {
+  margin-top: 1rem;
+  padding-top: 0.25rem;
+  border-top: 1px solid var(--builder-border);
+}
+
+.question-builder__help {
+  margin: 0.3rem 0 0.7rem;
+  color: var(--builder-muted);
+  font-size: 0.9rem;
+}
+
+.question-builder__error,
+.question-builder__errors {
+  color: var(--colour-danger);
+  font-size: 0.9rem;
+}
+
+.question-builder__errors {
+  margin-bottom: 1rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--colour-danger-border);
+  border-radius: 0.4rem;
+  background: var(--colour-danger-surface);
+}
+
+.question-builder__preview {
+  position: sticky;
+  top: 1rem;
+}
+
+.question-preview__text {
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.question-preview__options {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0.8rem 0;
+  padding-inline-start: 1.5rem;
+}
+
+.question-preview__options li,
+.question-preview__options p,
+.question-preview__answer-input {
+  margin: 0;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid var(--builder-border);
+  border-radius: 0.35rem;
+}
+
+/* The preview no longer marks a correct option, so the styles that did it are
+   gone with it: leaving them would keep a way to leak the answer in CSS. */
+.question-preview__category {
+  margin: 0.8rem 0 0.2rem;
+  font-size: 0.9rem;
+}
+
+.question-preview__image,
+.question-builder__current-image,
+.question-builder__image-preview {
+  display: block;
+  max-width: 100%;
+  max-height: 16rem;
+  margin: 0.6rem 0;
+  border-radius: 0.4rem;
+  object-fit: contain;
+}
+
+/* The builder preview is the student's view of the question, so it uses the same
+   tokens as a classroom screen: light text on the raised card either way. */
+.question-preview__options {
+  display: grid;
+  gap: 0.35rem;
+  margin: 0.6rem 0;
+  padding-inline-start: 1.2rem;
+}
+
+.question-preview__options li,
+.question-preview__options p {
+  color: var(--colour-text);
+}
+
+/* Teacher-only annotation: the hint is the one thing a student also sees. */
+.question-preview__note {
+  padding: 0.4rem 0.5rem;
+  border-inline-start: 3px solid var(--colour-accent);
+  background: color-mix(in srgb, var(--colour-accent) 8%, var(--colour-surface));
+  font-size: 0.9rem;
+}
+
+.question-preview__meta {
+  color: var(--builder-muted);
+  font-size: 0.85rem;
+}
+
+.question-builder__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin: 1rem 0 2rem;
+}
+
+@media (max-width: 900px) {
+  .question-builder__layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .question-builder__preview {
+    position: static;
+  }
+}
+
+@media (max-width: 520px) {
+  .question-builder__row,
+  .question-builder__row--assignment {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .question-builder__row input[type="radio"] {
+    grid-column: 1 / -1;
+  }
 }

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from django.contrib import admin
 
-from classrooms.models import Classroom
+from classrooms.models import Classroom, SchoolStage
 from core.admin import AdministratorAdminMixin
 
 
@@ -22,6 +22,7 @@ class ClassroomAdmin(AdministratorAdminMixin, admin.ModelAdmin):
 
     list_display = (
         "name",
+        "stage",
         "grade",
         "section",
         "location_display",
@@ -29,7 +30,7 @@ class ClassroomAdmin(AdministratorAdminMixin, admin.ModelAdmin):
         "screen_count",
         "active",
     )
-    list_filter = ("active", "grade", "building")
+    list_filter = ("active", "stage", "grade", "building")
     search_fields = ("name", "grade", "section", "building", "room_number")
     ordering = ("name",)
     filter_horizontal = ("teachers",)
@@ -37,7 +38,7 @@ class ClassroomAdmin(AdministratorAdminMixin, admin.ModelAdmin):
     readonly_fields = ("created_at", "updated_at")
 
     fieldsets = (
-        (None, {"fields": ("name", "grade", "section")}),
+        (None, {"fields": ("name", "stage", "grade", "section")}),
         (
             "Location",
             {
@@ -70,3 +71,11 @@ class ClassroomAdmin(AdministratorAdminMixin, admin.ModelAdmin):
     @admin.display(description="Screens")
     def screen_count(self, obj: Classroom) -> int:
         return obj.screens.count()
+
+
+@admin.register(SchoolStage)
+class SchoolStageAdmin(AdministratorAdminMixin, admin.ModelAdmin):
+    list_display = ("name", "code", "active")
+    search_fields = ("name", "code")
+    list_filter = ("active",)
+    filter_horizontal = ("deputies",)

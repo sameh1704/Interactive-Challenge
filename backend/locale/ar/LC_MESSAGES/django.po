@@ -1,0 +1,3077 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Interactive Challenge\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-10-10 21:38+0300\n"
+"Language: ar\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 && n%100<=10 ? 3 : n%100>=11 && n%100<=99 ? 4 : 5;\n"
+
+#: accounts/roles.py:29
+msgid "Administrator"
+msgstr "المدير"
+
+#: accounts/roles.py:30 teacher/templates/teacher/base.html:19
+msgid "Teacher"
+msgstr "المعلم"
+
+#: accounts/templates/accounts/login.html:4
+#: accounts/templates/accounts/login.html:33
+#: teacher/templates/teacher/base.html:59
+msgid "Sign in"
+msgstr "تسجيل الدخول"
+
+#: accounts/templates/accounts/login.html:8
+msgid "Staff sign in"
+msgstr "تسجيل دخول الموظفين"
+
+#: accounts/templates/accounts/login.html:10
+msgid "Sign in with your school account to see your classrooms and screens."
+msgstr "سجّل الدخول بحساب المدرسة لعرض فصولك وشاشاتك."
+
+#: competitions/models.py:44
+msgid "Waiting"
+msgstr "بانتظار البدء"
+
+#: competitions/models.py:45
+msgid "Question active"
+msgstr "السؤال جارٍ"
+
+#: competitions/models.py:46
+msgid "Answering closed"
+msgstr "أُغلق باب الإجابة"
+
+#: competitions/models.py:47
+msgid "Showing result"
+msgstr "عرض النتيجة"
+
+#: competitions/models.py:48 live/templates/live/teacher.html:97
+msgid "Next question"
+msgstr "السؤال التالي"
+
+#: competitions/models.py:49 teacher/templates/teacher/dashboard.html:67
+msgid "Finished"
+msgstr "مكتملة"
+
+#: core/templates/core/dashboard.html:4 core/templates/core/dashboard.html:8
+#: teacher/templates/teacher/base.html:26
+#: teacher/templates/teacher/help.html:29 templates/admin/nav_sidebar.html:30
+msgid "Dashboard"
+msgstr "لوحة التحكم"
+
+#: core/templates/core/dashboard.html:10
+#: teacher/templates/teacher/dashboard.html:10
+#: templates/admin/nav_sidebar.html:114
+msgid "Signed in as"
+msgstr "تم تسجيل الدخول بحساب"
+
+#: core/templates/core/dashboard.html:15 templates/admin/index.html:26
+msgid "School totals"
+msgstr "إجماليات المدرسة"
+
+#: core/templates/core/dashboard.html:18 live/templates/live/teacher.html:38
+#: teacher/templates/teacher/competition_detail.html:25
+#: teacher/templates/teacher/competitions.html:27
+msgid "Classrooms"
+msgstr "الفصول"
+
+#: core/templates/core/dashboard.html:22
+msgid "Registered screens"
+msgstr "الشاشات المسجلة"
+
+#: core/templates/core/dashboard.html:26
+msgid "Active screens"
+msgstr "الشاشات النشطة"
+
+#: core/templates/core/dashboard.html:30
+msgid "Teachers"
+msgstr "المعلمون"
+
+#: core/templates/core/dashboard.html:34
+#: core/templates/core/dashboard.html:102
+msgid "Screens online"
+msgstr "شاشات متصلة"
+
+#: core/templates/core/dashboard.html:38
+msgid "Screens offline"
+msgstr "شاشات غير متصلة"
+
+#: core/templates/core/dashboard.html:43 core/templates/core/dashboard.html:45
+msgid "Interactive screens"
+msgstr "الشاشات التفاعلية"
+
+#: core/templates/core/dashboard.html:49
+msgid "Screen"
+msgstr "الشاشة"
+
+#: core/templates/core/dashboard.html:50
+msgid "Screen ID"
+msgstr "معرّف الشاشة"
+
+#: core/templates/core/dashboard.html:51
+#: teacher/templates/teacher/hall_of_fame.html:27
+#: teacher/templates/teacher/tournament_detail.html:46
+msgid "Classroom"
+msgstr "الفصل"
+
+#: core/templates/core/dashboard.html:52
+#: teacher/templates/teacher/tournament_detail.html:22
+#: teacher/templates/teacher/tournaments.html:28
+msgid "Status"
+msgstr "الحالة"
+
+#: core/templates/core/dashboard.html:53
+msgid "Last seen"
+msgstr "آخر ظهور"
+
+#: core/templates/core/dashboard.html:54
+msgid "Address"
+msgstr "العنوان"
+
+#: core/templates/core/dashboard.html:62
+msgid "Primary"
+msgstr "أساسية"
+
+#: core/templates/core/dashboard.html:63
+msgid "Retired"
+msgstr "مُلغاة"
+
+#: core/templates/core/dashboard.html:66
+msgid "Unassigned"
+msgstr "غير مسنودة"
+
+#: core/templates/core/dashboard.html:72
+msgid "Never"
+msgstr "أبداً"
+
+#: core/templates/core/dashboard.html:80
+msgid "No screens have been registered yet."
+msgstr "لم تُسجَّل أي شاشات بعد."
+
+#: core/templates/core/dashboard.html:85
+msgid "Manage classrooms"
+msgstr "إدارة الفصول"
+
+#: core/templates/core/dashboard.html:86
+msgid "Manage screens"
+msgstr "إدارة الشاشات"
+
+#: core/templates/core/dashboard.html:87
+msgid "Manage staff accounts"
+msgstr "إدارة حسابات الموظفين"
+
+#: core/templates/core/dashboard.html:91
+msgid "Your classrooms"
+msgstr "فصولك"
+
+#: core/templates/core/dashboard.html:94
+#: core/templates/core/dashboard.html:107
+msgid "My classrooms"
+msgstr "فصولي"
+
+#: core/templates/core/dashboard.html:98
+msgid "Screens"
+msgstr "الشاشات"
+
+#: core/templates/core/dashboard.html:116
+#, python-format
+msgid "%(counter)s registered screen"
+msgid_plural "%(counter)s registered screens"
+msgstr[0] "لا توجد شاشات مسجلة"
+msgstr[1] "شاشة مسجلة واحدة"
+msgstr[2] "شاشتان مسجلتان"
+msgstr[3] "%(counter)s شاشات مسجلة"
+msgstr[4] "%(counter)s شاشة مسجلة"
+msgstr[5] "%(counter)s شاشة مسجلة"
+
+#: core/templates/core/dashboard.html:120
+#: teacher/templates/teacher/partials/preview.html:54
+#: teacher/templates/teacher/question_form.html:49
+#: teacher/templates/teacher/questions.html:39
+msgid "Inactive"
+msgstr "غير نشط"
+
+#: core/templates/core/dashboard.html:127
+msgid ""
+"You are not assigned to any classrooms yet. Please ask an administrator."
+msgstr "لم تُسند إليك أي فصول بعد. يرجى مراجعة مدير النظام."
+
+#: live/templates/live/teacher.html:4 live/templates/live/teacher.html:19
+msgid "Live control"
+msgstr "التحكم المباشر"
+
+#: live/templates/live/teacher.html:31
+#: teacher/templates/teacher/questions.html:24
+msgid "Question"
+msgstr "السؤال"
+
+#: live/templates/live/teacher.html:42
+msgid "Screens connected"
+msgstr "شاشات متصلة"
+
+#: live/templates/live/teacher.html:46
+#: teacher/templates/teacher/competition_detail.html:17
+#: teacher/templates/teacher/competitions.html:25
+#: teacher/templates/teacher/dashboard.html:66
+msgid "State"
+msgstr "الحالة"
+
+#: live/templates/live/teacher.html:50
+msgid "Time left"
+msgstr "الوقت المتبقي"
+
+#: live/templates/live/teacher.html:62
+msgid "No classrooms are taking part in this round."
+msgstr "لا توجد فصول مشاركة في هذه الجولة."
+
+#: live/templates/live/teacher.html:66
+msgid ""
+"Live controls move the competition through its questions. End a question to "
+"reveal its result, then advance when ready."
+msgstr ""
+"تنقل عناصر التحكم المباشرة المسابقة بين أسئلتها. أغلق السؤال لكشف نتيجته، ثم"
+" انتقل عندما تكون مستعداً."
+
+#: live/templates/live/teacher.html:82
+msgid "Start competition"
+msgstr "ابدأ المسابقة"
+
+#: live/templates/live/teacher.html:87
+msgid "Start / next question"
+msgstr "ابدأ / انتقل للسؤال"
+
+#: live/templates/live/teacher.html:92
+msgid "End question"
+msgstr "أغلق السؤال"
+
+#: live/templates/live/teacher.html:102
+msgid "Finish competition"
+msgstr "أغلق المسابقة"
+
+#: live/templates/live/teacher.html:107
+msgid ""
+"End question stops the answers and shows the result. Next question then "
+"moves on."
+msgstr ""
+"إنهاء السؤال يوقف الإجابات ويعرض النتيجة. ثم ينتقل السؤال التالي إلى ما "
+"بعده."
+
+#: live/templates/live/teacher.html:111
+msgid "Open the leaderboard display"
+msgstr "افتح شاشة الترتيب"
+
+#: live/templates/live/teacher.html:114
+msgid "Questions in this round"
+msgstr "أسئلة هذه الجولة"
+
+#: live/templates/live/teacher.html:123
+msgid "No questions have been added to this round."
+msgstr "لم تُضف أسئلة إلى هذه الجولة."
+
+#: questions/forms.py:28
+msgid "Question text"
+msgstr "نص السؤال"
+
+#: questions/forms.py:29
+msgid "Write your question…"
+msgstr "اكتب سؤالك…"
+
+#: questions/forms.py:41 teacher/templates/teacher/partials/preview.html:19
+#: teacher/templates/teacher/question_form.html:38
+#: teacher/templates/teacher/question_form.html:117
+msgid "True"
+msgstr "صح"
+
+#: questions/forms.py:41 teacher/templates/teacher/partials/preview.html:20
+#: teacher/templates/teacher/question_form.html:39
+#: teacher/templates/teacher/question_form.html:118
+msgid "False"
+msgstr "خطأ"
+
+#: questions/forms.py:47
+msgid "Hint"
+msgstr "تلميح"
+
+#: questions/forms.py:48
+msgid "Optional clue…"
+msgstr "تلميح اختياري…"
+
+#: questions/forms.py:52
+msgid "Optional explanation…"
+msgstr "شرح اختياري…"
+
+#: questions/forms.py:56
+msgid "Duration (seconds)"
+msgstr "المدة (بالثواني)"
+
+#: questions/forms.py:60
+msgid "Image"
+msgstr "الصورة"
+
+#: questions/forms.py:63 teacher/templates/teacher/partials/preview.html:54
+#: teacher/templates/teacher/question_form.html:48
+#: teacher/templates/teacher/questions.html:27
+#: teacher/templates/teacher/questions.html:39
+msgid "Active"
+msgstr "نشط"
+
+#: questions/forms.py:101
+#, python-format
+msgid "Enter valid JSON for %(field)s."
+msgstr "أدخل JSON صالحاً للحقل %(field)s."
+
+#: questions/forms.py:106
+msgid "a list"
+msgstr "قائمة"
+
+#: questions/forms.py:106
+msgid "an object"
+msgstr "كائناً"
+
+#: questions/forms.py:107
+#, python-format
+msgid "%(field)s must be %(expected)s."
+msgstr "يجب أن يكون %(field)s من النوع %(expected)s."
+
+#: questions/models.py:114
+msgid "Multiple choice"
+msgstr "اختيار من متعدد"
+
+#: questions/models.py:115
+msgid "True or false"
+msgstr "صح أم خطأ"
+
+#: questions/models.py:116
+msgid "Ordering"
+msgstr "ترتيب"
+
+#: questions/models.py:117
+msgid "Classification"
+msgstr "تصنيف"
+
+#: questions/models.py:118
+msgid "Short answer"
+msgstr "إجابة قصيرة"
+
+#: scoring/models.py:73
+msgid "Linear decay"
+msgstr "تناقص خطي"
+
+#: scoring/models.py:74
+msgid "No speed bonus"
+msgstr "لا توجد مكافأة سرعة"
+
+#: teacher/templates/teacher/base.html:20
+msgid "Workspace"
+msgstr "مساحة العمل"
+
+#: teacher/templates/teacher/base.html:27
+#: teacher/templates/teacher/competitions.html:4
+#: teacher/templates/teacher/competitions.html:8
+#: teacher/templates/teacher/help.html:30
+msgid "My Competitions"
+msgstr "مسابقاتي"
+
+#: teacher/templates/teacher/base.html:28
+#: teacher/templates/teacher/competitions.html:15
+#: teacher/templates/teacher/competitions.html:53
+#: teacher/templates/teacher/dashboard.html:92
+#: teacher/templates/teacher/help.html:31
+#: teacher/templates/teacher/wizard.html:4
+#: teacher/templates/teacher/wizard.html:8
+#: teacher/templates/teacher/wizard.html:256
+msgid "Create Competition"
+msgstr "إنشاء مسابقة"
+
+#: teacher/templates/teacher/base.html:29
+#: teacher/templates/teacher/dashboard.html:33
+#: teacher/templates/teacher/help.html:32
+#: teacher/templates/teacher/questions.html:4
+#: teacher/templates/teacher/questions.html:8
+msgid "Question Bank"
+msgstr "بنك الأسئلة"
+
+#: teacher/templates/teacher/base.html:30
+#: teacher/templates/teacher/help.html:33
+#: teacher/templates/teacher/question_form.html:4
+msgid "Create Question"
+msgstr "إنشاء سؤال"
+
+#: teacher/templates/teacher/base.html:31
+#: teacher/templates/teacher/help.html:34
+#: teacher/templates/teacher/tournaments.html:4
+#: teacher/templates/teacher/tournaments.html:8
+msgid "My Tournaments"
+msgstr "بطولاتي"
+
+#: teacher/templates/teacher/base.html:32
+#: teacher/templates/teacher/help.html:35
+#: teacher/templates/teacher/tournaments.html:16
+msgid "Create Tournament"
+msgstr "إنشاء بطولة"
+
+#: teacher/templates/teacher/base.html:33
+#: teacher/templates/teacher/help.html:36
+#: teacher/templates/teacher/reports.html:4
+#: teacher/templates/teacher/reports.html:8 teacher/tests/test_i18n.py:158
+#: teacher/tests/test_i18n.py:160 templates/admin/nav_sidebar.html:101
+msgid "Reports"
+msgstr "التقارير"
+
+#: teacher/templates/teacher/base.html:34
+#: teacher/templates/teacher/hall_of_fame.html:4
+#: teacher/templates/teacher/hall_of_fame.html:8
+#: teacher/templates/teacher/help.html:37 templates/admin/nav_sidebar.html:106
+msgid "Hall of Fame"
+msgstr "سجل الأبطال"
+
+#: teacher/templates/teacher/base.html:35
+#: teacher/templates/teacher/help.html:4 teacher/templates/teacher/help.html:8
+msgid "Help"
+msgstr "المساعدة"
+
+#: teacher/templates/teacher/base.html:41
+msgid "Language"
+msgstr "اللغة"
+
+# The theme switcher: two controls, each carrying `aria-pressed`, so the
+# labels
+# name the theme rather than the action and the pressed one is the active one.
+msgid "Theme"
+msgstr "المظهر"
+
+msgid "Light"
+msgstr "فاتح"
+
+msgid "Dark"
+msgstr "داكن"
+
+#: teacher/templates/teacher/base.html:56 templates/admin/base_site.html:76
+msgid "Sign out"
+msgstr "تسجيل الخروج"
+
+#: teacher/templates/teacher/base.html:78
+msgid "Al Manar Interactive Challenge"
+msgstr "تحدي المنار التفاعلي"
+
+#: teacher/templates/teacher/competition_detail.html:4
+msgid "Competition detail"
+msgstr "تفاصيل المسابقة"
+
+#: teacher/templates/teacher/competition_detail.html:9
+#: teacher/templates/teacher/competition_detail.html:14
+msgid "Competition details"
+msgstr "تفاصيل المسابقة"
+
+#: teacher/templates/teacher/competition_detail.html:11
+msgid ""
+"The live dashboard controls the round. Results are saved when the "
+"competition is finished."
+msgstr "لوحة التحكم المباشرة تدير الجولة. وتُحفظ النتائج عند انتهاء المسابقة."
+
+#: teacher/templates/teacher/competition_detail.html:21
+#: teacher/templates/teacher/competitions.html:26
+#: teacher/templates/teacher/dashboard.html:68
+#: teacher/templates/teacher/wizard.html:239
+msgid "Questions"
+msgstr "الأسئلة"
+
+#: teacher/templates/teacher/competition_detail.html:29
+#: teacher/templates/teacher/competitions.html:28
+#: teacher/templates/teacher/tournament_detail.html:34
+#: teacher/templates/teacher/tournaments.html:31
+msgid "Created"
+msgstr "تاريخ الإنشاء"
+
+#: teacher/templates/teacher/competition_detail.html:34
+#: teacher/templates/teacher/tournament_detail.html:143
+msgid "Back to list"
+msgstr "العودة إلى القائمة"
+
+#: teacher/templates/teacher/competition_detail.html:39
+msgid "Run the round"
+msgstr "تشغيل الجولة"
+
+#: teacher/templates/teacher/competitions.html:9
+msgid "Manage your live rounds"
+msgstr "إدارة الجولات المباشرة"
+
+#: teacher/templates/teacher/competitions.html:11
+msgid ""
+"A competition is one live round. Open a competition to review its setup and "
+"use the live controls to run it."
+msgstr ""
+"المسابقة هي جولة مباشرة واحدة. افتح المسابقة لمراجعة إعدادها واستخدم عناصر "
+"التحكم المباشرة لتشغيلها."
+
+#: teacher/templates/teacher/competitions.html:20
+#: teacher/tournament_wizard.py:53
+msgid "Competitions"
+msgstr "المسابقات"
+
+#: teacher/templates/teacher/competitions.html:24
+msgid "Title"
+msgstr "العنوان"
+
+#: teacher/templates/teacher/competitions.html:51
+msgid "No competitions yet"
+msgstr "لا توجد مسابقات بعد"
+
+#: teacher/templates/teacher/competitions.html:52
+msgid "No competitions found. Create one to get started."
+msgstr "لم يتم العثور على مسابقات. أنشئ مسابقة للبدء."
+
+#: teacher/templates/teacher/dashboard.html:4
+#: teacher/templates/teacher/dashboard.html:8
+msgid "Teacher Dashboard"
+msgstr "لوحة المعلم"
+
+#: teacher/templates/teacher/dashboard.html:14
+msgid "Your workspace at a glance"
+msgstr "نظرة سريعة على مساحة عملك"
+
+#: teacher/templates/teacher/dashboard.html:15
+msgid ""
+"Start a competition, build a question, or set up a tournament from Quick "
+"Actions. Your recent activity and assigned classrooms appear here."
+msgstr ""
+"ابدأ مسابقة، أو ابنِ سؤالاً، أو جهّز بطولة من الإجراءات السريعة. ويظهر هنا "
+"نشاطك الأخير والفصول المسندة إليك."
+
+#: teacher/templates/teacher/dashboard.html:18
+msgid "Dashboard statistics"
+msgstr "إحصاءات لوحة التحكم"
+
+#: teacher/templates/teacher/dashboard.html:21
+msgid "Draft Competitions"
+msgstr "مسابقات مسودة"
+
+#: teacher/templates/teacher/dashboard.html:25
+msgid "Upcoming Competitions"
+msgstr "المسابقات القادمة"
+
+#: teacher/templates/teacher/dashboard.html:29
+#: teacher/templates/teacher/dashboard.html:60
+msgid "Recently Finished"
+msgstr "المكتملة مؤخراً"
+
+#: teacher/templates/teacher/dashboard.html:39
+msgid "Quick Actions"
+msgstr "إجراءات سريعة"
+
+#: teacher/templates/teacher/dashboard.html:50
+msgid "Active Tournament"
+msgstr "البطولة النشطة"
+
+#: teacher/templates/teacher/dashboard.html:53
+msgid "View tournament"
+msgstr "عرض البطولة"
+
+#: teacher/templates/teacher/dashboard.html:61
+msgid "Recently finished competitions"
+msgstr "المسابقات المكتملة مؤخراً"
+
+#: teacher/templates/teacher/dashboard.html:65
+#: teacher/templates/teacher/wizard.html:225
+#: templates/admin/nav_sidebar.html:45
+msgid "Competition"
+msgstr "المسابقة"
+
+#: teacher/templates/teacher/dashboard.html:90
+msgid "No finished competitions yet"
+msgstr "لا توجد مسابقات مكتملة بعد"
+
+#: teacher/templates/teacher/dashboard.html:91
+msgid "Finished competition results will appear here."
+msgstr "ستظهر نتائج المسابقات المكتملة هنا."
+
+#: teacher/templates/teacher/hall_of_fame.html:9
+msgid "Completed tournaments and champions"
+msgstr "البطولات المكتملة والأبطال"
+
+#: teacher/templates/teacher/hall_of_fame.html:11
+msgid ""
+"Only finalized tournaments appear here; these standings are preserved as "
+"historical results."
+msgstr ""
+"تظهر هنا البطولات التي أُغلقت نهائياً فقط؛ ويُحفظ ترتيبها كسجل تاريخي."
+
+#: teacher/templates/teacher/hall_of_fame.html:22
+msgid "Tournament standings"
+msgstr "ترتيب البطولات"
+
+#: teacher/templates/teacher/hall_of_fame.html:26
+msgid "Rank"
+msgstr "الترتيب"
+
+#: teacher/templates/teacher/hall_of_fame.html:28
+#: teacher/templates/teacher/tournament_detail.html:49
+msgid "Score"
+msgstr "النتيجة"
+
+#: teacher/templates/teacher/hall_of_fame.html:43
+msgid "No standings recorded."
+msgstr "لم يُسجّل ترتيب."
+
+#: teacher/templates/teacher/hall_of_fame.html:48
+msgid "No champions recorded yet"
+msgstr "لم يُسجّل أبطال بعد"
+
+#: teacher/templates/teacher/hall_of_fame.html:49
+msgid "No completed tournaments yet."
+msgstr "لا توجد بطولات مكتملة بعد."
+
+#: teacher/templates/teacher/help.html:9
+msgid "Getting started with the Teacher Workspace"
+msgstr "بدء استخدام مساحة عمل المعلم"
+
+#: teacher/templates/teacher/help.html:11
+msgid ""
+"Short explanations appear beside key decisions throughout the workspace. "
+"Expand a question-mark help control for extra detail."
+msgstr ""
+"تظهر شروحات مختصرة بجانب القرارات المهمة في كل مساحة العمل. وسّع عنصر "
+"المساعدة النصية لرؤية مزيد من التفاصيل."
+
+#: teacher/templates/teacher/help.html:15
+msgid "Welcome"
+msgstr "مرحباً"
+
+#: teacher/templates/teacher/help.html:23
+msgid ""
+"The Teacher Workspace gives you a simplified interface for managing "
+"competitions, questions, and tournaments. Use the navigation above to access"
+" the different sections."
+msgstr ""
+"توفر لك مساحة عمل المعلم واجهة مبسّطة لإدارة المسابقات والأسئلة والبطولات. "
+"استخدم شريط التنقل أعلاه للوصول إلى الأقسام المختلفة."
+
+#: teacher/templates/teacher/help.html:27
+msgid "Quick Guide"
+msgstr "دليل سريع"
+
+#: teacher/templates/teacher/help.html:29
+msgid "Your overview with quick stats and actions"
+msgstr "نظرة عامة على الإحصاءات والإجراءات السريعة"
+
+#: teacher/templates/teacher/help.html:30
+msgid "View and manage your live rounds"
+msgstr "عرض جولاتك المباشرة وإدارتها"
+
+#: teacher/templates/teacher/help.html:31
+msgid "Set up a new round"
+msgstr "إعداد جولة جديدة"
+
+#: teacher/templates/teacher/help.html:32
+msgid "Browse and manage your questions"
+msgstr "استعراض أسئلتك وإدارتها"
+
+#: teacher/templates/teacher/help.html:33
+msgid "Add a new question to the bank"
+msgstr "إضافة سؤال جديد إلى البنك"
+
+#: teacher/templates/teacher/help.html:34
+msgid "Manage championships"
+msgstr "إدارة البطولات"
+
+#: teacher/templates/teacher/help.html:35
+msgid "Set up a new championship"
+msgstr "إعداد بطولة جديدة"
+
+#: teacher/templates/teacher/help.html:36
+msgid "View competition and classroom reports"
+msgstr "عرض تقارير المسابقات والفصول"
+
+#: teacher/templates/teacher/help.html:37
+msgid "See completed tournament standings"
+msgstr "عرض ترتيب البطولات المكتملة"
+
+#: teacher/templates/teacher/help.html:42
+msgid "Need Help?"
+msgstr "هل تحتاج إلى مساعدة؟"
+
+#: teacher/templates/teacher/help.html:44
+msgid "Contact your administrator for account or classroom assignment issues."
+msgstr "تواصل مع المسؤول عن مشكلات الحساب أو إسناد الفصول."
+
+#: teacher/templates/teacher/partials/first_use.html:8
+msgid "Don't show again"
+msgstr "عدم الإظهار مرة أخرى"
+
+#: teacher/templates/teacher/partials/preview.html:6
+#: teacher/templates/teacher/question_form.html:36
+msgid "Your question will appear here."
+msgstr "سيظهر سؤالك هنا."
+
+#: teacher/templates/teacher/partials/preview.html:13
+#: teacher/templates/teacher/question_form.html:37
+#: teacher/templates/teacher/question_form.html:115
+msgid "Correct answer"
+msgstr "الإجابة الصحيحة"
+
+#: teacher/templates/teacher/partials/preview.html:23
+#: teacher/templates/teacher/question_form.html:41
+msgid "Items shown to students:"
+msgstr "العناصر المعروضة للطلاب:"
+
+#: teacher/templates/teacher/partials/preview.html:29
+#: teacher/templates/teacher/question_form.html:42
+msgid "Correct order:"
+msgstr "الترتيب الصحيح:"
+
+#: teacher/templates/teacher/partials/preview.html:45
+#: teacher/templates/teacher/question_form.html:43
+msgid "Student answer"
+msgstr "إجابة الطالب"
+
+#: teacher/templates/teacher/partials/preview.html:49
+#: teacher/templates/teacher/question_form.html:45
+msgid "Hint:"
+msgstr "تلميح:"
+
+#: teacher/templates/teacher/partials/preview.html:52
+#: teacher/templates/teacher/question_form.html:46
+msgid "Explanation:"
+msgstr "الشرح:"
+
+#: teacher/templates/teacher/partials/preview.html:54
+#: teacher/templates/teacher/question_form.html:47
+#: teacher/templates/teacher/questions.html:36
+#: teacher/templates/teacher/wizard.html:194
+#: teacher/templates/teacher/wizard.html:247
+msgid "seconds"
+msgstr "ثانية"
+
+#: teacher/templates/teacher/question_form.html:4
+msgid "Edit Question"
+msgstr "تعديل السؤال"
+
+#: teacher/templates/teacher/question_form.html:8
+msgid "Edit question"
+msgstr "تعديل السؤال"
+
+#: teacher/templates/teacher/question_form.html:8
+msgid "Create a question"
+msgstr "إنشاء سؤال"
+
+#: teacher/templates/teacher/question_form.html:10
+msgid "Update a question in the shared question bank."
+msgstr "تحديث سؤال في بنك الأسئلة المشترك."
+
+#: teacher/templates/teacher/question_form.html:10
+msgid "Build a question for your next competition."
+msgstr "أنشئ سؤالاً لمسابقتك القادمة."
+
+#: teacher/templates/teacher/question_form.html:14
+msgid "Build a question for the bank"
+msgstr "أنشئ سؤالاً للبنك"
+
+#: teacher/templates/teacher/question_form.html:15
+msgid ""
+"Choose a format, enter its answer key, and preview what students will see. "
+"Hints are for teachers; explanations appear after the answer is revealed."
+msgstr ""
+"اختر صيغة السؤال، وأدخل مفتاح الإجابة، وعاين ما سيراه الطلاب. الملاحظات "
+"للمعلم، أما التفسيرات فتظهر بعد كشف الإجابة."
+
+#: teacher/templates/teacher/question_form.html:19
+msgid "Remove"
+msgstr "إزالة"
+
+#: teacher/templates/teacher/question_form.html:20
+msgid "Mark option as correct"
+msgstr "تحديد الخيار كإجابة صحيحة"
+
+#: teacher/templates/teacher/question_form.html:21
+msgid "Answer option"
+msgstr "خيار الإجابة"
+
+#: teacher/templates/teacher/question_form.html:22
+msgid "Option A"
+msgstr "الخيار أ"
+
+#: teacher/templates/teacher/question_form.html:23
+msgid "Option B"
+msgstr "الخيار ب"
+
+#: teacher/templates/teacher/question_form.html:24
+msgid "Item in correct order"
+msgstr "العنصر ضمن الترتيب الصحيح"
+
+#: teacher/templates/teacher/question_form.html:25
+msgid "Item 1"
+msgstr "العنصر 1"
+
+#: teacher/templates/teacher/question_form.html:26
+msgid "Item 2"
+msgstr "العنصر 2"
+
+#: teacher/templates/teacher/question_form.html:27
+msgid "Category 1"
+msgstr "الفئة 1"
+
+#: teacher/templates/teacher/question_form.html:28
+msgid "Category 2"
+msgstr "الفئة 2"
+
+#: teacher/templates/teacher/question_form.html:29
+#, python-brace-format
+msgid "Correct position for {item}"
+msgstr "الموضع الصحيح لـ {item}"
+
+#: teacher/templates/teacher/question_form.html:30
+msgid "Correct position for new item"
+msgstr "الموضع الصحيح للعنصر الجديد"
+
+#: teacher/templates/teacher/question_form.html:31
+msgid "Category name"
+msgstr "اسم الفئة"
+
+#: teacher/templates/teacher/question_form.html:32
+msgid "Item to classify"
+msgstr "العنصر المراد تصنيفه"
+
+#: teacher/templates/teacher/question_form.html:33
+msgid "Correct category"
+msgstr "الفئة الصحيحة"
+
+#: teacher/templates/teacher/question_form.html:34
+msgid "Accepted answer"
+msgstr "إجابة مقبولة"
+
+#: teacher/templates/teacher/question_form.html:35
+msgid "Empty option"
+msgstr "خيار فارغ"
+
+#: teacher/templates/teacher/question_form.html:40
+msgid "Empty item"
+msgstr "عنصر فارغ"
+
+#: teacher/templates/teacher/question_form.html:44
+#, python-brace-format
+msgid "Accepted answers: {answers}"
+msgstr "الإجابات المقبولة: {answers}"
+
+#: teacher/templates/teacher/question_form.html:58
+msgid "1. Choose a question type"
+msgstr "1. اختر نوع السؤال"
+
+#: teacher/templates/teacher/question_form.html:60
+msgid "Question type"
+msgstr "نوع السؤال"
+
+#: teacher/templates/teacher/question_form.html:69
+msgid "Which question type should I choose?"
+msgstr "ما نوع السؤال الذي أختاره؟"
+
+#: teacher/templates/teacher/question_form.html:71
+msgid "Multiple choice:"
+msgstr "اختيار من متعدد:"
+
+#: teacher/templates/teacher/question_form.html:71
+msgid "select one answer from options."
+msgstr "اختر إجابة واحدة من الخيارات."
+
+#: teacher/templates/teacher/question_form.html:72
+msgid "True or false:"
+msgstr "صح أم خطأ:"
+
+#: teacher/templates/teacher/question_form.html:72
+msgid "judge whether a statement is correct."
+msgstr "حدّد ما إذا كانت العبارة صحيحة."
+
+#: teacher/templates/teacher/question_form.html:73
+msgid "Ordering:"
+msgstr "الترتيب:"
+
+#: teacher/templates/teacher/question_form.html:73
+msgid "arrange items in a meaningful sequence."
+msgstr "رتّب العناصر حسب التسلسل المطلوب."
+
+#: teacher/templates/teacher/question_form.html:75
+msgid "Classification:"
+msgstr "تصنيف:"
+
+#: teacher/templates/teacher/question_form.html:75
+msgid "place items into categories."
+msgstr "ضع العناصر ضمن الفئات المناسبة."
+
+#: teacher/templates/teacher/question_form.html:76
+msgid "Short answer:"
+msgstr "إجابة قصيرة:"
+
+#: teacher/templates/teacher/question_form.html:76
+msgid "enter one of the accepted answers."
+msgstr "أدخل إحدى الإجابات المقبولة."
+
+#: teacher/templates/teacher/question_form.html:85
+msgid "2. Write the question"
+msgstr "2. اكتب السؤال"
+
+#: teacher/templates/teacher/question_form.html:99
+msgid "Multiple choice answers"
+msgstr "إجابات الاختيار من متعدد"
+
+#: teacher/templates/teacher/question_form.html:100
+msgid "Answer options"
+msgstr "خيارات الإجابة"
+
+#: teacher/templates/teacher/question_form.html:101
+msgid "Add 2 to 6 options, then choose the correct answer."
+msgstr "أضف من خيارين إلى ستة، ثم اختر الإجابة الصحيحة."
+
+#: teacher/templates/teacher/question_form.html:102
+msgid "Mark exactly one option as correct."
+msgstr "حدّد خياراً واحداً فقط كإجابة صحيحة."
+
+#: teacher/templates/teacher/question_form.html:105
+msgid "Add an option"
+msgstr "إضافة خيار"
+
+#: teacher/templates/teacher/question_form.html:114
+msgid "True or false answer"
+msgstr "إجابة صح أو خطأ"
+
+#: teacher/templates/teacher/question_form.html:125
+msgid "Ordering answer"
+msgstr "إجابة الترتيب"
+
+#: teacher/templates/teacher/question_form.html:126
+msgid "Items and correct order"
+msgstr "العناصر والترتيب الصحيح"
+
+#: teacher/templates/teacher/question_form.html:127
+msgid ""
+"Enter the items students will arrange, then choose the correct position for "
+"each one."
+msgstr "أدخل العناصر التي سيرتبها الطلاب، ثم اختر الموضع الصحيح لكل عنصر."
+
+#: teacher/templates/teacher/question_form.html:128
+msgid "Use this type when the order of items matters."
+msgstr "استخدم هذا النوع عندما يكون ترتيب العناصر مهماً."
+
+#: teacher/templates/teacher/question_form.html:131
+#: teacher/templates/teacher/question_form.html:150
+msgid "Add an item"
+msgstr "إضافة عنصر"
+
+#: teacher/templates/teacher/question_form.html:137
+msgid "Classification answer"
+msgstr "إجابة التصنيف"
+
+#: teacher/templates/teacher/question_form.html:138
+msgid "Categories and correct placements"
+msgstr "الفئات ومواضع العناصر الصحيحة"
+
+#: teacher/templates/teacher/question_form.html:139
+msgid "Create 2 to 6 categories and assign each item to its correct category."
+msgstr "أنشئ من فئتين إلى ست فئات، وأسند كل عنصر إلى فئته الصحيحة."
+
+#: teacher/templates/teacher/question_form.html:140
+msgid "Students will place each item in the category you assign here."
+msgstr "سيضع الطلاب كل عنصر في الفئة التي تحددها هنا."
+
+#: teacher/templates/teacher/question_form.html:143
+msgid "Categories"
+msgstr "الفئات"
+
+#: teacher/templates/teacher/question_form.html:145
+msgid "Add a category"
+msgstr "إضافة فئة"
+
+#: teacher/templates/teacher/question_form.html:148
+msgid "Items and answers"
+msgstr "العناصر والإجابات"
+
+#: teacher/templates/teacher/question_form.html:157
+#: teacher/templates/teacher/question_form.html:158
+msgid "Accepted answers"
+msgstr "الإجابات المقبولة"
+
+#: teacher/templates/teacher/question_form.html:159
+msgid "Add 1 to 10 answers that should be marked correct."
+msgstr "أضف من إجابة واحدة إلى عشر إجابات تُقبل كإجابة صحيحة."
+
+#: teacher/templates/teacher/question_form.html:161
+msgid "Add an accepted answer"
+msgstr "إضافة إجابة مقبولة"
+
+#: teacher/templates/teacher/question_form.html:164
+msgid "Answers are case-sensitive"
+msgstr "تُراعى حالة الأحرف في الإجابات"
+
+#: teacher/templates/teacher/question_form.html:173
+msgid "3. Timing and teacher notes"
+msgstr "3. الوقت وملاحظات المعلم"
+
+#: teacher/templates/teacher/question_form.html:175
+msgid "Answer time (seconds)"
+msgstr "وقت الإجابة (بالثواني)"
+
+#: teacher/templates/teacher/question_form.html:177
+msgid "Choose between 1 and 600 seconds."
+msgstr "اختر مدة بين ثانية واحدة و600 ثانية."
+
+#: teacher/templates/teacher/question_form.html:184
+msgid "Image (optional)"
+msgstr "صورة (اختيارية)"
+
+#: teacher/templates/teacher/question_form.html:189
+msgid "JPEG, PNG, GIF or WebP."
+msgstr "JPEG أو PNG أو GIF أو WebP."
+
+#: teacher/templates/teacher/question_form.html:191
+msgid "Current question image"
+msgstr "صورة السؤال الحالية"
+
+#: teacher/templates/teacher/question_form.html:193
+msgid "Selected question image preview"
+msgstr "معاينة صورة السؤال المحددة"
+
+#: teacher/templates/teacher/question_form.html:197
+msgid "Hint (optional)"
+msgstr "تلميح (اختياري)"
+
+#: teacher/templates/teacher/question_form.html:202
+msgid "A teacher cue to share while asking the question."
+msgstr "معلومة إرشادية يشاركها المعلم أثناء طرح السؤال."
+
+#: teacher/templates/teacher/question_form.html:206
+msgid "Explanation (optional)"
+msgstr "شرح (اختياري)"
+
+#: teacher/templates/teacher/question_form.html:211
+msgid "Shown after the result is revealed."
+msgstr "يظهر بعد إعلان النتيجة."
+
+#: teacher/templates/teacher/question_form.html:215
+msgid "Keep this question active in the question bank"
+msgstr "إبقاء هذا السؤال نشطاً في بنك الأسئلة"
+
+#: teacher/templates/teacher/question_form.html:219
+msgid "Points are configured for a competition, not on the question itself."
+msgstr "تُضبط النقاط للمسابقة، وليس للسؤال نفسه."
+
+#: teacher/templates/teacher/question_form.html:225
+msgid "Save changes"
+msgstr "حفظ التغييرات"
+
+#: teacher/templates/teacher/question_form.html:225
+msgid "Save question"
+msgstr "حفظ السؤال"
+
+#: teacher/templates/teacher/question_form.html:227
+msgid "Save and create another"
+msgstr "حفظ وإنشاء سؤال آخر"
+
+#: teacher/templates/teacher/question_form.html:228
+msgid "Save and add to competition"
+msgstr "حفظ وإضافة إلى المسابقة"
+
+#: teacher/templates/teacher/question_form.html:229
+msgid "Cancel"
+msgstr "إلغاء"
+
+#: teacher/templates/teacher/question_form.html:235
+msgid "Live preview"
+msgstr "معاينة مباشرة"
+
+#: teacher/templates/teacher/question_form.html:236
+msgid "This preview updates as you edit."
+msgstr "تتحدث هذه المعاينة أثناء التعديل."
+
+#: teacher/templates/teacher/questions.html:9
+msgid "Manage your questions"
+msgstr "إدارة أسئلتك"
+
+#: teacher/templates/teacher/questions.html:11
+msgid ""
+"Questions in the bank can be reused in more than one competition. Edit a "
+"question to update its answer key or explanation."
+msgstr ""
+"يمكن إعادة استخدام أسئلة البنك في أكثر من مسابقة. وحرر السؤال لتحديث مفتاح "
+"إجابته أو تفسيره."
+
+#: teacher/templates/teacher/questions.html:15
+#: teacher/templates/teacher/questions.html:55
+msgid "Add Question"
+msgstr "إضافة سؤال"
+
+#: teacher/templates/teacher/questions.html:20
+msgid "Question bank"
+msgstr "بنك الأسئلة"
+
+#: teacher/templates/teacher/questions.html:25
+msgid "Type"
+msgstr "النوع"
+
+#: teacher/templates/teacher/questions.html:26
+msgid "Duration"
+msgstr "المدة"
+
+#: teacher/templates/teacher/questions.html:28
+msgid "Actions"
+msgstr "الإجراءات"
+
+#: teacher/templates/teacher/questions.html:43
+msgid "Edit"
+msgstr "تعديل"
+
+#: teacher/templates/teacher/questions.html:53
+msgid "Your question bank is empty"
+msgstr "بنك الأسئلة فارغ"
+
+#: teacher/templates/teacher/questions.html:54
+msgid "No questions in the bank. Add one to get started."
+msgstr "لا توجد أسئلة في البنك. أضف سؤالاً للبدء."
+
+#: teacher/templates/teacher/reports.html:9
+msgid "Competition and classroom reports"
+msgstr "تقارير المسابقات والفصول"
+
+#: teacher/templates/teacher/reports.html:11
+msgid ""
+"Reports use saved competition and tournament results. A finished round's "
+"standings are preserved for history."
+msgstr ""
+"تعتمد التقارير على نتائج المسابقات والبطولات المحفوظة. ويُحفظ ترتيب الجولة "
+"المنتهية في السجل."
+
+#: teacher/templates/teacher/reports.html:15
+msgid "Available Reports"
+msgstr "التقارير المتاحة"
+
+#: teacher/templates/teacher/reports.html:17
+msgid "Competition report - performance by competition"
+msgstr "تقرير المسابقة - الأداء حسب المسابقة"
+
+#: teacher/templates/teacher/reports.html:18
+msgid "Classroom report - performance by classroom"
+msgstr "تقرير الفصل - الأداء حسب الفصل"
+
+#: teacher/templates/teacher/reports.html:19
+msgid "Question report - statistics by question"
+msgstr "تقرير السؤال - الإحصاءات حسب السؤال"
+
+#: teacher/templates/teacher/reports.html:20
+msgid "Tournament report - championship standings"
+msgstr "تقرير البطولة - ترتيب الفرق"
+
+#: teacher/templates/teacher/reports.html:23
+msgid "Open Reports"
+msgstr "فتح التقارير"
+
+#: teacher/templates/teacher/tournament_detail.html:4
+msgid "Tournament detail"
+msgstr "تفاصيل البطولة"
+
+#: teacher/templates/teacher/tournament_detail.html:16
+msgid ""
+"Use Full management to attach finished competitions, complete stages, "
+"process advancement, and finalize a tournament."
+msgstr ""
+"استخدم الإدارة الكاملة لربط المسابقات المكتملة، وإكمال المراحل، ومعالجة "
+"التأهل، وإغلاق البطولة."
+
+#: teacher/templates/teacher/tournament_detail.html:19
+msgid "Tournament details"
+msgstr "تفاصيل البطولة"
+
+#: teacher/templates/teacher/tournament_detail.html:26
+#: teacher/templates/teacher/tournament_detail.html:81
+#: teacher/templates/teacher/tournaments.html:29
+#: teacher/tournament_wizard.py:51
+msgid "Stages"
+msgstr "المراحل"
+
+#: teacher/templates/teacher/tournament_detail.html:30
+#: teacher/templates/teacher/tournament_detail.html:40
+#: teacher/templates/teacher/tournaments.html:30
+#: teacher/tournament_wizard.py:50
+msgid "Participants"
+msgstr "المشاركون"
+
+#: teacher/templates/teacher/tournament_detail.html:47
+msgid "Building"
+msgstr "المبنى"
+
+#: teacher/templates/teacher/tournament_detail.html:48
+msgid "Progress"
+msgstr "التقدم"
+
+#: teacher/templates/teacher/tournament_detail.html:61
+#, python-format
+msgid "Eliminated in %(stage)s"
+msgstr "أُقصي في %(stage)s"
+
+#: teacher/templates/teacher/tournament_detail.html:74
+msgid "No classrooms have been added."
+msgstr "لم يُضَف أي فصل."
+
+#: teacher/templates/teacher/tournament_detail.html:75
+msgid "Return to tournaments"
+msgstr "العودة إلى البطولات"
+
+#: teacher/templates/teacher/tournament_detail.html:89
+#: teacher/templates/teacher/tournament_form.html:232
+#, python-format
+msgid "Top %(count)s advance"
+msgstr "يتأهل أفضل %(count)s"
+
+#: teacher/templates/teacher/tournament_detail.html:90
+msgid "No elimination rule"
+msgstr "لا توجد قاعدة إقصاء"
+
+#: teacher/templates/teacher/tournament_detail.html:101
+#: teacher/templates/teacher/tournament_detail.html:105
+msgid "No competition attached."
+msgstr "لم تُربط مسابقة."
+
+#: teacher/templates/teacher/tournament_detail.html:110
+msgid "No stages have been configured."
+msgstr "لم تُحدَّد مراحل."
+
+#: teacher/templates/teacher/tournament_detail.html:116
+msgid "Tournament history"
+msgstr "سجل البطولة"
+
+#: teacher/templates/teacher/tournament_detail.html:118
+#, python-format
+msgid "Completed %(completed_at)s"
+msgstr "اكتملت في %(completed_at)s"
+
+#: teacher/templates/teacher/tournament_detail.html:120
+#, python-format
+msgid "Season %(season)s"
+msgstr "الموسم %(season)s"
+
+#: teacher/templates/teacher/tournament_detail.html:124
+msgid "Winner:"
+msgstr "الفائز:"
+
+#: teacher/templates/teacher/tournament_detail.html:125
+msgid "No winner recorded"
+msgstr "لم يُسجَّل فائز"
+
+#: teacher/templates/teacher/tournament_detail.html:128
+msgid "Final standings"
+msgstr "الترتيب النهائي"
+
+#: teacher/templates/teacher/tournament_detail.html:133
+#, python-format
+msgid "%(score)s points"
+msgstr "%(score)s نقطة"
+
+#: teacher/templates/teacher/tournament_detail.html:144
+msgid "Full management"
+msgstr "الإدارة الكاملة"
+
+#: teacher/templates/teacher/tournament_form.html:4
+#: teacher/templates/teacher/tournament_form.html:8
+msgid "Tournament setup"
+msgstr "إعداد البطولة"
+
+#: teacher/templates/teacher/tournament_form.html:9
+msgid "Plan the tournament in a few guided steps."
+msgstr "خطط للبطولة عبر خطوات إرشادية بسيطة."
+
+#: teacher/templates/teacher/tournament_form.html:12
+msgid "Plan a tournament step by step"
+msgstr "خطّط للبطولة خطوة بخطوة"
+
+#: teacher/templates/teacher/tournament_form.html:13
+msgid ""
+"Choose the classrooms and stage format, set who advances, then attach "
+"competitions or add them later. You can review the full plan before creating"
+" a draft."
+msgstr ""
+"اختر الفصول وصيغة المراحل، وحدد من يتأهل، ثم اربط المسابقات أو أضفها لاحقاً."
+" ويمكنك مراجعة الخطة كاملة قبل إنشاء المسودة."
+
+#: teacher/templates/teacher/tournament_form.html:16
+msgid "Tournament setup progress"
+msgstr "تقدم إعداد البطولة"
+
+#: teacher/templates/teacher/tournament_form.html:29
+msgid "Please check the following:"
+msgstr "يرجى مراجعة ما يلي:"
+
+#: teacher/templates/teacher/tournament_form.html:38
+msgid "1. Tournament details"
+msgstr "1. تفاصيل البطولة"
+
+#: teacher/templates/teacher/tournament_form.html:39
+msgid "Start with the information teachers and participants will see."
+msgstr "ابدأ بالمعلومات التي سيطّلع عليها المعلمون والمشاركون."
+
+#: teacher/templates/teacher/tournament_form.html:43
+#: teacher/templates/teacher/tournaments.html:25
+msgid "Name"
+msgstr "الاسم"
+
+#: teacher/templates/teacher/tournament_form.html:49
+#: teacher/templates/teacher/wizard.html:54
+#: teacher/templates/teacher/wizard.html:227
+msgid "Subject"
+msgstr "المادة"
+
+#: teacher/templates/teacher/tournament_form.html:53
+#: teacher/templates/teacher/wizard.html:58
+#: teacher/templates/teacher/wizard.html:227
+msgid "Grade"
+msgstr "الصف"
+
+#: teacher/templates/teacher/tournament_form.html:57
+msgid "Season / year"
+msgstr "الموسم / السنة"
+
+#: teacher/templates/teacher/tournament_form.html:62
+msgid "Description"
+msgstr "الوصف"
+
+#: teacher/templates/teacher/tournament_form.html:66
+msgid "Next: participants"
+msgstr "التالي: المشاركون"
+
+#: teacher/templates/teacher/tournament_form.html:71
+msgid "2. Choose participating classrooms"
+msgstr "2. اختر الفصول المشاركة"
+
+#: teacher/templates/teacher/tournament_form.html:72
+msgid ""
+"Choose at least two active classrooms assigned to you. Previous tournament "
+"participation is shown for context."
+msgstr ""
+"اختر فصلين نشطين على الأقل مسندين إليك. ويظهر سجل المشاركة في بطولات سابقة "
+"للإفادة."
+
+#: teacher/templates/teacher/tournament_form.html:73
+msgid "Only selected classrooms enter this tournament."
+msgstr "تشارك في هذه البطولة الفصول المحددة فقط."
+
+#: teacher/templates/teacher/tournament_form.html:87
+#: teacher/templates/teacher/wizard.html:90
+msgid "Selected"
+msgstr "محدد"
+
+#: teacher/templates/teacher/tournament_form.html:87
+msgid "Select"
+msgstr "اختيار"
+
+#: teacher/templates/teacher/tournament_form.html:91
+msgid "Building not specified"
+msgstr "لم يُحدد المبنى"
+
+#: teacher/templates/teacher/tournament_form.html:92
+msgid "Floor"
+msgstr "الطابق"
+
+#: teacher/templates/teacher/tournament_form.html:93
+msgid "Room"
+msgstr "الغرفة"
+
+#: teacher/templates/teacher/tournament_form.html:96
+msgid "Grade not specified"
+msgstr "لم يُحدد الصف"
+
+#: teacher/templates/teacher/tournament_form.html:97
+#, python-format
+msgid "%(count)s previous tournament"
+msgid_plural "%(count)s previous tournaments"
+msgstr[0] "لا توجد بطولات سابقة"
+msgstr[1] "بطولة سابقة واحدة"
+msgstr[2] "بطلتان سابقتان"
+msgstr[3] "%(count)s بطولات سابقة"
+msgstr[4] "%(count)s بطولة سابقة"
+msgstr[5] "%(count)s بطولة سابقة"
+
+#: teacher/templates/teacher/tournament_form.html:104
+msgid "No active classrooms are assigned to this account."
+msgstr "لا توجد فصول نشطة مسندة إلى هذا الحساب."
+
+#: teacher/templates/teacher/tournament_form.html:108
+#: teacher/templates/teacher/tournament_form.html:135
+#: teacher/templates/teacher/tournament_form.html:175
+#: teacher/templates/teacher/tournament_form.html:208
+#: teacher/templates/teacher/tournament_form.html:241
+msgid "Back"
+msgstr "رجوع"
+
+#: teacher/templates/teacher/tournament_form.html:109
+msgid "Next: stages"
+msgstr "التالي: المراحل"
+
+#: teacher/templates/teacher/tournament_form.html:114
+msgid "3. Choose a stage plan"
+msgstr "3. اختر خطة المراحل"
+
+#: teacher/templates/teacher/tournament_form.html:115
+msgid ""
+"Choose the rounds your classrooms will play. Stage competitions can be "
+"attached in the next step."
+msgstr ""
+"اختر الجولات التي ستلعبها فصلك. ويمكن ربط مسابقات كل مرحلة في الخطوة "
+"التالية."
+
+#: teacher/templates/teacher/tournament_form.html:116
+msgid ""
+"Choose Qualification → Final for two rounds, or include a Semi Final for "
+"three rounds."
+msgstr ""
+"اختر التصفيات ثم النهائي لجولتين، أو أضف نصف النهائي لتصبح ثلاث جولات."
+
+#: teacher/templates/teacher/tournament_form.html:121
+msgid "Tournament format"
+msgstr "صيغة البطولة"
+
+#: teacher/templates/teacher/tournament_form.html:136
+msgid "Next: advancement"
+msgstr "التالي: التأهل"
+
+#: teacher/templates/teacher/tournament_form.html:141
+msgid "4. Set advancement rules"
+msgstr "4. حدد قواعد التأهل"
+
+#: teacher/templates/teacher/tournament_form.html:142
+msgid ""
+"The highest-ranked classrooms advance from each round. Ties at the cutoff "
+"are flagged for resolution, not silently broken."
+msgstr ""
+"تتأهل الفصول الأعلى ترتيباً من كل جولة. ويُعرض التعادل عند نقطة القطع للقرار"
+" بدلاً من حسمه بشكل اعتباطي."
+
+#: teacher/templates/teacher/tournament_form.html:143
+msgid "Set how many classrooms move on from each stage."
+msgstr "حدد عدد الفصول التي تنتقل من كل مرحلة."
+
+#: teacher/templates/teacher/tournament_form.html:148
+msgid "How many classrooms advance from Qualification?"
+msgstr "كم فصلاً يتأهل من التصفيات؟"
+
+#: teacher/templates/teacher/tournament_form.html:151
+#, python-format
+msgid ""
+"Top %(advancing_count)s of %(classroom_count)s selected classrooms advance "
+"to the next round."
+msgstr ""
+"يتأهل عدد %(advancing_count)s من %(classroom_count)s من الفصول المختارة إلى "
+"الجولة التالية."
+
+#: teacher/templates/teacher/tournament_form.html:152
+msgid "How advancement works"
+msgstr "كيف يتم التأهل"
+
+#: teacher/templates/teacher/tournament_form.html:153
+msgid ""
+"The highest-ranked classrooms advance. A tie at the cutoff is flagged for "
+"review instead of being decided arbitrarily."
+msgstr ""
+"تتأهل الفصول الأعلى ترتيباً. ويُعرض التعادل عند نقطة القطع للمراجعة بدلاً من"
+" حسمه بشكل اعتباطي."
+
+#: teacher/templates/teacher/tournament_form.html:159
+msgid "How many advance from Semi Final?"
+msgstr "كم فصلاً يتأهل من نصف النهائي؟"
+
+#: teacher/templates/teacher/tournament_form.html:162
+msgid "Choose no more than the number entering the Semi Final."
+msgstr "اختر عدداً لا يتجاوز عدد الفصول المشاركة في نصف النهائي."
+
+#: teacher/templates/teacher/tournament_form.html:167
+msgid "Preview:"
+msgstr "معاينة:"
+
+#: teacher/templates/teacher/tournament_form.html:169
+#, python-format
+msgid ""
+"Top %(advancing_count)s advance from Qualification; top %(semi_count)s then "
+"advance to the Final."
+msgstr ""
+"يتأهل عدد %(advancing_count)s من التصفيات، ثم يتأهل عدد %(semi_count)s إلى "
+"النهائي."
+
+#: teacher/templates/teacher/tournament_form.html:171
+#, python-format
+msgid "Top %(advancing_count)s advance from Qualification to the Final."
+msgstr "يتأهل أفضل %(advancing_count)s من التصفيات إلى النهائي."
+
+#: teacher/templates/teacher/tournament_form.html:176
+msgid "Next: competitions"
+msgstr "التالي: المسابقات"
+
+#: teacher/templates/teacher/tournament_form.html:181
+msgid "5. Add round competitions"
+msgstr "5. أضف مسابقات الجولات"
+
+#: teacher/templates/teacher/tournament_form.html:182
+msgid ""
+"Attach an existing eligible competition or create one with the Competition "
+"Wizard. This is optional; you can add rounds later from tournament "
+"management."
+msgstr ""
+"اربط مسابقة قائمة مؤهلة أو أنشئ واحدة بمعالج المسابقات. وهذا اختياري؛ يمكنك "
+"إضافة الجولات لاحقاً من إدارة البطولة."
+
+#: teacher/templates/teacher/tournament_form.html:183
+msgid "Choosing competitions"
+msgstr "اختيار المسابقات"
+
+#: teacher/templates/teacher/tournament_form.html:184
+msgid ""
+"The competition's classrooms must be tournament participants. The Final can "
+"be created later using only classrooms that qualified."
+msgstr ""
+"يجب أن تكون فصول المسابقة من مشاركي البطولة. ويمكن إنشاء النهائي لاحقاً "
+"بالفصول المتأهلة فقط."
+
+#: teacher/templates/teacher/tournament_form.html:197
+#, python-format
+msgid "%(count)s participating classroom"
+msgid_plural "%(count)s participating classrooms"
+msgstr[0] "لا توجد فصول مشاركة"
+msgstr[1] "فصل مشارك واحد"
+msgstr[2] "فصلان مشاركان"
+msgstr[3] "%(count)s فصول مشاركة"
+msgstr[4] "%(count)s فصلاً مشاركاً"
+msgstr[5] "%(count)s فصول مشاركة"
+
+#: teacher/templates/teacher/tournament_form.html:201
+msgid "No eligible existing competitions for this round."
+msgstr "لا توجد مسابقات حالية مناسبة لهذه الجولة."
+
+#: teacher/templates/teacher/tournament_form.html:204
+#, python-format
+msgid "Create %(stage)s competition"
+msgstr "إنشاء مسابقة %(stage)s"
+
+#: teacher/templates/teacher/tournament_form.html:209
+msgid "Next: review"
+msgstr "التالي: المراجعة"
+
+#: teacher/templates/teacher/tournament_form.html:214
+msgid "6. Review your tournament"
+msgstr "6. راجع البطولة"
+
+#: teacher/templates/teacher/tournament_form.html:217
+#: teacher/tournament_wizard.py:49
+msgid "Tournament"
+msgstr "البطولة"
+
+#: teacher/templates/teacher/tournament_form.html:223
+#, python-format
+msgid "Participants (%(count)s)"
+msgstr "المشاركون (%(count)s)"
+
+#: teacher/templates/teacher/tournament_form.html:224
+msgid "No classrooms selected"
+msgstr "لم يتم اختيار فصول"
+
+#: teacher/templates/teacher/tournament_form.html:227
+msgid "Stages and advancement"
+msgstr "المراحل والتأهل"
+
+#: teacher/templates/teacher/tournament_form.html:233
+msgid "No competition attached yet"
+msgstr "لم تُربط مسابقة بعد"
+
+#: teacher/templates/teacher/tournament_form.html:242
+msgid "Next: create"
+msgstr "التالي: الإنشاء"
+
+#: teacher/templates/teacher/tournament_form.html:246
+msgid "7. Create tournament"
+msgstr "7. أنشئ البطولة"
+
+#: teacher/templates/teacher/tournament_form.html:247
+msgid ""
+"Your tournament will be created as a draft. You can open it when you are "
+"ready to run the first round."
+msgstr ""
+"ستُنشأ البطولة كمسودة. ويمكنك فتحها عندما تكون مستعداً لتشغيل الجولة الأولى."
+
+#: teacher/templates/teacher/tournament_form.html:250
+#, python-format
+msgid "%(classrooms)s classrooms · %(stages)s stages"
+msgstr "%(classrooms)s فصول · %(stages)s مراحل"
+
+#: teacher/templates/teacher/tournament_form.html:254
+msgid "Back to review"
+msgstr "العودة إلى المراجعة"
+
+#: teacher/templates/teacher/tournament_form.html:255
+msgid "Create tournament"
+msgstr "إنشاء بطولة"
+
+#: teacher/templates/teacher/tournament_form.html:261
+msgid "Cancel setup"
+msgstr "إلغاء الإعداد"
+
+#: teacher/templates/teacher/tournaments.html:4
+#: teacher/templates/teacher/tournaments.html:8
+#: teacher/templates/teacher/tournaments.html:21
+msgid "Tournaments"
+msgstr "البطولات"
+
+#: teacher/templates/teacher/tournaments.html:9
+msgid "Review and manage school tournaments"
+msgstr "مراجعة بطولات المدرسة وإدارتها"
+
+#: teacher/templates/teacher/tournaments.html:9
+msgid "Manage the tournaments you created"
+msgstr "إدارة البطولات التي أنشأتها"
+
+#: teacher/templates/teacher/tournaments.html:11
+msgid ""
+"A tournament groups classrooms through stages. Results and advancement are "
+"recorded as the stages are completed."
+msgstr ""
+"تُجمّع البطولة الفصول عبر مراحل. وتُسجَّل النتائج والتأهل مع إكمال كل مرحلة."
+
+#: teacher/templates/teacher/tournaments.html:26
+msgid "Subject / Grade"
+msgstr "المادة / الصف"
+
+#: teacher/templates/teacher/tournaments.html:27
+msgid "Season"
+msgstr "الموسم"
+
+#: teacher/templates/teacher/tournaments.html:56
+msgid ""
+"No tournaments have been created yet. Start a guided tournament setup when "
+"ready."
+msgstr "لم تُنشأ أي بطولة بعد. ابدأ إعداد بطولة موجّه عندما تكون مستعداً."
+
+#: teacher/templates/teacher/tournaments.html:58
+msgid ""
+"You have not created a tournament yet. Use the guided setup to choose "
+"classrooms, stages and advancement rules."
+msgstr ""
+"لم تُنشئ بطولة بعد. استخدم الإعداد الموجّه لاختيار الفصول والمراحل وقواعد "
+"التأهل."
+
+#: teacher/templates/teacher/tournaments.html:60
+msgid "No tournaments yet"
+msgstr "لا توجد بطولات بعد"
+
+#: teacher/templates/teacher/tournaments.html:61
+msgid "Create a tournament"
+msgstr "إنشاء بطولة"
+
+#: teacher/templates/teacher/wizard.html:9
+msgid "Follow the steps to set up a live round"
+msgstr "اتبع الخطوات لإعداد جولة مباشرة"
+
+#: teacher/templates/teacher/wizard.html:12
+msgid "Set up a live round"
+msgstr "إعداد جولة مباشرة"
+
+#: teacher/templates/teacher/wizard.html:13
+msgid ""
+"Choose your classrooms and questions, check the timing and scoring, then "
+"review everything before creating the competition."
+msgstr ""
+"اختر فصلك وأسئلتك، وتحقق من التوقيت واحتساب النقاط، ثم راجع كل شيء قبل إنشاء"
+" المسابقة."
+
+#: teacher/templates/teacher/wizard.html:30
+msgid "Please fix the following errors:"
+msgstr "يرجى تصحيح الأخطاء التالية:"
+
+#: teacher/templates/teacher/wizard.html:42
+msgid "Step 1 — Basic Information"
+msgstr "الخطوة 1 — المعلومات الأساسية"
+
+#: teacher/templates/teacher/wizard.html:47
+msgid "Competition Name"
+msgstr "اسم المسابقة"
+
+#: teacher/templates/teacher/wizard.html:51
+msgid ""
+"What will this round be called? e.g. \"Science Lab 1 versus Science Lab 2\""
+msgstr "ما اسم هذه الجولة؟ مثال: «مختبر العلوم 1 ضد مختبر العلوم 2»"
+
+#: teacher/templates/teacher/wizard.html:55
+msgid "e.g. Science"
+msgstr "مثال: علوم"
+
+#: teacher/templates/teacher/wizard.html:59
+msgid "e.g. Grade 7"
+msgstr "مثال: الصف السابع"
+
+#: teacher/templates/teacher/wizard.html:62
+msgid "Description (optional)"
+msgstr "الوصف (اختياري)"
+
+#: teacher/templates/teacher/wizard.html:66
+msgid "Next: Select Classes"
+msgstr "التالي: اختيار الفصول"
+
+#: teacher/templates/teacher/wizard.html:75
+msgid "Step 2 — Participating Classrooms"
+msgstr "الخطوة 2 — الفصول المشاركة"
+
+#: teacher/templates/teacher/wizard.html:76
+msgid "Select the classrooms that will take part in this competition."
+msgstr "اختر الفصول التي ستشارك في هذه المسابقة."
+
+#: teacher/templates/teacher/wizard.html:77
+msgid "Select only the classrooms that will compete in this round."
+msgstr "اختر الفصول التي ستتنافس في هذه الجولة فقط."
+
+#: teacher/templates/teacher/wizard.html:98
+msgid ""
+"No classrooms are available. Please assign classrooms to your teacher "
+"account."
+msgstr "لا توجد فصول متاحة. يرجى إسناد فصول إلى حساب المعلم."
+
+#: teacher/templates/teacher/wizard.html:103
+msgid "Back: Basic Info"
+msgstr "السابق: المعلومات الأساسية"
+
+#: teacher/templates/teacher/wizard.html:104
+msgid "Next: Settings"
+msgstr "التالي: الإعدادات"
+
+#: teacher/templates/teacher/wizard.html:113
+msgid "Step 3 — Competition Settings"
+msgstr "الخطوة 3 — إعدادات المسابقة"
+
+#: teacher/templates/teacher/wizard.html:118
+#: teacher/templates/teacher/wizard.html:247
+msgid "Time per question"
+msgstr "الوقت لكل سؤال"
+
+#: teacher/templates/teacher/wizard.html:122
+msgid ""
+"Seconds each question is shown (5–600). Answering closes automatically when "
+"time runs out."
+msgstr ""
+"عدد الثواني التي يظهر فيها كل سؤال (٥–٦٠٠). ويُغلق باب الإجابات تلقائياً عند"
+" انتهاء الوقت."
+
+#: teacher/templates/teacher/wizard.html:123
+#: teacher/templates/teacher/wizard.html:124
+msgid "About the time limit"
+msgstr "حول المهلة الزمنية"
+
+#: teacher/templates/teacher/wizard.html:129
+msgid "Scoring mode"
+msgstr "طريقة احتساب النقاط"
+
+#: teacher/templates/teacher/wizard.html:132
+msgid "Standard"
+msgstr "قياسي"
+
+#: teacher/templates/teacher/wizard.html:134
+msgid "Correct answers earn the configured points."
+msgstr "تُمنح النقاط المحددة للإجابات الصحيحة."
+
+#: teacher/templates/teacher/wizard.html:138
+#: teacher/templates/teacher/wizard.html:248
+msgid "Speed bonus"
+msgstr "نقاط السرعة"
+
+#: teacher/templates/teacher/wizard.html:141
+msgid ""
+"Extra points for correct answers submitted early. 0 disables the speed "
+"bonus."
+msgstr ""
+"نقاط إضافية للإجابات الصحيحة المرسلة مبكراً. أدخل 0 لإيقاف نقاط السرعة."
+
+#: teacher/templates/teacher/wizard.html:143
+msgid ""
+"The server calculates scores. Correct answers earn points, with an optional "
+"speed bonus."
+msgstr ""
+"يحتسب السيرفر النتائج. والإجابات الصحيحة تكسب نقاطاً، مع مكافأة سرعة "
+"اختيارية."
+
+#: teacher/templates/teacher/wizard.html:146
+msgid "Back: Classes"
+msgstr "السابق: الفصول"
+
+#: teacher/templates/teacher/wizard.html:147
+msgid "Next: Select Questions"
+msgstr "التالي: اختيار الأسئلة"
+
+#: teacher/templates/teacher/wizard.html:157
+msgid "Step 4 — Select Questions"
+msgstr "الخطوة 4 — اختيار الأسئلة"
+
+#: teacher/templates/teacher/wizard.html:158
+msgid "Search, filter and add questions from the question bank."
+msgstr "ابحث عن الأسئلة في البنك وصفّها وأضفها."
+
+#: teacher/templates/teacher/wizard.html:159
+msgid ""
+"Choose questions from the bank; create more from Question Bank if needed."
+msgstr "اختر الأسئلة من البنك، أو أنشئ المزيد من بنك الأسئلة عند الحاجة."
+
+#: teacher/templates/teacher/wizard.html:165
+msgid "Search questions"
+msgstr "البحث عن أسئلة"
+
+#: teacher/templates/teacher/wizard.html:166
+msgid "Search by question text..."
+msgstr "ابحث باستخدام نص السؤال..."
+
+#: teacher/templates/teacher/wizard.html:169
+msgid "Question Type"
+msgstr "نوع السؤال"
+
+#: teacher/templates/teacher/wizard.html:171
+msgid "All types"
+msgstr "كل الأنواع"
+
+#: teacher/templates/teacher/wizard.html:177
+msgid "Search"
+msgstr "بحث"
+
+#: teacher/templates/teacher/wizard.html:178
+msgid "Clear"
+msgstr "مسح"
+
+#: teacher/templates/teacher/wizard.html:181
+#, python-format
+msgid "%(count)s question selected. Uncheck to remove."
+msgid_plural "%(count)s questions selected. Uncheck to remove."
+msgstr[0] "لم يتم تحديد أي سؤال. أزل التحديد لحذفه."
+msgstr[1] "تم تحديد سؤال واحد. أزل التحديد لحذفه."
+msgstr[2] "تم تحديد سؤالين. أزل التحديد لحذفهما."
+msgstr[3] "تم تحديد %(count)s أسئلة. أزل التحديد لحذفها."
+msgstr[4] "تم تحديد %(count)s سؤالاً. أزل التحديد لحذفها."
+msgstr[5] "تم تحديد %(count)s سؤال. أزل التحديد لحذفها."
+
+#: teacher/templates/teacher/wizard.html:197
+msgid "Added"
+msgstr "أُضيف"
+
+#: teacher/templates/teacher/wizard.html:199
+msgid "Add"
+msgstr "إضافة"
+
+#: teacher/templates/teacher/wizard.html:205
+msgid "No questions are available in the question bank."
+msgstr "لا توجد أسئلة متاحة في بنك الأسئلة."
+
+#: teacher/templates/teacher/wizard.html:210
+msgid "Back: Settings"
+msgstr "السابق: الإعدادات"
+
+#: teacher/templates/teacher/wizard.html:211
+msgid "Next: Review"
+msgstr "التالي: المراجعة"
+
+#: teacher/templates/teacher/wizard.html:212
+#: teacher/templates/teacher/wizard.html:255
+msgid "Save Draft"
+msgstr "حفظ كمسودة"
+
+#: teacher/templates/teacher/wizard.html:221
+msgid "Step 5 — Review"
+msgstr "الخطوة 5 — المراجعة"
+
+#: teacher/templates/teacher/wizard.html:222
+msgid "Check your competition details before creating it."
+msgstr "راجع تفاصيل المسابقة قبل إنشائها."
+
+#: teacher/templates/teacher/wizard.html:231
+msgid "Participating Classrooms"
+msgstr "الفصول المشاركة"
+
+#: teacher/templates/teacher/wizard.html:240
+#, python-format
+msgid "%(count)s question selected"
+msgid_plural "%(count)s questions selected"
+msgstr[0] "لم يتم تحديد أي سؤال"
+msgstr[1] "تم تحديد سؤال واحد"
+msgstr[2] "تم تحديد سؤالين"
+msgstr[3] "تم تحديد %(count)s أسئلة"
+msgstr[4] "تم تحديد %(count)s سؤالاً"
+msgstr[5] "تم تحديد %(count)s سؤال"
+
+#: teacher/templates/teacher/wizard.html:246
+msgid "Settings"
+msgstr "الإعدادات"
+
+#: teacher/templates/teacher/wizard.html:248
+msgid "points"
+msgstr "نقطة"
+
+#: teacher/templates/teacher/wizard.html:249
+msgid "Estimated duration"
+msgstr "المدة التقديرية"
+
+#: teacher/templates/teacher/wizard.html:249
+msgid "minutes"
+msgstr "دقيقة"
+
+#: teacher/templates/teacher/wizard.html:254
+msgid "Back: Questions"
+msgstr "السابق: الأسئلة"
+
+#: teacher/tournament_wizard.py:52
+msgid "Advancement"
+msgstr "التأهل"
+
+#: teacher/tournament_wizard.py:54
+msgid "Review"
+msgstr "المراجعة"
+
+#: teacher/tournament_wizard.py:55
+msgid "Create"
+msgstr "إنشاء"
+
+#: teacher/tournament_wizard.py:60 teacher/tournament_wizard.py:64
+#: teacher/tournament_wizard.py:383 teacher/tournament_wizard.py:421
+#: teacher/tournament_wizard.py:426 tournaments/models.py:78
+msgid "Qualification"
+msgstr "التصفيات"
+
+#: teacher/tournament_wizard.py:61 teacher/tournament_wizard.py:66
+#: teacher/tournament_wizard.py:385 teacher/tournament_wizard.py:421
+#: teacher/tournament_wizard.py:426 tournaments/models.py:80
+msgid "Final"
+msgstr "النهائي"
+
+#: teacher/tournament_wizard.py:65 teacher/tournament_wizard.py:384
+#: teacher/tournament_wizard.py:426
+msgid "Semi Final"
+msgstr "نصف النهائي"
+
+#: teacher/tournament_wizard.py:213 teacher/tournament_wizard.py:356
+msgid "Enter a tournament name."
+msgstr "أدخل اسم البطولة."
+
+#: teacher/tournament_wizard.py:230
+msgid "One or more selected classrooms are no longer available."
+msgstr "لم يعد فصل واحد أو أكثر من الفصول المحددة متاحاً."
+
+#: teacher/tournament_wizard.py:233 teacher/tournament_wizard.py:359
+msgid "Select at least two eligible classrooms."
+msgstr "اختر فصلين مؤهلين على الأقل."
+
+#: teacher/tournament_wizard.py:237
+msgid "Choose one of the stage templates."
+msgstr "اختر إحدى خطط المراحل."
+
+#: teacher/tournament_wizard.py:271 teacher/tournament_wizard.py:349
+msgid "One or more selected competitions are no longer available."
+msgstr "لم تعد مسابقة واحدة أو أكثر من المسابقات المحددة متاحة."
+
+#: teacher/tournament_wizard.py:276
+msgid "Tournament setup cancelled."
+msgstr "تم إلغاء إعداد البطولة."
+
+#: teacher/tournament_wizard.py:322 teacher/tournament_wizard.py:334
+#, python-format
+msgid "Choose between 1 and %(count)s classrooms."
+msgstr "اختر عدداً بين 1 و%(count)s من الفصول."
+
+#: teacher/tournament_wizard.py:327 teacher/tournament_wizard.py:338
+msgid "Enter a valid number of classrooms."
+msgstr "أدخل عدداً صحيحاً للفصول."
+
+#: teacher/tournament_wizard.py:420
+msgid "Qualification → Final"
+msgstr "التصفيات ← النهائي"
+
+#: teacher/tournament_wizard.py:425
+msgid "Qualification → Semi Final → Final"
+msgstr "التصفيات ← نصف النهائي ← النهائي"
+
+#: teacher/tournament_wizard.py:450
+msgid "That competition cannot be added to this setup."
+msgstr "لا يمكن إضافة هذه المسابقة إلى هذا الإعداد."
+
+#: teacher/tournament_wizard.py:461
+msgid "The created competition is no longer available."
+msgstr "لم تعد المسابقة المنشأة متاحة."
+
+#: teacher/tournament_wizard.py:467
+msgid "Every classroom in the competition must be a tournament participant."
+msgstr "يجب أن تكون جميع فصول المسابقة مشاركة في البطولة."
+
+#: teacher/tournament_wizard.py:476
+#, python-format
+msgid "Added \"%(title)s\" to %(stage)s."
+msgstr "أُضيفت «%(title)s» إلى %(stage)s."
+
+#: teacher/tournament_wizard.py:582
+msgid "A selected competition is no longer available."
+msgstr "لم تعد إحدى المسابقات المحددة متاحة."
+
+#: teacher/tournament_wizard.py:596
+#, python-format
+msgid "Tournament \"%(name)s\" created. Open it when its setup is ready."
+msgstr "أُنشئت البطولة «%(name)s». افتحها بعد اكتمال إعدادها."
+
+#: teacher/views.py:593
+msgid "That language is not available on this system."
+msgstr "هذه اللغة غير متاحة على هذا النظام."
+
+#: teacher/wizard.py:45
+msgid "1 Basic Info"
+msgstr "1 المعلومات الأساسية"
+
+#: teacher/wizard.py:46
+msgid "2 Classes"
+msgstr "2 الفصول"
+
+#: teacher/wizard.py:47
+msgid "3 Settings"
+msgstr "3 الإعدادات"
+
+#: teacher/wizard.py:48
+msgid "4 Questions"
+msgstr "4 الأسئلة"
+
+#: teacher/wizard.py:49
+msgid "5 Review"
+msgstr "5 المراجعة"
+
+#: teacher/wizard.py:129
+msgid "A competition name is required."
+msgstr "اسم المسابقة مطلوب."
+
+#: teacher/wizard.py:136
+msgid "Select at least one classroom."
+msgstr "اختر فصلاً واحداً على الأقل."
+
+#: teacher/wizard.py:145
+msgid "Time per question must be between 5 and 600 seconds."
+msgstr "يجب أن يكون وقت السؤال بين 5 و600 ثانية."
+
+#: teacher/wizard.py:147
+msgid "Enter a valid number of seconds."
+msgstr "أدخل عدداً صحيحاً للثواني."
+
+#: teacher/wizard.py:154
+msgid "Select at least one question."
+msgstr "اختر سؤالاً واحداً على الأقل."
+
+#: teacher/wizard.py:217
+msgid "Competition creation cancelled."
+msgstr "تم إلغاء إنشاء المسابقة."
+
+#: teacher/wizard.py:235
+#, python-format
+msgid "Unknown action: %(action)s."
+msgstr "إجراء غير معروف: %(action)s."
+
+#: teacher/wizard.py:356
+#, python-format
+msgid "Draft \"%(title)s\" saved."
+msgstr "تم حفظ المسودة «%(title)s»."
+
+#: teacher/wizard.py:391
+#, python-format
+msgid "Competition \"%(title)s\" created as draft."
+msgstr "أُنشئت المسابقة «%(title)s» كمسودة."
+
+#: templates/admin/base_site.html:70
+msgid "Back to dashboard"
+msgstr "العودة إلى لوحة التحكم"
+
+#: templates/admin/base_site.html:72
+msgid "Change password"
+msgstr "تغيير كلمة المرور"
+
+#: templates/admin/index.html:38
+msgid "No totals are available yet."
+msgstr "لا توجد إجماليات متاحة بعد."
+
+#: templates/admin/nav_sidebar.html:23
+msgid "Administration sections"
+msgstr "أقسام الإدارة"
+
+#: templates/admin/nav_sidebar.html:39
+msgid "People"
+msgstr "الأشخاص"
+
+#: templates/admin/nav_sidebar.html:41
+msgid "Rooms"
+msgstr "الغرف"
+
+#: templates/admin/nav_sidebar.html:43
+msgid "Content"
+msgstr "المحتوى"
+
+#: templates/admin/nav_sidebar.html:47 templates/admin/nav_sidebar.html:96
+msgid "Championships"
+msgstr "البطولات"
+
+#: templates/admin/nav_sidebar.html:87
+msgid "School"
+msgstr "المدرسة"
+
+#: templates/admin/nav_sidebar.html:91
+msgid "Staff dashboard"
+msgstr "لوحة الموظفين"
+
+#: tournaments/models.py:49
+msgid "Draft"
+msgstr "مسودة"
+
+#: tournaments/models.py:50
+msgid "Open"
+msgstr "مفتوحة"
+
+#: tournaments/models.py:51 tournaments/models.py:98
+msgid "Running"
+msgstr "جارية"
+
+#: tournaments/models.py:52 tournaments/models.py:99
+msgid "Completed"
+msgstr "مكتملة"
+
+#: tournaments/models.py:53
+msgid "Cancelled"
+msgstr "ملغاة"
+
+#: tournaments/models.py:79
+msgid "Semi final"
+msgstr "نصف النهائي"
+
+#: tournaments/models.py:96
+msgid "Pending"
+msgstr "قيد الانتظار"
+
+#: tournaments/models.py:97
+msgid "Ready"
+msgstr "جاهز"
+
+#: tournaments/models.py:116
+msgid "Entered"
+msgstr "مشارك"
+
+#: tournaments/models.py:117
+msgid "Qualified"
+msgstr "مؤهل"
+
+#: tournaments/models.py:118
+msgid "Eliminated"
+msgstr "مُقصى"
+
+#: tournaments/models.py:119
+msgid "Champion"
+msgstr "بطل"
+
+#: tournaments/models.py:120
+msgid "Withdrawn"
+msgstr "منسحب"
+
+#: tournaments/models.py:140
+msgid "Processed"
+msgstr "تمت المعالجة"
+
+#: tournaments/models.py:141
+msgid "Needs resolution"
+msgstr "يحتاج إلى قرار"
+
+msgid "Answers are scored by the server"
+msgstr "يتم احتساب النقاط على الخادم"
+
+msgid "Back to the competition without saving"
+msgstr "العودة إلى المسابقة بدون حفظ"
+
+msgid "Create new question"
+msgstr "إنشاء سؤال جديد"
+
+msgid "Save and return to the competition"
+msgstr "احفظ وعُد إلى المسابقة"
+
+msgid ""
+"You can create a new question here and carry on without losing what you "
+"already entered."
+msgstr "يمكنك إنشاء سؤال جديد من هنا ومتابعة العمل دون فقدان ما أدخلته."
+
+msgid "The question you created has been selected below."
+msgstr "تم تحديد السؤال الذي أنشأته أدناه."
+
+msgid "The question you created is no longer available."
+msgstr "السؤال الذي أنشأته لم يعد متاحاً."
+
+#: The screens a round will reach, resolved from its classrooms. Shown before
+#: a teacher starts a round, because a round writes only to sockets that are
+#: open.
+msgid "Screens this competition will reach"
+msgstr "الشاشات التي ستصلها هذه المسابقة"
+
+msgid "No registered screen"
+msgstr "لا توجد شاشة مسجلة"
+
+msgid "Not yet assigned to a classroom"
+msgstr "غير مسند إلى فصل بعد"
+
+msgid "No classrooms are taking part in this competition."
+msgstr "لا توجد فصول مشاركة في هذه المسابقة."
+
+msgid "online"
+msgstr "متصلة"
+
+msgid "offline"
+msgstr "غير متصلة"
+
+msgid "no registered screen"
+msgstr "لا توجد شاشة مسجلة"
+
+msgid ""
+"Screens find the competition from their own registered URL, so nothing needs"
+" to be opened on each screen."
+msgstr ""
+"تجد الشاشات المسابقة من رابطها المسجَّل، فلا حاجة لفتح أي شيء على كل شاشة."
+
+msgid ""
+"Each screen opens its own registered URL once, so nothing has to be typed on"
+" the screens."
+msgstr ""
+"تفتح كل شاشة رابطها المسجَّل مرة واحدة، فلا شيء يحتاج إلى كتابة على الشاشات."
+
+msgid "These classrooms have no registered screen: "
+msgstr "هذه الفصول لا تحتوي على شاشة مسجلة: "
+
+msgid "These screens are offline and will miss the round: "
+msgstr "هذه الشاشات غير متصلة وستفوتها الجولة: "
+
+msgid ""
+"Every participating classroom has at least one screen connected. Starting "
+"the competition will reach all of them."
+msgstr ""
+"كل فصل مشارك به شاشة متصلة واحدة على الأقل. وسيصل بدء المسابقة إلى كل هذه "
+"الفصول."
+
+msgid "Every classroom in this competition has a screen connected."
+msgstr "كل فصل في هذه المسابقة به شاشة متصلة."
+
+msgid ""
+"No screens are registered for these classrooms yet, so nothing will be "
+"displayed anywhere. You can still create the competition and add screens "
+"later."
+msgstr ""
+"لا توجد شاشات مسجلة لهذه الفصول بعد، فلن يظهر شيء في أي مكان. ويمكنك إنشاء "
+"المسابقة وإضافة الشاشات لاحقاً."
+
+msgid ""
+"No screens are registered for these classrooms yet. They will be unable to "
+"show this competition until an administrator registers one."
+msgstr ""
+"لا توجد شاشات مسجلة لهذه الفصول بعد. ولن تتمكن من عرض هذه المسابقة حتى يسجّل"
+" مدير النظام إحداها."
+
+msgid "Connecting"
+msgstr "جارٍ الاتصال"
+
+msgid "Joining the competition…"
+msgstr "جارٍ الانضمام إلى المسابقة…"
+
+msgid "Reconnecting"
+msgstr "إعادة الاتصال"
+
+msgid ""
+"The connection to the server dropped. This screen will rejoin by itself."
+msgstr "انقطع الاتصال بالسيرفر. وستعيد هذه الشاشة الانضمام من تلقاء نفسها."
+
+msgid "Get ready. The first question will appear here."
+msgstr "استعدوا. سيظهر السؤال الأول هنا."
+
+msgid "Your answer"
+msgstr "إجابتك"
+
+msgid "Send answer"
+msgstr "أرسل الإجابة"
+
+msgid "Answer sent. Waiting for the teacher."
+msgstr "تم إرسال الإجابة. في انتظار المعلم."
+
+msgid "Answers closed"
+msgstr "انتهى وقت الإجابة"
+
+msgid "The teacher has closed this question."
+msgstr "أغلق المعلم هذا السؤال."
+
+msgid "Leaderboard"
+msgstr "لوحة الترتيب"
+
+msgid "Connecting…"
+msgstr "جارٍ الاتصال…"
+
+msgid "Get ready. The next competition will appear here."
+msgstr "استعدوا. ستظهر المسابقة القادمة هنا."
+
+msgid "1. Choose a subject and question type"
+msgstr "١. اختر موضوع السؤال ونوعه"
+
+msgid "2. Choose a question type"
+msgstr "٢. اختر نوع السؤال"
+
+msgid "3. Write the question"
+msgstr "٣. اكتب السؤال"
+
+msgid "4. Timing and teacher notes"
+msgstr "٤. التوقيت وملاحظات المعلم"
+
+msgid "2 Subject and Classrooms"
+msgstr "٢ الموضوع والفصول"
+
+msgid "3 Questions"
+msgstr "٣ الأسئلة"
+
+msgid "4 Settings"
+msgstr "٤ الإعدادات"
+
+msgid "Action"
+msgstr "إجراء"
+
+msgid "All subjects"
+msgstr "كل الموضوعات"
+
+msgid "An optional subdivision within the subject."
+msgstr "تقسيم فرعي اختياري داخل الموضوع."
+
+msgid "Back: Subject and Classrooms"
+msgstr "السابق: الموضوع والفصول"
+
+msgid "Choose a subject"
+msgstr "اختر موضوعاً"
+
+msgid ""
+"Choose the subject the questions come from, and the classrooms that will "
+"take part."
+msgstr "اختر الموضوع الذي تُؤخذ منه الأسئلة، والفصول التي ستشارك."
+
+msgid "Choose the subject these questions come from."
+msgstr "اختر الموضوع الذي تُؤخذ منه هذه الأسئلة."
+
+msgid "Enter how many questions to pick."
+msgstr "أدخل عدد الأسئلة التي تريد اختيارها."
+
+msgid "Enter the date and time in the format YYYY-MM-DD HH:MM."
+msgstr "أدخل التاريخ والوقت بالصيغة YYYY-MM-DD HH:MM."
+
+msgid ""
+"Enter the items, then use Move up and Move down to put them in the order "
+"students must reproduce."
+msgstr ""
+"أدخل العناصر، ثم استخدم «تحريك للأعلى» و«تحريك للأسفل» لترتيبها بالترتيب "
+"الذي يجب أن يعيده الطلاب."
+
+msgid "Filter"
+msgstr "تصفية"
+
+msgid "I understand that no screen will display this competition"
+msgstr "أعلم أن أي شاشة لن تعرض هذه المسابقة"
+
+msgid "I understand that some classrooms have no screen"
+msgstr "أعلم أن بعض الفصول لا تحتوي على شاشة"
+
+msgid "I understand that some screens will miss this competition"
+msgstr "أعلم أن بعض الشاشات ستفوتها هذه المسابقة"
+
+msgid "Item"
+msgstr "عنصر"
+
+msgid "Items in the correct order"
+msgstr "العناصر في الترتيب الصحيح"
+
+msgid "Live"
+msgstr "مباشرة"
+
+msgid "Live now"
+msgstr "مباشرة الآن"
+
+msgid "Move down"
+msgstr "تحريك للأسفل"
+
+msgid "Move up"
+msgstr "تحريك للأعلى"
+
+msgid "Next: Questions"
+msgstr "التالي: الأسئلة"
+
+msgid "Next: Subject and Classrooms"
+msgstr "التالي: الموضوع والفصول"
+
+msgid "Number of questions"
+msgstr "عدد الأسئلة"
+
+msgid "Or pick a number at random"
+msgstr "أو اختر عدداً عشوائياً"
+
+msgid "Pick for me"
+msgstr "اختر لي"
+
+msgid "Questions from the Mathematics bank only."
+msgstr "أسئلة من بنك الرياضيات فقط."
+
+msgid "Questions from the ${subject} bank only."
+msgstr "أسئلة من بنك ${subject} فقط."
+
+msgid "Save planned time"
+msgstr "احفظ الوقت المخطط"
+
+msgid "Step 2 — Subject and Classrooms"
+msgstr "الخطوة ٢ — الموضوع والفصول"
+
+msgid "Step 3 — Select Questions"
+msgstr "الخطوة ٣ — اختيار الأسئلة"
+
+msgid "Step 4 — Competition Settings"
+msgstr "الخطوة ٤ — إعدادات المسابقة"
+
+msgid "Step 5 — Review and save"
+msgstr "الخطوة ٥ — المراجعة والحفظ"
+
+msgid "The number shown is how many questions this subject currently has."
+msgstr "الرقم الظاهر هو عدد الأسئلة الموجودة حالياً في هذا الموضوع."
+
+msgid ""
+"The order you leave the list in is the answer shown when results are "
+"revealed."
+msgstr "الترتيب الذي تترك القائمة به هو الإجابة التي تُعرض عند كشف النتائج."
+
+msgid "The school subject this question belongs to."
+msgstr "المادة الدراسية التي ينتمي إليها هذا السؤال."
+
+msgid ""
+"The subject you choose here is the only subject questions are offered from "
+"in the next step."
+msgstr ""
+"الموضوع الذي تختاره هنا هو الموضوع الوحيد الذي تُعرض أسئلته في الخطوة "
+"التالية."
+
+msgid "There are no classrooms taking part."
+msgstr "لا توجد فصول مشاركة."
+
+msgid "There are no questions in this competition."
+msgstr "لا توجد أسئلة في هذه المسابقة."
+
+msgid "There are no questions in this subject yet."
+msgstr "لا توجد أسئلة في هذا الموضوع بعد."
+
+msgid "This competition has finished. Its results are kept for the reports."
+msgstr "انتهت هذه المسابقة، وتُحفظ نتائجها في التقارير."
+
+msgid "This competition is not ready to start."
+msgstr "هذه المسابقة غير جاهزة للبدء."
+
+msgid "This competition is running. Use the live dashboard to control it."
+msgstr "هذه المسابقة جارية الآن. استخدم لوحة التحكم المباشر لإدارتها."
+
+msgid "Topic (optional)"
+msgstr "الموضوع الفرعي (اختياري)"
+
+msgid "Waiting for the teacher to start it."
+msgstr "في انتظار بدء المعلم لها."
+
+msgid "Where this competition stands"
+msgstr "حال هذه المسابقة"
+
+msgid "Whole subject"
+msgstr "الموضوع كاملاً"
+
+msgid "Scheduling a time does not start the competition."
+msgstr "تحديد وقت لا يؤدي إلى بدء المسابقة."
+
+msgid "Planned date and time"
+msgstr "التاريخ والوقت المخطط"
+
+msgid "Planned time cleared."
+msgstr "تم مسح الوقت المخطط."
+
+msgid ""
+"Planned for ${when}. This competition will not start until you press Start "
+"Competition."
+msgstr "مخطط بتاريخ ${when}. لن تبدأ هذه المسابقة حتى تضغط «ابدأ المسابقة»."
+
+msgid "Start this competition"
+msgstr "ابدأ هذه المسابقة"
+
+msgid "Start Competition"
+msgstr "ابدأ المسابقة"
+
+msgid "Subject and Classrooms"
+msgstr "الموضوع والفصول"
+
+msgid "What will this round be called? e.g. "
+msgstr "ماذا ستُسَمَّى هذه الجولة؟ مثال: "
+
+msgid "The competition"
+msgstr "المسابقة"
+
+msgid ""
+"Only questions from the subject you chose are offered here, so a question "
+"from another subject cannot end up in this competition."
+msgstr ""
+"تُعرض هنا أسئلة الموضوع الذي اخترته فقط، فلا يمكن أن ينتهي سؤال من موضوع آخر"
+" في هذه المسابقة."
+
+msgid "Order of play"
+msgstr "ترتيب العرض"
+
+msgid ""
+"Saving or scheduling a competition never starts it. Press Start Competition "
+"when it is time."
+msgstr ""
+"لا يبدأ حفظ المسابقة أو جدولتها المسابقة أبداً. اضغط «ابدأ المسابقة» عندما "
+"يحين الوقت."
+
+msgid "Not started"
+msgstr "لم تبدأ"
+
+msgid "Prepared — waiting for teacher to start."
+msgstr "مُعدّة — في انتظار بدء المعلم."
+
+msgid "Planned for ${when} — waiting for teacher to start."
+msgstr "مخطط لها بـ ${when} — في انتظار بدء المعلم."
+
+msgid "classrooms will take part"
+msgstr "فصول ستشارك"
+
+msgid "registered screens expected"
+msgstr "شاشات متوقعة"
+
+msgid ""
+"Some expected screens are offline. They will not receive this competition. "
+"Tick the box to start anyway."
+msgstr ""
+"بعض الشاشات المتوقعة غير متصلة، ولن تتلقى هذه المسابقة. ضع علامة للمتابعة "
+"على أي حال."
+
+msgid "Some expected screens are offline. Confirm to start anyway."
+msgstr "بعض الشاشات المتوقعة غير متصلة. أكد للمتابعة على أي حال."
+
+msgid ""
+"Some participating classrooms have no registered screen, so they will see "
+"nothing. Tick the box to start anyway."
+msgstr ""
+"بعض الفصول المشاركة لا تحتوي على شاشة مسجلة، فلن ترى شيئاً. ضع علامة "
+"للمتابعة على أي حال."
+
+msgid ""
+"No screens are registered for these classrooms, so nothing will be displayed"
+" until an administrator registers one. Tick the box to start anyway."
+msgstr ""
+"لا توجد شاشات مسجلة لهذه الفصول، فلن يُعرض شيء حتى يسجّل مدير النظام إحداها."
+" ضع علامة للمتابعة على أي حال."
+
+msgid ""
+"This competition is live. The screens in the participating classrooms are "
+"now showing it."
+msgstr "هذه المسابقة مباشرة. الشاشات في الفصول المشاركة تعرضها الآن."
+
+msgid ""
+"A planned time is a note, not a start. The competition does not start until "
+"the teacher presses Start."
+msgstr ""
+"الوقت المخطط ملاحظة وليس بداية. لا تبدأ المسابقة حتى يضغط المعلم «ابدأ»."
+
+msgid "The screens reachable now and the registered screens listed here."
+msgstr "الشاشات المتصلة الآن والشاشات المسجلة المذكورة هنا."
+
+msgid ""
+"Optional: narrow the subject further, for example 'Fractions' inside "
+"Mathematics."
+msgstr "اختياري: ضيّق الموضوع أكثر، مثل «الكسور» داخل الرياضيات."
+
+msgid ""
+"Questions are grouped by subject, so pick the one this question belongs to."
+msgstr ""
+"تُجمَّع الأسئلة حسب الموضوع، فاختر الموضوع الذي ينتمي إليه هذا السؤال."
+
+msgid "Optional"
+msgstr "اختياري"
+
+msgid ""
+"Optional: only fill in the fields relevant to the chosen question type."
+msgstr "اختياري: املأ الحقول ذات الصلة بنوع السؤال المختار فقط."
+
+msgid "Optional: topics are a way to narrow a large bank, not a requirement."
+msgstr "اختياري: الموضوعات الفرعية وسيلة لتضييق بنك كبير، وليست شرطاً."
+
+msgid ""
+"Optional: topics are a way to narrow a large bank, not a requirement. Keep "
+"it empty if the subject is enough."
+msgstr ""
+"اختياري: الموضوعات الفرعية وسيلة لتضييق بنك كبير، وليست شرطاً. اتركها فارغة "
+"إذا كان الموضوع كافياً."
+
+msgid "Optional: leave it empty if the subject is enough."
+msgstr "اختياري: اتركها فارغة إذا كان الموضوع كافياً."
+
+msgid "Choose the subject this question belongs to."
+msgstr "اختر الموضوع الذي ينتمي إليه هذا السؤال."
+
+msgid "Optional: choose a topic if you want to narrow the subject further."
+msgstr "اختياري: اختر موضوعاً فرعياً إذا أردت تضييق الموضوع أكثر."
+
+msgid "Optional: a topic is a way to narrow a large bank, not a requirement."
+msgstr "اختياري: الموضوع الفرعي وسيلة لتضييق بنك كبير، وليست شرطاً."
+
+msgid "Choose the subject the questions come from."
+msgstr "اختر الموضوع الذي تؤخذ منه الأسئلة."
+
+msgid ""
+"This page is displayed on the classroom's interactive screen itself, so it "
+"draws no site chrome and inherits no session."
+msgstr ""
+"تُعرض هذه الصفحة على الشاشة التفاعلية في الفصل نفسه، فلا تُظهر ترويسة الموقع"
+" ولا ترث أي جلسة."
+
+msgid "No questions are available in this subject yet."
+msgstr "لا توجد أسئلة متاحة في هذا الموضوع بعد."
+
+msgid "No questions match this search."
+msgstr "لا توجد أسئلة تطابق هذا البحث."
+
+msgid "No topic"
+msgstr "بدون موضوع فرعي"
+
+msgid "Optional: narrow the subject further, for example "
+msgstr "اختياري: ضيّق الموضوع أكثر، مثل "
+
+msgid "Participating classrooms"
+msgstr "الفصول المشاركة"
+
+msgid "Plan when to run this"
+msgstr "خطط موعد تشغيل هذا"
+
+msgid "Planned"
+msgstr "مخططة"
+
+msgid "Questions from other subjects were not added."
+msgstr "لم تُضف أسئلة من موضوعات أخرى."
+
+msgid "The items students will arrange:"
+msgstr "العناصر التي سيرتبها الطلاب:"
+
+msgid "The items students will sort:"
+msgstr "العناصر التي سيفرزها الطلاب:"
+
+msgid "They will sort them into these categories:"
+msgstr "وسيفرزونها في هذه الفئات:"
+
+msgid "Stage Deputy"
+msgstr "وكيل المرحلة"
+
+msgid "Stage Deputies"
+msgstr "وكلاء المراحل"
+
+msgid "School stage"
+msgstr "المرحلة الدراسية"
+
+msgid "School stages"
+msgstr "المراحل الدراسية"
+
+msgid "Stage name"
+msgstr "اسم المرحلة"
+
+msgid "Stage code"
+msgstr "رمز المرحلة"
+
+msgid "Assigned stages"
+msgstr "المراحل المسندة"
+
+msgid "Read-only stage monitoring"
+msgstr "متابعة المرحلة للقراءة فقط"
+
+msgid "No stages assigned. Ask an administrator to assign your scope."
+msgstr "لم تُسند إليك مراحل. اطلب من المدير تحديد نطاقك."
+
+msgid "Stage"
+msgstr "المرحلة"
+
+msgid "All assigned stages"
+msgstr "جميع المراحل المسندة"
+
+msgid "Search classrooms"
+msgstr "البحث عن الفصول"
+
+msgid "Overview"
+msgstr "نظرة عامة"
+
+msgid "Online"
+msgstr "متصل"
+
+msgid "Offline"
+msgstr "غير متصل"
+
+msgid "No classrooms in your assigned scope."
+msgstr "لا توجد فصول ضمن نطاقك المسند."
+
+msgid "No screens in your assigned scope."
+msgstr "لا توجد شاشات ضمن نطاقك المسند."
+
+msgid "Competitions involving classrooms outside your scope are hidden."
+msgstr "تُحجب المسابقات التي تشمل فصولًا خارج نطاقك."
+
+msgid "No competitions in your assigned scope."
+msgstr "لا توجد مسابقات ضمن نطاقك المسند."
+
+msgid "Results"
+msgstr "النتائج"
+
+msgid "Download stage results"
+msgstr "تنزيل نتائج المرحلة"
+
+msgid "Answers"
+msgstr "الإجابات"
+
+msgid "No results in your assigned scope."
+msgstr "لا توجد نتائج ضمن نطاقك المسند."
+
+msgid ""
+"Assign explicitly. Unclassified classrooms are hidden from Stage Deputies."
+msgstr "حدّد المرحلة صراحةً. لا تظهر الفصول غير المصنفة لوكلاء المراحل."
+
+msgid "Select one or more stages. No assignment grants no monitoring access."
+msgstr "اختر مرحلة أو أكثر. عدم الإسناد يعني عدم الوصول إلى بيانات المتابعة."
+
+msgid "Only a Stage Deputy may be assigned stages."
+msgstr "يمكن إسناد المراحل إلى وكيل المرحلة فقط."
+
+msgid "A Stage Deputy cannot be a superuser."
+msgstr "لا يمكن أن يكون وكيل المرحلة مستخدمًا بصلاحيات شاملة."
+
+msgid "Username"
+msgstr "اسم المستخدم"
+
+msgid "Password"
+msgstr "كلمة المرور"
+
+msgid ""
+"That username and password combination is not recognised, or the account is "
+"inactive."
+msgstr "اسم المستخدم أو كلمة المرور غير صحيحة، أو أن الحساب غير نشط."
+
+msgid "This account is inactive. Please contact an administrator."
+msgstr "هذا الحساب غير نشط. يرجى التواصل مع الإدارة."
+
+msgid "Al Manar"
+msgstr "المنار"
+
+msgid "Interactive Challenge"
+msgstr "التحدي التفاعلي"
+
+msgid "Teacher Workspace"
+msgstr "مساحة المعلم"
+
+msgid "School administration"
+msgstr "إدارة المدرسة"
+
+msgid "Al Manar Administration"
+msgstr "إدارة المنار"
+
+msgid "%(count)s active"
+msgstr "%(count)s نشط"
+
+msgid "%(count)s offline"
+msgstr "%(count)s غير متصل"
+
+msgid "%(count)s completed"
+msgstr "%(count)s مكتمل"
+
+msgid "%(count)s administrators"
+msgstr "%(count)s مدير"
+
+msgid "Screens registered"
+msgstr "الشاشات المسجلة"
+
+msgid "Competitions running"
+msgstr "المسابقات الجارية"
+
+msgid "Tournaments active"
+msgstr "البطولات النشطة"
+
+msgid "Accounts"
+msgstr "الحسابات"
+
+msgid "Users"
+msgstr "المستخدمون"
+
+msgid "Scoring"
+msgstr "النقاط"
+
+msgid "Subjects"
+msgstr "المواد"
+
+msgid "Topics"
+msgstr "الموضوعات"
+
+msgid "Competition results"
+msgstr "نتائج المسابقات"
+
+msgid "Tournament participants"
+msgstr "المشاركون في البطولات"
+
+msgid "Tournament results"
+msgstr "نتائج البطولات"
+
+msgid "Tournament stages"
+msgstr "جولات البطولات"
+
+msgid "Groups"
+msgstr "المجموعات"
+
+msgid "- Leaderboard"
+msgstr "- لوحة النتائج"
+
+msgid "Accuracy"
+msgstr "نسبة الإجابات الصحيحة"
+
+msgid "Aggregate score"
+msgstr "مجموع النقاط"
+
+msgid "Answer"
+msgstr "الإجابة"
+
+msgid "Answer:"
+msgstr "الإجابة:"
+
+msgid "Answered"
+msgstr "تمت الإجابة"
+
+msgid "Answers given"
+msgstr "الإجابات المقدمة"
+
+msgid ""
+"Ask an administrator to register this screen and then open the registration "
+"URL they give you."
+msgstr "اطلب من الإدارة تسجيل هذه الشاشة، ثم افتح رابط التسجيل الذي توفره لك."
+
+msgid "Average response (s)"
+msgstr "متوسط زمن الإجابة (ث)"
+
+msgid "Average score"
+msgstr "متوسط النقاط"
+
+msgid "Avg response (s)"
+msgstr "متوسط زمن الإجابة (ث)"
+
+msgid "Competition #"
+msgstr "مسابقة رقم "
+
+msgid "Competitions used in"
+msgstr "المسابقات المستخدمة فيها"
+
+msgid "Connecting&hellip;"
+msgstr "جارٍ الاتصال…"
+
+msgid "Correct"
+msgstr "صحيح"
+
+msgid "Eliminated at"
+msgstr "جولة الاستبعاد"
+
+msgid ""
+"Every figure here is derived from stored answers and frozen results, so a "
+"report cannot disagree with the leaderboard."
+msgstr ""
+"تستند الأرقام هنا إلى الإجابات المحفوظة والنتائج النهائية، لتتوافق التقارير "
+"مع لوحة النتائج."
+
+msgid "Export CSV"
+msgstr "تصدير CSV"
+
+msgid "Final result"
+msgstr "النتيجة النهائية"
+
+msgid "Final score"
+msgstr "النقاط النهائية"
+
+msgid "Finalists and final result"
+msgstr "المتأهلون والنتيجة النهائية"
+
+msgid "Given"
+msgstr "المقدمة"
+
+msgid "Live standings for"
+msgstr "الترتيب المباشر لـ "
+
+msgid "No classrooms are assigned to you."
+msgstr "لا توجد فصول مسندة إليك."
+
+msgid "No classrooms are taking part yet."
+msgstr "لا توجد فصول مشاركة بعد."
+
+msgid "No competition has been assigned to this stage."
+msgstr "لم تُربط مسابقة بهذه الجولة بعد."
+
+msgid "No competitions have finished yet."
+msgstr "لا توجد مسابقات مكتملة بعد."
+
+msgid "No questions were answered in this competition."
+msgstr "لم تُقدَّم إجابات عن أسئلة هذه المسابقة."
+
+msgid "No tournaments are available to you."
+msgstr "لا توجد بطولات متاحة لك."
+
+msgid "Not registered"
+msgstr "غير مسجلة"
+
+msgid "Performance across every competition played."
+msgstr "الأداء عبر جميع المسابقات التي شارك فيها الفصل."
+
+msgid "Presented Screen ID"
+msgstr "معرّف الشاشة المقدم"
+
+msgid "Question statistics"
+msgstr "إحصاءات السؤال"
+
+msgid "Report"
+msgstr "التقرير"
+
+msgid "Report:"
+msgstr "التقرير:"
+
+msgid "Report: question"
+msgstr "تقرير السؤال"
+
+msgid "Score per competition"
+msgstr "النقاط لكل مسابقة"
+
+msgid "Screen not registered"
+msgstr "الشاشة غير مسجلة"
+
+msgid "Statistics"
+msgstr "الإحصاءات"
+
+msgid "This classroom has not played any competition yet."
+msgstr "لم يشارك هذا الفصل في أي مسابقة بعد."
+
+msgid "This screen is not registered"
+msgstr "هذه الشاشة غير مسجلة"
+
+msgid "This tournament has not been finalized, so it has no final standings."
+msgstr "لم تُختتم هذه البطولة، ولا يوجد ترتيب نهائي لها بعد."
+
+msgid "Times answered"
+msgstr "عدد مرات الإجابة"
+
+msgid "Total score"
+msgstr "مجموع النقاط"
+
+msgid "Totals"
+msgstr "الإجماليات"
+
+msgid "View"
+msgstr "عرض"
+
+msgid "Wrong"
+msgstr "خطأ"
+
+msgid "of"
+msgstr "من"
+
+msgid "takes it"
+msgstr "يفوز"
+
+msgid "This competition has already been started."
+msgstr "بدأت هذه المسابقة بالفعل."
+
+msgid "Only a waiting competition can be started."
+msgstr "يمكن بدء المسابقة فقط عندما تكون في حالة انتظار."
+
+msgid "Refused"
+msgstr "رُفض الاتصال"
+
+msgid "This classroom did not answer"
+msgstr "لم يقدم هذا الفصل إجابة"
+
+msgid "Answer sent: "
+msgstr "الإجابة المرسلة: "
+
+msgid "Correct answer: "
+msgstr "الإجابة الصحيحة: "
+
+msgid "That is the end of "
+msgstr "انتهت مسابقة "
+
+msgid "That is the end of the competition."
+msgstr "انتهت المسابقة."
+
+msgid "Place “"
+msgstr "ضع «"
+
+msgid "” in "
+msgstr "» في "
+
+msgid "Move "
+msgstr "انقل "
+
+msgid " up"
+msgstr " لأعلى"
+
+msgid " down"
+msgstr " لأسفل"
+
+msgid "Scoring rules"
+msgstr "قواعد النقاط"
+
+msgid "Stage advancement entries"
+msgstr "سجلات التأهل"
+
+msgid "Stage advancements"
+msgstr "التأهل بين الجولات"
+
+msgid "Stage competitions"
+msgstr "مسابقات الجولات"
+
+msgid "Competition classrooms"
+msgstr "فصول المسابقات"
+
+msgid "Competition questions"
+msgstr "أسئلة المسابقات"
+
+msgid "Tournament records"
+msgstr "سجلات البطولات"
+
+msgid "interactive screen"
+msgstr "شاشة تفاعلية"
+
+msgid "interactive screens"
+msgstr "الشاشات التفاعلية"
+
+msgid "name"
+msgstr "الاسم"
+
+msgid "active"
+msgstr "نشط"
+
+msgid "screen id"
+msgstr "معرّف الشاشة"
+
+msgid "Screen id"
+msgstr "معرّف الشاشة"
+
+msgid "IP address"
+msgstr "عنوان الشبكة"
+
+msgid "ip address"
+msgstr "عنوان الشبكة"
+
+msgid "is primary"
+msgstr "رئيسية"
+
+msgid "grade"
+msgstr "الصف الدراسي"
+
+msgid "Placement"
+msgstr "الموقع"
+
+msgid "Last observation"
+msgstr "آخر رصد"
+
+msgid "Audit"
+msgstr "السجل"
+
+msgid "Screen registration URL"
+msgstr "رابط تسجيل الشاشة"
+
+msgid ""
+"No competition is running. This screen will show the next round "
+"automatically."
+msgstr "لا توجد مسابقة جارية. ستظهر المسابقة التالية على هذه الشاشة تلقائيًا."

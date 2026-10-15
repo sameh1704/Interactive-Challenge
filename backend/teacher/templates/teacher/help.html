@@ -1,41 +1,46 @@
 {% extends "teacher/base.html" %}
+{% load i18n %}
 
-{% block title %}Help{% endblock %}
+{% block title %}{% translate "Help" %}{% endblock %}
 
 {% block content %}
   <section class="page-heading">
-    <h1 class="page-heading__title">Help</h1>
-    <p class="page-heading__subtitle">Getting started with the Teacher Workspace</p>
+    <h1 class="page-heading__title">{% translate "Help" %}</h1>
+    <p class="page-heading__subtitle">{% translate "Getting started with the Teacher Workspace" %}</p>
+  </section>
+  {% translate "Short explanations appear beside key decisions throughout the workspace. Expand a question-mark help control for extra detail." as hint_text %}
+{% include "teacher/partials/context_hint.html" with text=hint_text %}
+
+  <section class="panel">
+    <h2 class="panel__heading">{% translate "Welcome" %}</h2>
+    {% comment %}
+    A single `{% translate %}`, on one line, with no block wrapper: the string has
+    no substitution, and a `{% blocktranslate %}` whose source is wrapped across
+    lines puts the newline and indentation into the msgid, which breaks any
+    re-indentation of this file.
+    {% endcomment %}
+    <p class="panel__body">{% translate "The Teacher Workspace gives you a simplified interface for managing competitions, questions, and tournaments. Use the navigation above to access the different sections." %}</p>
   </section>
 
   <section class="panel">
-    <h2 class="panel__heading">Welcome</h2>
-    <p class="panel__body">
-      The Teacher Workspace gives you a simplified interface for managing
-      competitions, questions, and tournaments. Use the navigation above
-      to access the different sections.
-    </p>
-  </section>
-
-  <section class="panel">
-    <h2 class="panel__heading">Quick Guide</h2>
+    <h2 class="panel__heading">{% translate "Quick Guide" %}</h2>
     <ul class="panel__list">
-      <li><strong>Dashboard</strong> - Your overview with quick stats and actions</li>
-      <li><strong>My Competitions</strong> - View and manage your live rounds</li>
-      <li><strong>Create Competition</strong> - Set up a new round</li>
-      <li><strong>Question Bank</strong> - Browse and manage your questions</li>
-      <li><strong>Create Question</strong> - Add a new question to the bank</li>
-      <li><strong>My Tournaments</strong> - Manage championships</li>
-      <li><strong>Create Tournament</strong> - Set up a new championship</li>
-      <li><strong>Reports</strong> - View competition and classroom reports</li>
-      <li><strong>Hall of Fame</strong> - See completed tournament standings</li>
+      <li><strong>{% translate "Dashboard" %}</strong> - {% translate "Your overview with quick stats and actions" %}</li>
+      <li><strong>{% translate "My Competitions" %}</strong> - {% translate "View and manage your live rounds" %}</li>
+      <li><strong>{% translate "Create Competition" %}</strong> - {% translate "Set up a new round" %}</li>
+      <li><strong>{% translate "Question Bank" %}</strong> - {% translate "Browse and manage your questions" %}</li>
+      <li><strong>{% translate "Create Question" %}</strong> - {% translate "Add a new question to the bank" %}</li>
+      <li><strong>{% translate "My Tournaments" %}</strong> - {% translate "Manage championships" %}</li>
+      <li><strong>{% translate "Create Tournament" %}</strong> - {% translate "Set up a new championship" %}</li>
+      <li><strong>{% translate "Reports" %}</strong> - {% translate "View competition and classroom reports" %}</li>
+      <li><strong>{% translate "Hall of Fame" %}</strong> - {% translate "See completed tournament standings" %}</li>
     </ul>
   </section>
 
   <section class="panel">
-    <h2 class="panel__heading">Need Help?</h2>
+    <h2 class="panel__heading">{% translate "Need Help?" %}</h2>
     <p class="panel__body">
-      Contact your administrator for account or classroom assignment issues.
+      {% translate "Contact your administrator for account or classroom assignment issues." %}
     </p>
   </section>
 {% endblock %}

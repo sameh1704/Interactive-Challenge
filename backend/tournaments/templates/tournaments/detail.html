@@ -5,6 +5,7 @@
 
 {% block extra_head %}
   <link rel="stylesheet" href="{% static 'tournaments/css/tournaments.css' %}">
+  <link rel="stylesheet" href="{% static 'teacher/css/teacher.css' %}">
 {% endblock %}
 
 {% block content %}
@@ -22,6 +23,8 @@
       {% endif %}
     </p>
   </section>
+
+  {% include "teacher/partials/context_hint.html" with text="Complete each round's competition before completing the stage. Process advancement to move qualified classrooms to the next stage." arabic="حدد عدد الفصول التي تنتقل إلى المرحلة التالية." %}
 
   {% if tournament.description %}<p class="panel__body">{{ tournament.description }}</p>{% endif %}
 
@@ -157,6 +160,7 @@
                   <input type="hidden" name="action" value="attach_competition">
                   <input type="hidden" name="stage" value="{{ stage.pk }}">
                   <label class="field__label" for="competition-{{ stage.pk }}">Assign a finished competition</label>
+                  {% include "teacher/partials/context_hint.html" with text="Only competitions using classrooms entered in this tournament can be assigned." %}
                   <select id="competition-{{ stage.pk }}" name="competition">
                     {% for competition in available_competitions %}
                       <option value="{{ competition.pk }}">{{ competition.title }}</option>

@@ -14,7 +14,13 @@ python manage.py wait_for_services --timeout "${SERVICE_WAIT_TIMEOUT:-60}"
 
 # Validate the deployment configuration. The settings module always imports, so
 # this is where a missing or placeholder environment variable is caught.
-python manage.py check
+#
+# --deploy matters: the cookie/transport consistency guards (challenge.E004 /
+# E005) are registered with deploy=True, and plain `manage.py check` skips
+# deploy checks. Without this flag a container with Secure cookies on plain
+# HTTP would pass its health gate and then fail every login with 403 while
+# reporting itself healthy.
+python manage.py check --deploy
 
 python manage.py migrate --noinput
 

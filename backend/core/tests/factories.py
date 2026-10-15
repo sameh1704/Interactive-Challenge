@@ -48,9 +48,48 @@ def create_screen(name: str = "Front board", **extra):
     return InteractiveScreen.objects.create(name=name, **extra)
 
 
+def default_subject(**extra):
+  """A subject for a question to belong to, created once and reused.
+
+  A question must belong to a subject - it is what the bank is organised by -
+  so every question fixture needs one. Creating it per question would give each
+  one its own subject and hide any test that assumed they shared a bank.
+  """
+  from subjects.models import Subject
+
+  subject, _created = Subject.objects.get_or_create(
+      slug=extra.pop("slug", "general"),
+      defaults={"name": extra.pop("name", "General"), "order": extra.pop("order", 0)},
+  )
+  return subject
+
+
+def _with_subject(extra: dict) -> dict:
+  """Ensure a question fixture has a subject, without overriding an explicit one."""
+  if "subject" in extra or "subject_id" in extra:
+      return extra
+  extra = dict(extra)
+  extra["subject"] = default_subject()
+  return extra
+
+
+def create_subject(name: str = "General", slug: str | None = None, **extra):
+    """A curriculum subject for a question bank to be organised by."""
+    from subjects.models import Subject
+
+    if slug is None:
+        from django.utils.text import slugify
+
+        slug = slugify(name) or "subject"
+    return Subject.objects.get_or_create(
+        slug=slug, defaults={"name": name, **extra}
+    )[0]
+
+
 def create_question(text: str = "What is 2 + 2?", **extra):
     from questions.models import Question, QuestionType
 
+    extra = _with_subject(extra)
     extra.setdefault("question_type", QuestionType.MULTIPLE_CHOICE)
     extra.setdefault("options", ["3", "4", "5", "6"])
     # A scorable question by default. Phase 5 scores answers, so a fixture
@@ -64,6 +103,7 @@ def create_true_false_question(text: str = "Water boils at 100 °C.", value: boo
     """A true/false question, keyed so it can be scored like any other."""
     from questions.models import Question, QuestionType
 
+    extra = _with_subject(extra)
     extra.setdefault("question_type", QuestionType.TRUE_FALSE)
     extra.setdefault("correct_answer", value)
     return Question.objects.create(text=text, **extra)
@@ -78,6 +118,7 @@ def create_ordering_question(items=None, correct_order=None, **extra):
     """
     from questions.models import Question, QuestionType
 
+    extra = _with_subject(extra)
     extra.setdefault("question_type", QuestionType.ORDERING)
     extra.setdefault("options", [])
     extra.setdefault("correct_option", "")
@@ -96,6 +137,7 @@ def create_classification_question(categories=None, assignments=None, **extra):
     """
     from questions.models import Question, QuestionType
 
+    extra = _with_subject(extra)
     extra.setdefault("question_type", QuestionType.CLASSIFICATION)
     extra.setdefault("options", [])
     extra.setdefault("correct_option", "")
@@ -119,6 +161,7 @@ def create_short_answer_question(accepted_answers=None, case_sensitive: bool = F
     """A short answer question, keyed and scorable."""
     from questions.models import Question, QuestionType
 
+    extra = _with_subject(extra)
     extra.setdefault("question_type", QuestionType.SHORT_ANSWER)
     extra.setdefault("options", [])
     extra.setdefault("correct_option", "")

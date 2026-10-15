@@ -5,6 +5,27 @@ from __future__ import annotations
 from django.conf import settings
 from django.db import models
 from django.urls import reverse
+from django.utils.translation import gettext_lazy as _
+
+
+class SchoolStage(models.Model):
+    """An explicitly classified school stage; never inferred from legacy grade text."""
+
+    name = models.CharField(_("Stage name"), max_length=120)
+    code = models.SlugField(_("Stage code"), max_length=64, unique=True)
+    active = models.BooleanField(_("Active"), default=True)
+    deputies = models.ManyToManyField(
+        settings.AUTH_USER_MODEL, blank=True, related_name="deputy_stages",
+        limit_choices_to={"role": "stage_deputy"}, verbose_name=_("Stage Deputies"),
+    )
+
+    class Meta:
+        ordering = ["name", "pk"]
+        verbose_name = _("School stage")
+        verbose_name_plural = _("School stages")
+
+    def __str__(self):
+        return self.name
 
 
 class ClassroomQuerySet(models.QuerySet):
@@ -23,6 +44,10 @@ class ClassroomQuerySet(models.QuerySet):
             return self.none()
         if user.is_administrator:
             return self
+        if user.is_stage_deputy:
+            return self.filter(stage__active=True, stage__deputies=user).distinct()
+        if not user.is_teacher:
+            return self.none()
         return self.filter(teachers=user)
 
 
@@ -39,6 +64,11 @@ class Classroom(models.Model):
         max_length=120,
         unique=True,
         help_text="Unique classroom name, for example 'Science Lab 1'.",
+    )
+    stage = models.ForeignKey(
+        SchoolStage, null=True, blank=True, on_delete=models.PROTECT,
+        related_name="classrooms", verbose_name=_("School stage"),
+        help_text=_("Assign explicitly. Unclassified classrooms are hidden from Stage Deputies."),
     )
     grade = models.CharField(
         max_length=64,

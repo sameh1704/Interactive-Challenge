@@ -1,0 +1,7 @@
+{% load i18n %}{% get_current_language as current_language %}
+<form method="post" action="{% url 'set_language' %}" class="language-switcher" role="group" aria-label="{% translate 'Language' %}">
+  {% csrf_token %}
+  <input type="hidden" name="next" value="{% if request.resolver_match.app_name == 'screens' or request.resolver_match.app_name == 'live' %}{{ request.path }}{% else %}{{ request.get_full_path }}{% endif %}">
+  <button type="submit" name="language" value="ar" lang="ar" {% if current_language == 'ar' %}aria-current="true"{% endif %}>العربية</button>
+  <button type="submit" name="language" value="en" lang="en" {% if current_language == 'en' %}aria-current="true"{% endif %}>English</button>
+</form>

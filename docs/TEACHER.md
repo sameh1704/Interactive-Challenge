@@ -15,6 +15,40 @@ Running a competition. Everything here is done from a browser.
 
 Nothing is visible to students until you press Start.
 
+## Contextual help
+
+Short hints appear beside choices that affect classrooms, scoring, questions and
+tournament advancement. Expand a **Why is this?** disclosure for more detail;
+it works with a keyboard and on touch screens. First-use notes can be dismissed
+with **Don't show again** and are remembered in this browser.
+
+## Building questions
+
+In the Teacher Workspace, open **Question Bank** and choose **Create a question**
+or edit an existing entry. The builder supports multiple choice, true/false,
+ordering, classification and short-answer questions. Each type has its own answer
+controls; the preview reflects the selected type, answer key, timing, image and
+teacher notes.
+
+Questions can include an optional image, a teacher cue to share as a hint, and an
+explanation for after the result is revealed. Points are configured for the
+competition rather than on the shared question itself. Check the answer key and
+the question preview before saving.
+
+## Setting up a tournament
+
+From **My Tournaments**, choose **Create a tournament** and follow the guided
+steps to enter the tournament details, select your assigned classrooms, choose
+a Qualification → Final format (or add a Semi Final), and set how many
+classrooms advance. Attach an eligible existing competition or create a round
+through the Competition Wizard. The review step summarizes the participants,
+advancement rules and rounds before the tournament is created as a draft.
+
+When the setup is ready, open **Full management** from the tournament details.
+Open the tournament, run and finish each attached competition, then complete
+the stage and process advancement before moving to the next round. Finalize the
+tournament after the final stage to freeze its winner and standings in history.
+
 ---
 
 ## Starting the round

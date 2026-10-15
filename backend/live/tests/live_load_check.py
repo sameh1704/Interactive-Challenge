@@ -276,9 +276,18 @@ def _create_competition(teacher, questions, tag: str):
 
 @sync_to_async
 def _create_questions(tag: str):
+    from subjects.models import Subject
+
+    # A question belongs to a subject, so the load-check questions do too: the
+    # bank is organised by subject and a fixture without one would not be
+    # selectable in the wizard at all.
+    subject, _created = Subject.objects.get_or_create(
+        slug="load-check", defaults={"name": "Load check"}
+    )
     return [
         Question.objects.create(
             text=f"Load check question {number} {tag}",
+            subject=subject,
             options=["Alpha", "Beta", "Gamma", "Delta"],
             correct_option="Beta",
             duration_seconds=60,

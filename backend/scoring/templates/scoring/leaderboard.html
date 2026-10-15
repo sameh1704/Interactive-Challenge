@@ -1,41 +1,41 @@
 {% extends "core/base.html" %}
-{% load static %}
+{% load i18n static %}
 
-{% block title %}{{ competition.title }} - Leaderboard{% endblock %}
+{% block title %}{{ competition.title }} {% translate "- Leaderboard" %}{% endblock %}
 
 {% block content %}
-<section class="leaderboard" data-websocket-path="{{ websocket_path }}">
+<section class="leaderboard" data-websocket-path="{{ websocket_path }}" data-label-live="{% translate 'Live' %}" data-label-reconnecting="{% translate 'Reconnecting…' %}" data-label-empty="{% translate 'No classrooms are taking part yet.' %}">
   <header class="leaderboard__header">
     <div>
       <h1 class="leaderboard__title">{{ competition.title }}</h1>
       <p class="leaderboard__meta">
-        Question {{ competition.question_number }} of {{ competition.total_questions }}
+        {% translate "Question" %} {{ competition.question_number }} {% translate "of" %} {{ competition.total_questions }}
         &middot; <span class="leaderboard__state">{{ state_display }}</span>
       </p>
     </div>
     <p class="leaderboard__connection" data-role="connection" aria-live="polite">
-      Connecting&hellip;
+      {% translate "Connecting&hellip;" %}
     </p>
   </header>
 
   {% if competition.is_finished %}
     <p class="leaderboard__final">
-      Final result
-      {% if result %}- {{ result.winner_name }} takes it{% endif %}
+      {% translate "Final result" %}
+      {% if result %}- {{ result.winner_name }} {% translate "takes it" %}{% endif %}
     </p>
   {% endif %}
 
   <table class="leaderboard__table">
     <caption class="visually-hidden">
-      Live standings for {{ competition.title }}
+      {% translate "Live standings for" %} {{ competition.title }}
     </caption>
     <thead>
       <tr>
-        <th scope="col" class="leaderboard__rank">Rank</th>
-        <th scope="col">Classroom</th>
-        <th scope="col" class="leaderboard__numeric">Score</th>
-        <th scope="col" class="leaderboard__numeric">Correct</th>
-        <th scope="col" class="leaderboard__numeric">Answered</th>
+        <th scope="col" class="leaderboard__rank">{% translate "Rank" %}</th>
+        <th scope="col">{% translate "Classroom" %}</th>
+        <th scope="col" class="leaderboard__numeric">{% translate "Score" %}</th>
+        <th scope="col" class="leaderboard__numeric">{% translate "Correct" %}</th>
+        <th scope="col" class="leaderboard__numeric">{% translate "Answered" %}</th>
       </tr>
     </thead>
     <tbody data-role="rows">
@@ -53,7 +53,7 @@
         </tr>
       {% empty %}
         <tr data-role="empty">
-          <td colspan="5">No classrooms are taking part yet.</td>
+          <td colspan="5">{% translate "No classrooms are taking part yet." %}</td>
         </tr>
       {% endfor %}
     </tbody>

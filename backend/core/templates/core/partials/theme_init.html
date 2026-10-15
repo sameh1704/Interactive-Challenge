@@ -1,0 +1,45 @@
+{% comment %}
+Runs in <head> before the body is parsed, so the theme the browser ends up with is
+the theme it paints. Without this the page would first render in the default
+theme and then switch once theme-manager.js woke up, which is exactly the flash of
+the wrong colours this whole design avoids.
+
+The saved preference itself needs none of this: the server has already written it
+onto <html data-theme="..."> from the cookie. What is left is the case where the
+teacher has never chosen, and the only remaining source of truth is the operating
+system's own light/dark setting.
+
+The value is checked against the same two-word allowlist the server uses. An
+unrecognised value is ignored rather than applied, so a stray or tampered cookie
+can never put an unknown theme on the page.
+
+The block comment form is used on purpose: the brace form cannot span lines and
+prints itself on the page when it does, and core/tests/test_templates.py fails the
+suite if that comes back.
+{% endcomment %}
+<script>
+  (function () {
+    "use strict";
+    var KEY = "{{ theme_cookie_name|escapejs }}";
+    var ALLOWED = { light: 1, dark: 1 };
+    var element = document.documentElement;
+
+    function read(name) {
+      var found = document.cookie.match(new RegExp("(?:^|; )" + name + "=([^;]*)"));
+      return found ? decodeURIComponent(found[1]) : null;
+    }
+
+    // A stored choice is already rendered by the server: leave it alone, or the
+    // toggle would have nothing to keep in step with.
+    var saved = read(KEY);
+    if (saved && ALLOWED[saved]) {
+      return;
+    }
+
+    var prefers = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)");
+    var theme = prefers && prefers.matches ? "dark" : "light";
+    if (ALLOWED[theme]) {
+      element.setAttribute("data-theme", theme);
+    }
+  })();
+</script>

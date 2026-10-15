@@ -156,6 +156,8 @@ class TournamentQuerySet(models.QuerySet):
             return self.none()
         if is_administrator(user):
             return self
+        if not user.is_teacher:
+            return self.none()
         return self.filter(created_by=user)
 
     def completed(self):

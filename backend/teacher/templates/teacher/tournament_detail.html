@@ -1,34 +1,146 @@
 {% extends "teacher/base.html" %}
+{% load i18n %}
 
-{% block title %}Tournament Detail{% endblock %}
+{% block title %}{% translate "Tournament detail" %}{% endblock %}
 
 {% block content %}
   <section class="page-heading">
     <h1 class="page-heading__title">{{ tournament.name }}</h1>
-    <p class="page-heading__subtitle">Tournament details</p>
+    <p class="page-heading__subtitle">
+      {{ tournament.get_status_display }}
+      {% if tournament.subject %} &middot; {{ tournament.subject }}{% endif %}
+      {% if tournament.grade %} &middot; {{ tournament.grade }}{% endif %}
+      {% if tournament.season %} &middot; {{ tournament.season }}{% endif %}
+    </p>
   </section>
+  {% translate "Use Full management to attach finished competitions, complete stages, process advancement, and finalize a tournament." as hint_text %}
+{% include "teacher/partials/context_hint.html" with text=hint_text %}
 
-  <section class="stats" aria-label="Tournament details">
+  <section class="stats" aria-label="{% translate 'Tournament details' %}">
     <div class="stat">
-      <span class="stat__value">{{ tournament.status }}</span>
-      <span class="stat__label">Status</span>
+      <span class="stat__value">{{ tournament.get_status_display }}</span>
+      <span class="stat__label">{% translate "Status" %}</span>
     </div>
     <div class="stat">
       <span class="stat__value">{{ tournament.stages.count }}</span>
-      <span class="stat__label">Stages</span>
+      <span class="stat__label">{% translate "Stages" %}</span>
     </div>
     <div class="stat">
       <span class="stat__value">{{ tournament.participants.count }}</span>
-      <span class="stat__label">Participants</span>
+      <span class="stat__label">{% translate "Participants" %}</span>
     </div>
     <div class="stat">
       <span class="stat__value">{{ tournament.created_at|date:"Y-m-d" }}</span>
-      <span class="stat__label">Created</span>
+      <span class="stat__label">{% translate "Created" %}</span>
     </div>
   </section>
 
+  <div class="tournament-summary">
+    <section class="panel">
+      <h2 class="panel__heading">{% translate "Participants" %}</h2>
+      {% if participants %}
+        <div class="table-scroll">
+          <table class="tournament-summary__table">
+            <thead>
+              <tr>
+                <th scope="col">{% translate "Classroom" %}</th>
+                <th scope="col">{% translate "Building" %}</th>
+                <th scope="col">{% translate "Progress" %}</th>
+                <th scope="col">{% translate "Score" %}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for participant in participants %}
+                <tr>
+                  <td>{{ participant.classroom.display_name }}</td>
+                  <td>{{ participant.classroom.building|default:"—" }}</td>
+                  <td>
+                    {% if participant.current_stage %}
+                      {{ participant.current_stage.display_name }}
+                    {% elif participant.eliminated_at_stage %}
+                      {% blocktranslate with stage=participant.eliminated_at_stage.display_name %}Eliminated in {{ stage }}{% endblocktranslate %}
+                    {% else %}
+                      {{ participant.get_status_display }}
+                    {% endif %}
+                  </td>
+                  <td>{{ participant.aggregate_score }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div class="empty-state">
+          <p class="panel__body">{% translate "No classrooms have been added." %}</p>
+          <a href="{% url 'teacher:tournaments' %}">{% translate "Return to tournaments" %}</a>
+        </div>
+      {% endif %}
+    </section>
+
+    <section class="panel">
+      <h2 class="panel__heading">{% translate "Stages" %}</h2>
+      {% if stages %}
+        {% for stage in stages %}
+          <article class="tournament-summary__stage">
+            <h3>{{ stage.display_name }}</h3>
+            <p>
+              {{ stage.get_status_display }}
+              {% if stage.advancing_count %} &middot;
+                {% blocktranslate with count=stage.advancing_count %}Top {{ count }} advance{% endblocktranslate %}
+              {% elif stage.advancing_count is None %} &middot; {% translate "No elimination rule" %}
+              {% endif %}
+            </p>
+            {% if stage.competitions.all %}
+              <ul>
+                {% for link in stage.competitions.all %}
+                  <li>
+                    <a href="{% url 'teacher:competition_detail' pk=link.competition.pk %}">{{ link.competition.title }}</a>
+                    &middot; {{ link.competition.get_state_display }}
+                  </li>
+                {% empty %}
+                  <li>{% translate "No competition attached." %}</li>
+                {% endfor %}
+              </ul>
+            {% else %}
+              <p class="panel__body">{% translate "No competition attached." %}</p>
+            {% endif %}
+          </article>
+        {% endfor %}
+      {% else %}
+        <p class="panel__body empty-state">{% translate "No stages have been configured." %}</p>
+      {% endif %}
+    </section>
+
+    {% if record %}
+      <section class="panel">
+        <h2 class="panel__heading">{% translate "Tournament history" %}</h2>
+        <p>
+          {% blocktranslate with completed_at=record.completed_at|date:"Y-m-d H:i" %}Completed {{ completed_at }}{% endblocktranslate %}
+          {% if record.season %} &middot;
+            {% blocktranslate with season=record.season %}Season {{ season }}{% endblocktranslate %}
+          {% endif %}
+        </p>
+        <p>
+          <strong>{% translate "Winner:" %}</strong>
+          {{ record.winner_name|default:record.winner.classroom.display_name|default:_("No winner recorded") }}
+        </p>
+        {% if history.standings %}
+          <h3>{% translate "Final standings" %}</h3>
+          <ol class="tournament-summary__standings">
+            {% for row in history.standings %}
+              <li>
+                {{ row.classroom }} &mdash;
+                {% blocktranslate with score=row.score %}{{ score }} points{% endblocktranslate %}
+              </li>
+            {% endfor %}
+          </ol>
+        {% endif %}
+      </section>
+    {% endif %}
+  </div>
+
   <div class="page-actions">
-    <a class="button button--quiet" href="{% url 'teacher:tournaments' %}">Back to list</a>
-    <a class="button button--quiet" href="{% url 'tournaments:detail' pk=tournament.pk %}">Full management &rarr;</a>
+    <a class="button button--quiet" href="{% url 'teacher:tournaments' %}">{% translate "Back to list" %}</a>
+    <a class="button button--quiet" href="{% url 'tournaments:detail' pk=tournament.pk %}">{% translate "Full management" %} &rarr;</a>
   </div>
 {% endblock %}

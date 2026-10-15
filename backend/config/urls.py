@@ -24,13 +24,16 @@ Administrator-only surface:
 
 from django.contrib import admin
 from django.urls import include, path
+from django.utils.translation import gettext_lazy as _
 
 from core.dashboard import DashboardView
 
 urlpatterns = [
+    path("deputy/", include("accounts.stage_urls")),
+    path("i18n/", include("django.conf.urls.i18n")),
     path("admin/", admin.site.urls),
     path("teacher/", include("teacher.urls")),
-    path("workspace/", include("teacher.urls")),
+    path("workspace/", include("teacher.urls", namespace="workspace")),
     path("accounts/", include("accounts.urls")),
     path("dashboard/", DashboardView.as_view(), name="dashboard"),
     path("screen/", include("screens.urls")),
@@ -41,6 +44,6 @@ urlpatterns = [
     path("", include("core.urls")),
 ]
 
-admin.site.site_header = "Al Manar Interactive Challenge"
-admin.site.site_title = "Al Manar Interactive Challenge"
-admin.site.index_title = "School administration"
+admin.site.site_header = _("Al Manar Interactive Challenge")
+admin.site.site_title = _("Al Manar Interactive Challenge")
+admin.site.index_title = _("School administration")

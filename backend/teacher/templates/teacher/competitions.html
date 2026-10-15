@@ -1,50 +1,94 @@
 {% extends "teacher/base.html" %}
+{% load i18n %}
 
-{% block title %}My Competitions{% endblock %}
+{% block title %}{% translate "My Competitions" %}{% endblock %}
 
 {% block content %}
   <section class="page-heading">
-    <h1 class="page-heading__title">My Competitions</h1>
-    <p class="page-heading__subtitle">Manage your live rounds</p>
+    <h1 class="page-heading__title">{% translate "My Competitions" %}</h1>
+    <p class="page-heading__subtitle">{% translate "Manage your live rounds" %}</p>
   </section>
+  {% translate "A competition is one live round. Open a competition to review its setup and use the live controls to run it." as hint_text %}
+{% include "teacher/partials/context_hint.html" with text=hint_text arabic="المسابقة هي جولة مباشرة واحدة. افتح المسابقة لمراجعة إعدادها وتشغيلها." %}
 
   <div class="page-actions">
-    <a class="button" href="{% url 'teacher:create_competition' %}">Create Competition</a>
+    <a class="button" href="{% url 'teacher:create_competition' %}">{% translate "Create Competition" %}</a>
+  </div>
+
+  <div class="page-actions" style="margin-top: 0.75rem;">
+    <a class="button button--quiet {% if status_filter == '' %}button--primary{% endif %}" href="{% url 'teacher:competitions' %}">{% translate "All" %}</a>
+    <a class="button button--quiet {% if status_filter == 'draft' %}button--primary{% endif %}" href="{% url 'teacher:competitions' %}?status=draft">{% translate "Drafts" %}</a>
+    <a class="button button--quiet {% if status_filter == 'scheduled' %}button--primary{% endif %}" href="{% url 'teacher:competitions' %}?status=scheduled">{% translate "Scheduled" %}</a>
+    <a class="button button--quiet {% if status_filter == 'running' %}button--primary{% endif %}" href="{% url 'teacher:competitions' %}?status=running">{% translate "Running" %}</a>
+    <a class="button button--quiet {% if status_filter == 'completed' %}button--primary{% endif %}" href="{% url 'teacher:competitions' %}?status=completed">{% translate "Completed" %}</a>
   </div>
 
   {% if competitions %}
     <section class="panel">
-      <table class="table">
-        <thead>
-          <tr>
-            <th scope="col">Title</th>
-            <th scope="col">State</th>
-            <th scope="col">Questions</th>
-            <th scope="col">Classrooms</th>
-            <th scope="col">Created</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for competition in competitions %}
+      <div class="table-scroll" role="region" aria-label="{% translate 'Competitions' %}" tabindex="0">
+        <table class="table">
+          <thead>
             <tr>
-              <td>
-                <a href="{% url 'teacher:competition_detail' pk=competition.pk %}">
-                  {{ competition.title }}
-                </a>
-              </td>
-              <td>{{ competition.state }}</td>
-              <td>{{ competition.questions.count }}</td>
-              <td>{{ competition.classrooms.count }}</td>
-              <td>{{ competition.created_at|date:"Y-m-d H:i" }}</td>
+              <th scope="col">{% translate "Title" %}</th>
+              <th scope="col">{% translate "Status" %}</th>
+              <th scope="col">{% translate "Questions" %}</th>
+              <th scope="col">{% translate "Classrooms" %}</th>
+              <th scope="col">{% translate "Created" %}</th>
+              <th scope="col">{% translate "Action" %}</th>
             </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {% for competition in competitions %}
+              <tr>
+                <td>
+                  <a href="{% url 'teacher:competition_detail' pk=competition.pk %}">
+                    {{ competition.title }}
+                  </a>
+                </td>
+                <td>
+                  {% comment %}The lifecycle in words, not a state code: a prepared
+                  competition must never read as though it is running.{% endcomment %}
+                  {% if competition.is_finished %}
+                    <span class="badge status-offline">{% translate "Finished" %}</span>
+                  {% elif competition.is_live %}
+                    <span class="badge status-online">{% translate "Live" %}</span>
+                  {% elif competition.planned_for %}
+                    <span class="badge">{% translate "Planned" %}</span>
+                    <small>{% blocktranslate with when=competition.planned_for|date:"Y-m-d H:i" %}{{ when }} — waiting for teacher to start{% endblocktranslate %}</small>
+                  {% else %}
+                    <span class="badge">{% translate "Not started" %}</span>
+                  {% endif %}
+                </td>
+                <td>{{ competition.questions.count }}</td>
+                <td>{{ competition.classrooms.count }}</td>
+                <td>{{ competition.created_at|date:"Y-m-d H:i" }}</td>
+                <td>
+                  {% if competition.is_live %}
+                    <a class="button button--quiet" href="{% url 'live:teacher_dashboard' competition.pk %}">
+                      {% translate "Run the round" %}
+                    </a>
+                  {% elif competition.is_prepared %}
+                          {% comment %}
+      A direct link to the start form, so the teacher does not have
+                       to open the detail page first to begin the lesson.
+      {% endcomment %}
+                    <a class="button"
+                       href="{% url 'teacher:start_competition' competition.pk %}">
+                      {% translate "Start Competition" %}
+                    </a>
+                  {% endif %}
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
     </section>
   {% else %}
-    <section class="panel">
-      <p class="panel__body">No competitions found. Create one to get started.</p>
-      <a class="button" href="{% url 'teacher:create_competition' %}">Create Competition</a>
-    </section>
+    {% url 'teacher:create_competition' as create_competition_url %}
+    {% translate "No competitions yet" as competitions_empty_title %}
+    {% translate "No competitions found. Create one to get started." as competitions_empty_text %}
+    {% translate "Create Competition" as competitions_empty_action %}
+    {% include "teacher/partials/empty_state.html" with key="competitions-empty" title=competitions_empty_title text=competitions_empty_text action_url=create_competition_url action_text=competitions_empty_action %}
   {% endif %}
 {% endblock %}

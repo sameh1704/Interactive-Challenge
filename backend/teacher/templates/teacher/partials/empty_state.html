@@ -1,0 +1,8 @@
+{% load i18n %}
+<section class="panel empty-state" aria-labelledby="{{ key }}-title">
+  <h2 class="panel__heading" id="{{ key }}-title">{% translate title %}</h2>
+  <p class="panel__body">{% translate text %}</p>
+  {% if action_url %}
+    <a class="button" href="{{ action_url }}">{% translate action_text %}</a>
+  {% endif %}
+</section>

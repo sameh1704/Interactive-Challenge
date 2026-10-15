@@ -1,33 +1,285 @@
 {% extends "teacher/base.html" %}
+{% load i18n static %}
 
-{% block title %}Create Question{% endblock %}
+{% block title %}{% if is_edit %}{% translate "Edit Question" %}{% else %}{% translate "Create Question" %}{% endif %}{% endblock %}
 
 {% block content %}
   <section class="page-heading">
-    <h1 class="page-heading__title">Create Question</h1>
-    <p class="page-heading__subtitle">Add a new question to the bank</p>
+    <h1 class="page-heading__title">{% if is_edit %}{% translate "Edit question" %}{% else %}{% translate "Create a question" %}{% endif %}</h1>
+    <p class="page-heading__subtitle">
+      {% if is_edit %}{% translate "Update a question in the shared question bank." %}{% else %}{% translate "Build a question for your next competition." %}{% endif %}
+    </p>
   </section>
 
-  <section class="panel">
-    <form method="post" class="form">
-      {% csrf_token %}
-      <div class="field">
-        <label class="field__label" for="id_text">Question text</label>
-        <textarea name="text" id="id_text" rows="3" placeholder="Enter your question..." required></textarea>
+  {% translate "Build a question for the bank" as first_use_title %}
+  {% translate "Choose a format, enter its answer key, and preview what students will see. Hints are for teachers; explanations appear after the answer is revealed." as first_use_text %}
+  {% include "teacher/partials/first_use.html" with key="question-builder" title=first_use_title text=first_use_text %}
+
+  <form method="post" enctype="multipart/form-data" class="question-builder" id="question-form"
+        data-label-remove="{% translate 'Remove' %}"
+        data-label-mark-correct="{% translate 'Mark option as correct' %}"
+        data-label-answer-option="{% translate 'Answer option' %}"
+        data-label-option-a="{% translate 'Option A' %}"
+        data-label-option-b="{% translate 'Option B' %}"
+        data-label-item-order="{% translate 'Item' %}"
+        data-label-item-one="{% translate 'Item 1' %}"
+        data-label-item-two="{% translate 'Item 2' %}"
+        data-label-move-up="{% translate 'Move up' %}"
+        data-label-move-down="{% translate 'Move down' %}"
+        data-label-category-one="{% translate 'Category 1' %}"
+        data-label-category-two="{% translate 'Category 2' %}"
+        data-label-category-name="{% translate 'Category name' %}"
+        data-label-item-classify="{% translate 'Item to classify' %}"
+        data-label-correct-category="{% translate 'Correct category' %}"
+        data-label-accepted-answer="{% translate 'Accepted answer' %}"
+        data-label-empty-option="{% translate 'Empty option' %}"
+        data-label-empty-question="{% translate 'Your question will appear here.' %}"
+        data-label-correct-answer="{% translate 'Correct answer' %}"
+        data-label-true="{% translate 'True' %}"
+        data-label-false="{% translate 'False' %}"
+        data-label-empty-item="{% translate 'Empty item' %}"
+        data-label-items-shown="{% translate 'The items students will arrange:' %}"
+        data-label-items-to-sort="{% translate 'The items students will sort:' %}"
+        data-label-categories="{% translate 'They will sort them into these categories:' %}"
+        data-label-correct-order="{% translate 'Correct order:' %}"
+        data-label-student-answer="{% translate 'Student answer' %}"
+        data-label-hint="{% translate 'Hint:' %}"
+        data-label-explanation="{% translate 'Explanation:' %}"
+        data-label-seconds="{% translate 'seconds' %}"
+        data-label-active="{% translate 'Active' %}"
+        data-label-inactive="{% translate 'Inactive' %}">
+    {% csrf_token %}
+    {% if form.non_field_errors %}
+      <div class="question-builder__errors" role="alert">{{ form.non_field_errors|join:", " }}</div>
+    {% endif %}
+
+    <div class="question-builder__layout">
+      <div class="question-builder__fields">
+        <section class="panel question-builder__section">
+          <h2>{% translate "1. Choose a subject and question type" %}</h2>
+          <div class="question-builder__field">
+            <label for="{{ form.subject.id_for_label }}">{{ form.subject.label }}</label>
+            {{ form.subject }}
+            <p class="question-builder__help">{% translate "Questions are grouped by subject, so pick the one this question belongs to." %}</p>
+            {% if form.subject.errors %}
+              <p class="question-builder__error" role="alert">{{ form.subject.errors|join:", " }}</p>
+            {% endif %}
+          </div>
+
+          <div class="question-builder__field" data-topic-field>
+            <label for="{{ form.topic.id_for_label }}">{{ form.topic.label }}</label>
+            {{ form.topic }}
+            <p class="question-builder__help">{% translate "Optional: narrow the subject further, for example 'Fractions' inside Mathematics." %}</p>
+            {% if form.topic.errors %}
+              <p class="question-builder__error" role="alert">{{ form.topic.errors|join:", " }}</p>
+            {% endif %}
+          </div>
+
+          <h3>{% translate "2. Choose a question type" %}</h3>
+          <fieldset class="question-type-grid">
+            <legend class="visually-hidden">{% translate "Question type" %}</legend>
+            {% for choice in form.question_type %}
+              <label class="question-type" data-question-type="{{ choice.data.value }}">
+                {{ choice.tag }}
+                <span class="question-type__label">{{ choice.choice_label }}</span>
+              </label>
+            {% endfor %}
+          </fieldset>
+          <details class="context-tip">
+            <summary>{% translate "Which question type should I choose?" %}</summary>
+            <div class="context-tip__content">
+              <p><strong>{% translate "Multiple choice:" %}</strong> {% translate "select one answer from options." %}</p>
+              <p><strong>{% translate "True or false:" %}</strong> {% translate "judge whether a statement is correct." %}</p>
+              <p><strong>{% translate "Ordering:" %}</strong> {% translate "arrange items in a meaningful sequence." %}</p>
+              <p class="context-hint__arabic" lang="ar" dir="rtl">الترتيب: يستخدم عندما يكون ترتيب العناصر مهمًا.</p>
+              <p><strong>{% translate "Classification:" %}</strong> {% translate "place items into categories." %}</p>
+              <p><strong>{% translate "Short answer:" %}</strong> {% translate "enter one of the accepted answers." %}</p>
+            </div>
+          </details>
+          {% if form.question_type.errors %}
+            <p class="question-builder__error" role="alert">{{ form.question_type.errors|join:", " }}</p>
+          {% endif %}
+        </section>
+
+        <section class="panel question-builder__section">
+          <h2>{% translate "3. Write the question" %}</h2>
+          <div class="question-builder__field">
+            <label for="{{ form.text.id_for_label }}">{{ form.text.label }}</label>
+            {{ form.text }}
+            {% if form.text.errors %}
+              <p class="question-builder__error" role="alert">{{ form.text.errors|join:", " }}</p>
+            {% endif %}
+          </div>
+
+          {{ form.options }}
+          {{ form.correct_option }}
+          {{ form.correct_answer }}
+          {{ form.type_config }}
+
+          <section class="question-type-fields" data-fields-for="multiple_choice" aria-label="{% translate 'Multiple choice answers' %}">
+            <h3>{% translate "Answer options" %}</h3>
+            <p class="question-builder__help">{% translate "Add 2 to 6 options, then choose the correct answer." %}</p>
+            {% translate "Mark exactly one option as correct." as hint_text %}
+{% include "teacher/partials/context_hint.html" with text=hint_text arabic="حدد إجابة واحدة صحيحة." %}
+            <div id="multiple-choice-options"></div>
+            <button type="button" class="button button--quiet" data-action="add-option">{% translate "Add an option" %}</button>
+            {% if form.options.errors %}
+              <p class="question-builder__error" role="alert">{{ form.options.errors|join:", " }}</p>
+            {% endif %}
+            {% if form.correct_option.errors %}
+              <p class="question-builder__error" role="alert">{{ form.correct_option.errors|join:", " }}</p>
+            {% endif %}
+          </section>
+
+          <section class="question-type-fields" data-fields-for="true_false" aria-label="{% translate 'True or false answer' %}" hidden>
+            <h3>{% translate "Correct answer" %}</h3>
+            <div class="question-builder__choice-row">
+              <label><input type="radio" name="builder-correct-answer" value="true"{% if builder_data.correct_answer == True %} checked{% endif %}> {% translate "True" %}</label>
+              <label><input type="radio" name="builder-correct-answer" value="false"{% if builder_data.correct_answer == False %} checked{% endif %}> {% translate "False" %}</label>
+            </div>
+            {% if form.correct_answer.errors %}
+              <p class="question-builder__error" role="alert">{{ form.correct_answer.errors|join:", " }}</p>
+            {% endif %}
+          </section>
+
+          <section class="question-type-fields" data-fields-for="ordering" aria-label="{% translate 'Ordering answer' %}" hidden>
+            <h3>{% translate "Items in the correct order" %}</h3>
+            <p class="question-builder__help">{% translate "Enter the items, then use Move up and Move down to put them in the order students must reproduce." %}</p>
+            {% translate "The order you leave the list in is the answer shown when results are revealed." as hint_text %}
+{% include "teacher/partials/context_hint.html" with text=hint_text arabic="الترتيب الذي تترك القائمة به هو الترتيب الصحيح." %}
+            <ol class="question-builder__items" id="ordering-items"></ol>
+            <button type="button" class="button button--quiet" data-action="add-ordering-item">{% translate "Add an item" %}</button>
+            {% if form.type_config.errors %}
+              <p class="question-builder__error" role="alert">{{ form.type_config.errors|join:", " }}</p>
+            {% endif %}
+          </section>
+
+          <section class="question-type-fields" data-fields-for="classification" aria-label="{% translate 'Classification answer' %}" hidden>
+            <h3>{% translate "Categories and correct placements" %}</h3>
+            <p class="question-builder__help">{% translate "Create 2 to 6 categories and assign each item to its correct category." %}</p>
+            {% translate "Students will place each item in the category you assign here." as hint_text %}
+{% include "teacher/partials/context_hint.html" with text=hint_text %}
+            <div class="question-builder__subsection">
+              <h4>{% translate "Categories" %}</h4>
+              <div id="classification-categories"></div>
+              <button type="button" class="button button--quiet" data-action="add-category">{% translate "Add a category" %}</button>
+            </div>
+            <div class="question-builder__subsection">
+              <h4>{% translate "Items and answers" %}</h4>
+              <div id="classification-assignments"></div>
+              <button type="button" class="button button--quiet" data-action="add-assignment">{% translate "Add an item" %}</button>
+            </div>
+            {% if form.type_config.errors %}
+              <p class="question-builder__error" role="alert">{{ form.type_config.errors|join:", " }}</p>
+            {% endif %}
+          </section>
+
+          <section class="question-type-fields" data-fields-for="short_answer" aria-label="{% translate 'Accepted answers' %}" hidden>
+            <h3>{% translate "Accepted answers" %}</h3>
+            <p class="question-builder__help">{% translate "Add 1 to 10 answers that should be marked correct." %}</p>
+            <div id="short-answers"></div>
+            <button type="button" class="button button--quiet" data-action="add-short-answer">{% translate "Add an accepted answer" %}</button>
+            <label class="question-builder__checkbox">
+              <input type="checkbox" id="short-answer-case-sensitive">
+              {% translate "Answers are case-sensitive" %}
+            </label>
+            {% if form.type_config.errors %}
+              <p class="question-builder__error" role="alert">{{ form.type_config.errors|join:", " }}</p>
+            {% endif %}
+          </section>
+        </section>
+
+        <section class="panel question-builder__section">
+          <h2>{% translate "4. Timing and teacher notes" %}</h2>
+          <div class="question-builder__field">
+            <label for="{{ form.duration_seconds.id_for_label }}">{% translate "Answer time (seconds)" %}</label>
+            {{ form.duration_seconds }}
+            <p class="question-builder__help">{% translate "Choose between 1 and 600 seconds." %}</p>
+            {% if form.duration_seconds.errors %}
+              <p class="question-builder__error" role="alert">{{ form.duration_seconds.errors|join:", " }}</p>
+            {% endif %}
+          </div>
+
+          <div class="question-builder__field">
+            <label for="{{ form.image.id_for_label }}">{% translate "Image (optional)" %}</label>
+            {{ form.image }}
+            {% if form.image.errors %}
+              <p class="question-builder__error" role="alert">{{ form.image.errors|join:", " }}</p>
+            {% endif %}
+            <p class="question-builder__help">{% translate "JPEG, PNG, GIF or WebP." %}</p>
+            {% if question and question.image %}
+              <img class="question-builder__current-image" id="current-question-image" src="{{ question.image.url }}" alt="{% translate 'Current question image' %}">
+            {% endif %}
+            <img class="question-builder__image-preview" id="question-image-preview" alt="{% translate 'Selected question image preview' %}" hidden>
+          </div>
+
+          <div class="question-builder__field">
+            <label for="{{ form.hint.id_for_label }}">{% translate "Hint (optional)" %}</label>
+            {{ form.hint }}
+            {% if form.hint.errors %}
+              <p class="question-builder__error" role="alert">{{ form.hint.errors|join:", " }}</p>
+            {% endif %}
+            <p class="question-builder__help">{% translate "A teacher cue to share while asking the question." %}</p>
+          </div>
+
+          <div class="question-builder__field">
+            <label for="{{ form.explanation.id_for_label }}">{% translate "Explanation (optional)" %}</label>
+            {{ form.explanation }}
+            {% if form.explanation.errors %}
+              <p class="question-builder__error" role="alert">{{ form.explanation.errors|join:", " }}</p>
+            {% endif %}
+            <p class="question-builder__help">{% translate "Shown after the result is revealed." %}</p>
+          </div>
+
+          <label class="question-builder__checkbox">
+            {{ form.active }} {% translate "Keep this question active in the question bank" %}
+          </label>
+
+          <p class="question-builder__help">
+            {% translate "Points are configured for a competition, not on the question itself." %}
+          </p>
+        </section>
+
+        <div class="question-builder__actions">
+          {% comment %}
+          Launched from the competition wizard, "Save and add to competition" is
+          the action that matters: it is the one that returns to the wizard with
+          the new question already chosen. Anything else leaves the teacher in the
+          question bank, and the wizard's step is still where they left it because
+          it lives in the session - but they would have to find their way back.
+          {% endcomment %}
+          {% if request.GET.return_to_competition %}
+            <button type="submit" name="save_option" value="save_to_competition" class="button">
+              {% translate "Save and return to the competition" %}
+            </button>
+            <a class="button button--quiet"
+               href="{% url 'teacher:create_competition' %}">{% translate "Back to the competition without saving" %}</a>
+          {% else %}
+            <button type="submit" name="save_option" value="save" class="button">
+              {% if is_edit %}{% translate "Save changes" %}{% else %}{% translate "Save question" %}{% endif %}
+            </button>
+            <button type="submit" name="save_option" value="save_another" class="button button--quiet">{% translate "Save and create another" %}</button>
+            <button type="submit" name="save_option" value="save_to_competition" class="button button--quiet">{% translate "Save and add to competition" %}</button>
+            <a class="button button--quiet" href="{% url 'teacher:questions' %}">{% translate "Cancel" %}</a>
+          {% endif %}
+        </div>
       </div>
-      <div class="field">
-        <label class="field__label" for="id_question_type">Question type</label>
-        <select name="question_type" id="id_question_type">
-          {% for value, label in question_types %}
-            <option value="{{ value }}">{{ label }}</option>
-          {% endfor %}
-        </select>
-      </div>
-      <div class="field">
-        <label class="field__label" for="id_duration_seconds">Duration (seconds)</label>
-        <input type="number" name="duration_seconds" id="id_duration_seconds" value="30" min="1" max="600">
-      </div>
-      <button type="submit" class="button">Create Question</button>
-    </form>
-  </section>
+
+      <aside class="question-builder__preview" aria-live="polite">
+        <section class="panel">
+          <h2>{% translate "Live preview" %}</h2>
+          <p class="question-builder__help">{% translate "This preview updates as you edit." %}</p>
+          <div id="question-preview">
+            {% include "teacher/partials/preview.html" with preview_data=preview_data %}
+          </div>
+        </section>
+      </aside>
+    </div>
+  </form>
+
+  {{ builder_data|json_script:"question-builder-data" }}
+{% endblock %}
+
+{% block extra_scripts %}
+  <script src="{% static 'teacher/js/question-builder.js' %}" defer></script>
 {% endblock %}

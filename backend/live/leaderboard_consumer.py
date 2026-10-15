@@ -26,10 +26,12 @@ from live import events, groups
 from live.consumers_base import CLOSE_UNAUTHORISED, BaseLiveConsumer, error_payload
 from live.services import CompetitionControlError, assert_can_control
 
+from live.control_scope import ControlScopeMixin
+
 logger = logging.getLogger(__name__)
 
 
-class LeaderboardConsumer(BaseLiveConsumer):
+class LeaderboardConsumer(ControlScopeMixin, BaseLiveConsumer):
     """A display showing the live standings for one competition."""
 
     async def connect(self) -> None:
@@ -77,7 +79,7 @@ class LeaderboardConsumer(BaseLiveConsumer):
             await self.channel_layer.group_discard(self.group, self.channel_name)
         logger.info("Leaderboard WebSocket closed (code=%s).", code)
 
-    async def receive(self, text_data: str = None, bytes_data: str = None) -> None:
+    async def receive_authorized(self, text_data: str = None, bytes_data: str = None) -> None:
         if not text_data:
             return
 

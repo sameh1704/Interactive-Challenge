@@ -1,14 +1,58 @@
-{% load static %}<!DOCTYPE html>
-<html lang="en">
+{% comment %}
+The classroom screen, served from both addresses a screen can be opened from.
+
+A screen is registered with its own URL: `/screen/?screen_id=AM-XXXXXX`, which is
+the address the Administrator reads out of the admin and types into the browser on
+the machine in the classroom. That URL, and that URL alone, is the screen's
+permanent address - it carries no competition, no round and no question, so
+nothing has to be re-typed when the next competition starts, and the server works
+out which round the screen belongs to from the classroom it is assigned to. The
+same display is also served at `/live/screen/` for anyone following a live link.
+
+Everything the screen needs to show is either in this markup or arrives over the
+WebSocket, because the screen is a display: it never chooses what to show, and it
+never knows the answer key. See live/static/live/js/screen.js.
+
+The identity bar and the online badge are here because this page doubles as the
+screen's own status: an operator standing in front of it can see which screen it
+is, which classroom it belongs to, and whether the server has heard from it.
+{% endcomment %}
+{% load i18n static %}{% get_current_language as LANGUAGE_CODE %}{% get_current_language_bidi as LANGUAGE_BIDI %}<!DOCTYPE html>
+<html lang="{{ LANGUAGE_CODE }}" dir="{% if LANGUAGE_BIDI %}rtl{% else %}ltr{% endif %}">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-  <title>{{ classroom.display_name|default:screen.name }} &middot; Live</title>
+  <title>{{ classroom.display_name|default:screen.name }} &middot; {% translate "Screen" %}</title>
   {# The screen is shown full-bleed on a board, so it draws no site chrome. #}
   <link rel="stylesheet" href="{% static 'live/css/screen.css' %}">
 </head>
+{% comment %}`data-screen-root` is what screen.js looks for first, falling back to <body>, so the same script drives this page and any page that embeds the display.{% endcomment %}
 <body
   class="screen"
+  data-screen-root
+  data-label-waiting="{% translate 'No competition is running. This screen will show the next round automatically.' %}"
+  data-label-live="{% translate 'Live' %}"
+  data-label-refused="{% translate 'Refused' %}"
+  data-label-reconnecting="{% translate 'Reconnecting…' %}"
+  data-label-answer-teacher="{% translate 'Answer sent. Waiting for the teacher.' %}"
+  data-label-answer-result="{% translate 'Answer sent. Waiting for the result.' %}"
+  data-label-no-answer="{% translate 'This classroom did not answer' %}"
+  data-label-correct="{% translate 'Correct' %}"
+  data-label-answer-sent="{% translate 'Answer sent: ' %}"
+  data-label-correct-answer="{% translate 'Correct answer: ' %}"
+  data-label-end-title="{% translate 'That is the end of ' %}"
+  data-label-end="{% translate 'That is the end of the competition.' %}"
+  data-label-place="{% translate 'Place “' %}"
+  data-label-in="{% translate '” in ' %}"
+  data-label-true="{% translate 'True' %}"
+  data-label-false="{% translate 'False' %}"
+  data-label-question="{% translate 'Question' %}"
+  data-label-of="{% translate 'of' %}"
+  data-label-online="{% translate 'Online' %}"
+  data-label-offline="{% translate 'Offline' %}"
+  data-label-move="{% translate 'Move ' %}"
+  data-label-up="{% translate ' up' %}"
+  data-label-down="{% translate ' down' %}"
   data-websocket-path="{{ websocket_path }}"
   data-screen-id="{{ screen.screen_id }}"
   data-heartbeat-interval="{{ heartbeat_interval_seconds }}"
@@ -25,94 +69,25 @@
     <div class="screen__identity">
       <span class="screen__classroom">
         {{ classroom.display_name|default:screen.name }}
+        {% if not classroom %}<span class="screen__location">{% translate "Not yet assigned to a classroom" %}</span>{% endif %}
       </span>
-      <span class="screen__screenid">Screen {{ screen.screen_id }}</span>
+      <span class="screen__screenid">{% translate "Screen" %} {{ screen.screen_id }}</span>
     </div>
+    {% comment %}Live presence of this screen, as the server sees it. The heartbeat below keeps it current.{% endcomment %}
+    <span class="badge {% if screen.is_online %}status-online{% else %}status-offline{% endif %}"
+          id="screen-status">{{ screen.status_display }}</span>
     <span class="screen__progress" data-role="progress" hidden></span>
     <span class="screen__timer" data-role="timer" data-urgent="false" hidden>--</span>
   </header>
 
   <main class="screen__main">
-    {# Every state below is a separate panel; exactly one is shown at a time. #}
-    <section class="screen__panel" data-panel="connecting">
-      <p class="screen__state">Connecting</p>
-      <p class="screen__lead">Joining the competition&hellip;</p>
-    </section>
-
-    <section class="screen__panel" data-panel="offline" hidden>
-      <p class="screen__state">Reconnecting</p>
-      <p class="screen__lead">
-        The connection to the server dropped. This screen will rejoin by itself.
-      </p>
-    </section>
-
-    <section class="screen__panel" data-panel="waiting" hidden>
-      <p class="screen__state">Waiting</p>
-      <p class="screen__lead">
-        Get ready. The first question will appear here.
-      </p>
-    </section>
-
-    <section class="screen__panel" data-panel="question" hidden>
-      <h1 class="screen__question" data-role="question-text"></h1>
-      <img class="screen__image" data-role="question-image" alt="" hidden>
-
-      <div class="screen__options" data-role="options" hidden></div>
-
-      <ol class="screen__order-list" data-role="ordering" hidden></ol>
-
-      <div class="screen__categories" data-role="classification" hidden></div>
-      <div class="screen__item-pool" data-role="item-pool" hidden></div>
-
-      <form class="screen__shortanswer" data-role="shortanswer" hidden>
-        <input
-          class="screen__input"
-          data-role="shortanswer-input"
-          type="text"
-          autocomplete="off"
-          autocapitalize="off"
-          spellcheck="false"
-          aria-label="Your answer">
-        <button class="screen__submit" type="submit">Send answer</button>
-      </form>
-
-      <button class="screen__submit" type="button" data-role="submit" hidden>
-        Send answer
-      </button>
-    </section>
-
-    <section class="screen__panel" data-panel="locked" hidden>
-      <div class="screen__lock-icon" aria-hidden="true">&#10003;</div>
-      <p class="screen__lead" data-role="locked-text">
-        Answer sent. Waiting for the teacher.
-      </p>
-    </section>
-
-    <section class="screen__panel" data-panel="closed" hidden>
-      <p class="screen__state">Answers closed</p>
-      <p class="screen__lead">The teacher has closed this question.</p>
-    </section>
-
-    <section class="screen__panel" data-panel="result" hidden>
-      <p class="screen__verdict" data-role="verdict"></p>
-      <p class="screen__key" data-role="correct-answer" hidden></p>
-      <p class="screen__explanation" data-role="explanation" hidden></p>
-    </section>
-
-    <section class="screen__panel" data-panel="board" hidden>
-      <p class="screen__state">Leaderboard</p>
-      <ol class="screen__board" data-role="board"></ol>
-    </section>
-
-    <section class="screen__panel" data-panel="finished" hidden>
-      <p class="screen__state">Finished</p>
-      <p class="screen__lead" data-role="final-summary"></p>
-    </section>
+    {# Every state is a separate panel; screen.js shows exactly one. #}
+    {% include "live/partials/screen_panels.html" %}
   </main>
 
   <footer class="screen__foot">
-    <span data-role="connection">Connecting&hellip;</span>
-    <span>Answers are scored by the server</span>
+    <span data-role="connection">{% translate "Connecting…" %}</span>
+    <span>{% translate "Answers are scored by the server" %}</span>
   </footer>
 
   <script src="{% static 'core/js/screen-heartbeat.js' %}" defer></script>

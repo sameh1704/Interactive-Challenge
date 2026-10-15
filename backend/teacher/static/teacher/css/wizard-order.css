@@ -1,0 +1,68 @@
+/* The order-of-play list and the random-pick field share the wizard's step-3
+   layout. The position marker is what makes the order legible at a glance, and
+   the arrow controls are real buttons so the order can be changed from the
+   keyboard without any scripting. */
+.selected-questions {
+  margin-top: 1.25rem;
+}
+
+.selected-questions__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.selected-questions__list li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.4rem 0;
+  border-bottom: 1px solid var(--colour-border);
+}
+
+.selected-questions__list li:last-child {
+  border-bottom: 0;
+}
+
+.selected-questions__position {
+  min-width: 1.6rem;
+  color: var(--colour-muted);
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
+  text-align: end;
+}
+
+.selected-questions__controls {
+  display: flex;
+  gap: 0.3rem;
+}
+
+.selected-questions__controls button {
+  min-width: 2rem;
+  padding: 0.25rem 0.45rem;
+  line-height: 1;
+}
+
+.selected-questions__controls button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+@media (max-width: 32rem) {
+  .selected-questions__list li {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .selected-questions__controls {
+    grid-column: 2;
+    justify-content: flex-start;
+  }
+}
+
+.selection-checkbox { appearance: auto; inline-size: 1.4rem; block-size: 1.4rem; flex-shrink: 0; accent-color: var(--colour-primary); }
+.classroom-card, .question-card { position: relative; display: flex; gap: .75rem; align-items: start; }
+.classroom-card:has(input:checked), .question-card:has(input:checked), .is-selected { outline: 2px solid var(--colour-primary, #2563eb); }
+.selection-mark { display: none; font-weight: bold; }
+label:has(input:checked) .selection-mark { display: inline; }
+label:has(input:focus-visible) { outline: 3px solid var(--colour-primary, #2563eb); outline-offset: 3px; }

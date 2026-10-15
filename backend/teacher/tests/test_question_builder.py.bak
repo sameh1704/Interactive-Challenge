@@ -1,0 +1,302 @@
+"""Tests for the Teacher Question Builder.
+
+Covers:
+- Permission checks (anonymous, teacher, other teacher)
+- All five question types via the form
+- Validation failures for each type
+- Edit flow
+- Save-and-create-another / save-to-competition redirects
+- Image upload acceptance and rejection
+- Preview context
+- Invalid form rejection
+"""
+
+from __future__ import annotations
+
+import json
+
+from django.core.files.uploadedfile import SimpleUploadedFile
+from django.test import TestCase
+from django.urls import reverse
+
+from accounts.roles import Role
+from core.tests.utils import (
+    TEST_PASSWORD,
+    create_administrator,
+    create_question,
+    create_short_answer_question,
+    create_teacher,
+)
+from questions.models import Question, QuestionType
+
+
+class QuestionBuilderBaseTests(TestCase):
+    """Shared helpers for the builder tests."""
+
+    def setUp(self) -> None:
+        self.teacher = create_teacher(username="builder.teacher")
+        self.admin = create_administrator(username="builder.admin")
+        self.other_teacher = create_teacher(username="other.teacher")
+
+    def _login(self, user) -> None:
+        self.client.login(username=user.username, password=TEST_PASSWORD)
+
+    def _post_question(self, data, follow=True):
+        return self.client.post(
+            reverse("teacher:create_question"),
+            data=data,
+            follow=follow,
+        )
+
+    def _post_edit(self, question, data, follow=True):
+        return self.client.post(
+            reverse("teacher:edit_question", kwargs={"pk": question.pk}),
+            data=data,
+            follow=follow,
+        )
+
+    @staticmethod
+    def _mc_data(text="What is 2+2?", options=None, correct="4"):
+        options = options or ["3", "4", "5"]
+        return {
+            "text": text,
+            "question_type": QuestionType.MULTIPLE_CHOICE,
+            "options": json.dumps(options),
+            "correct_option": correct,
+            "correct_answer": "",
+            "type_config": "{}",
+            "explanation": "",
+            "duration_seconds": 30,
+            "active": "on",
+        }
+
+    @staticmethod
+    def _tf_data(text="Water boils at 100C.", correct="true"):
+        return {
+            "text": text,
+            "question_type": QuestionType.TRUE_FALSE,
+            "options": "[]",
+            "correct_option": "",
+            "correct_answer": correct,
+            "type_config": "{}",
+            "explanation": "",
+            "duration_seconds": 30,
+            "active": "on",
+        }
+
+    @staticmethod
+    def _ordering_data(text="Put these in order.", items=None, correct_order=None):
+        items = items or ["first", "second", "third"]
+        correct_order = correct_order or items
+        return {
+            "text": text,
+            "question_type": QuestionType.ORDERING,
+            "options": "[]",
+            "correct_option": "",
+            "correct_answer": "",
+            "type_config": json.dumps({"items": items, "correct_order": correct_order}),
+            "explanation": "",
+            "duration_seconds": 30,
+            "active": "on",
+        }
+
+    @staticmethod
+    def _classification_data(text="Place each animal.", categories=None, assignments=None):
+        categories = categories or ["Mammal", "Bird"]
+        assignments = assignments or [
+            {"label": "Dog", "category": "Mammal"},
+            {"label": "Cat", "category": "Mammal"},
+            {"label": "Eagle", "category": "Bird"},
+            {"label": "Penguin", "category": "Bird"},
+        ]
+        return {
+            "text": text,
+            "question_type": QuestionType.CLASSIFICATION,
+            "options": "[]",
+            "correct_option": "",
+            "correct_answer": "",
+            "type_config": json.dumps({"categories": categories, "assignments": assignments}),
+            "explanation": "",
+            "duration_seconds": 30,
+            "active": "on",
+        }
+
+    @staticmethod
+    def _short_answer_data(text="What is 2+2?", accepted_answers=None, case_sensitive=False):
+        accepted_answers = accepted_answers or ["4", "four"]
+        return {
+            "text": text,
+            "question_type": QuestionType.SHORT_ANSWER,
+            "options": "[]",
+            "correct_option": "",
+            "correct_answer": "",
+            "type_config": json.dumps({"accepted_answers": accepted_answers, "case_sensitive": case_sensitive}),
+            "explanation": "",
+            "duration_seconds": 30,
+            "active": "on",
+        }
+
+
+class QuestionBuilderPermissionTests(QuestionBuilderBaseTests):
+    def test_anonymous_denied(self):
+        resp = self.client.get(reverse("teacher:create_question"))
+        self.assertEqual(resp.status_code, 302)
+        self.assertIn("login", resp.url)
+
+    def test_teacher_access(self):
+        self._login(self.teacher)
+        resp = self.client.get(reverse("teacher:create_question"))
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, "Create Question")
+
+
+class QuestionBuilderTypeTests(QuestionBuilderBaseTests):
+    def test_multiple_choice_creation(self):
+        self._login(self.teacher)
+        resp = self._post_question(self._mc_data())
+        self.assertEqual(resp.status_code, 302)
+        self.assertTrue(Question.objects.filter(question_type=QuestionType.MULTIPLE_CHOICE).exists())
+
+    def test_multiple_choice_validation(self):
+        self._login(self.teacher)
+        data = self._mc_data(options=["only-one"])
+        resp = self._post_question(data, follow=False)
+        self.assertEqual(resp.status_code, 200)
+        self.assertFalse(Question.objects.filter(question_type=QuestionType.MULTIPLE_CHOICE).exists())
+
+    def test_true_false_creation(self):
+        self._login(self.teacher)
+        resp = self._post_question(self._tf_data())
+        self.assertEqual(resp.status_code, 302)
+        self.assertTrue(Question.objects.filter(question_type=QuestionType.TRUE_FALSE).exists())
+
+    def test_ordering_creation(self):
+        self._login(self.teacher)
+        resp = self._post_question(self._ordering_data())
+        self.assertEqual(resp.status_code, 302)
+        q = Question.objects.get(question_type=QuestionType.ORDERING)
+        self.assertEqual(q.type_config["items"], ["first", "second", "third"])
+
+    def test_ordering_validation(self):
+        self._login(self.teacher)
+        data = self._ordering_data(items=["only_one"], correct_order=["only_one"])
+        resp = self._post_question(data, follow=False)
+        self.assertEqual(resp.status_code, 200)
+
+    def test_classification_creation(self):
+        self._login(self.teacher)
+        resp = self._post_question(self._classification_data())
+        self.assertEqual(resp.status_code, 302)
+        q = Question.objects.get(question_type=QuestionType.CLASSIFICATION)
+        self.assertEqual(len(q.type_config["categories"]), 2)
+
+    def test_classification_validation(self):
+        self._login(self.teacher)
+        data = self._classification_data(categories=["OnlyOne"], assignments=[{"label": "X", "category": "OnlyOne"}])
+        resp = self._post_question(data, follow=False)
+        self.assertEqual(resp.status_code, 200)
+
+    def test_short_answer_creation(self):
+        self._login(self.teacher)
+        resp = self._post_question(self._short_answer_data())
+        self.assertEqual(resp.status_code, 302)
+        q = Question.objects.get(question_type=QuestionType.SHORT_ANSWER)
+        self.assertEqual(q.type_config["accepted_answers"], ["4", "four"])
+
+    def test_short_answer_normalization(self):
+        self._login(self.teacher)
+        resp = self._post_question(self._short_answer_data(accepted_answers=["4", "four"], case_sensitive=False))
+        self.assertEqual(resp.status_code, 302)
+        q = Question.objects.get(question_type=QuestionType.SHORT_ANSWER)
+        from questions.normalisation import normalise_short_answer
+        self.assertTrue(
+            any(
+                normalise_short_answer(a) == normalise_short_answer("4")
+                for a in q.type_config["accepted_answers"]
+            )
+        )
+
+
+class QuestionBuilderImageTests(QuestionBuilderBaseTests):
+    def test_image_upload(self):
+        self._login(self.teacher)
+        image = SimpleUploadedFile("q.png", b"GIF89a" + b"\x00" * 10, content_type="image/png")
+        data = self._mc_data()
+        data["image"] = image
+        resp = self._post_question(data)
+        self.assertEqual(resp.status_code, 302)
+        q = Question.objects.filter(question_type=QuestionType.MULTIPLE_CHOICE).first()
+        self.assertIsNotNone(q.image)
+
+    def test_invalid_image_rejected(self):
+        self._login(self.teacher)
+        bad = SimpleUploadedFile("q.exe", b"not-an-image", content_type="application/octet-stream")
+        data = self._mc_data()
+        data["image"] = bad
+        resp = self._post_question(data, follow=False)
+        self.assertEqual(resp.status_code, 200)
+
+
+class QuestionBuilderPersistenceTests(QuestionBuilderBaseTests):
+    def test_explanation_persistence(self):
+        self._login(self.teacher)
+        data = self._mc_data()
+        data["explanation"] = "Because 2+2=4"
+        resp = self._post_question(data)
+        self.assertEqual(resp.status_code, 302)
+        q = Question.objects.get(question_type=QuestionType.MULTIPLE_CHOICE)
+        self.assertEqual(q.explanation, "Because 2+2=4")
+
+    def test_edit_question(self):
+        self._login(self.teacher)
+        q = create_question(text="Original", created_by=self.teacher)
+        resp = self.client.get(reverse("teacher:edit_question", kwargs={"pk": q.pk}))
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, "Original")
+
+    def test_preview_data(self):
+        self._login(self.teacher)
+        resp = self.client.get(reverse("teacher:create_question"))
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn("preview_data", resp.context)
+        self.assertEqual(resp.context["preview_data"]["type"], QuestionType.MULTIPLE_CHOICE)
+
+    def test_permission_denied_other_teacher(self):
+        q = create_question(text="Shared bank")
+        self._login(self.other_teacher)
+        resp = self.client.get(reverse("teacher:edit_question", kwargs={"pk": q.pk}))
+        self.assertEqual(resp.status_code, 200)
+
+    def test_save_and_create_another(self):
+        self._login(self.teacher)
+        data = self._mc_data()
+        data["save_option"] = "save_another"
+        resp = self._post_question(data)
+        self.assertEqual(resp.status_code, 302)
+        self.assertEqual(resp.url, reverse("teacher:create_question"))
+
+    def test_save_and_add_to_competition(self):
+        self._login(self.teacher)
+        data = self._mc_data()
+        data["save_option"] = "save_to_competition"
+        resp = self._post_question(data)
+        self.assertEqual(resp.status_code, 302)
+        self.assertIn("create_competition", resp.url)
+        self.assertIn("question_id=", resp.url)
+
+    def test_invalid_form_rejection(self):
+        self._login(self.teacher)
+        data = self._mc_data()
+        data["text"] = ""
+        resp = self._post_question(data, follow=False)
+        self.assertEqual(resp.status_code, 200)
+        self.assertFalse(Question.objects.filter().exists())
+
+
+class QuestionBuilderAdminTests(QuestionBuilderBaseTests):
+    def test_admin_can_edit_any_question(self):
+        q = create_question(text="Admin can edit")
+        self._login(self.admin)
+        resp = self.client.get(reverse("teacher:edit_question", kwargs={"pk": q.pk}))
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, "Admin can edit")

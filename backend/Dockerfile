@@ -29,14 +29,26 @@ COPY backend/ ./
 # Verification suite, so the image can also run the documented test command.
 COPY tests/ ./tests/
 
+# Compile the Arabic gettext catalog into the runtime translation artifact.
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends gettext \
+ && python manage.py compilemessages --locale ar \
+ && apt-get purge -y gettext \
+ && apt-get autoremove -y \
+ && rm -rf /var/lib/apt/lists/*
+
 # Normalise the entrypoint in case the repository was checked out on Windows.
 RUN sed -i 's/\r$//' ./docker/entrypoint.sh \
  && chmod +x ./docker/entrypoint.sh
 
-# Collect static files at build time so that the container never writes to its
-# own code layer. Runs with the development settings module, which tolerates a
-# missing DJANGO_SECRET_KEY at build time.
-RUN DJANGO_ENV=development python manage.py collectstatic --noinput
+# Collect static files with production settings so WhiteNoise generates the
+# manifest required by CompressedManifestStaticFilesStorage. This throwaway key
+# is only used while building static assets; runtime secrets come from Compose.
+RUN DJANGO_ENV=production \
+    DJANGO_SETTINGS_MODULE=config.settings.production \
+    DJANGO_SECRET_KEY=collectstatic-build-placeholder \
+    ALLOWED_HOSTS=localhost \
+    python manage.py collectstatic --noinput --clear
 
 # Run as an unprivileged user.
 RUN addgroup --system --gid 1001 challenge \

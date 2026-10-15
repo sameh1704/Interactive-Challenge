@@ -69,8 +69,9 @@ class TemplateCommentTests(SimpleTestCase):
         for name in (
             "base.html",          # core, the root every other template extends
             "dashboard.html",     # core
-            "status.html",        # screens
-            "screen.html",        # live - the classroom screen
+            "unregistered.html",  # screens - a screen whose id is not known
+            "screen.html",        # live - the classroom screen, served at /screen/ too
+            "screen_panels.html", # live - the screens' panels, shared by both URLs
             "login.html",         # accounts
         ):
             with self.subTest(template=name):

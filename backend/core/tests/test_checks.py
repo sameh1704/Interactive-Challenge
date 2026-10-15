@@ -17,6 +17,7 @@ from core.checks import (
     REQUIRED_VARIABLES,
     check_allowed_hosts,
     check_required_environment_variables,
+    check_secure_cookies_match_the_transport,
 )
 
 
@@ -79,6 +80,51 @@ class AllowedHostsCheckTests(SimpleTestCase):
 
     def test_the_current_hosts_pass(self) -> None:
         self.assertEqual(check_allowed_hosts(None), [])
+
+
+class SecureCookieTransportCheckTests(SimpleTestCase):
+    """A Secure cookie on a plain-HTTP deployment makes sign-in impossible."""
+
+    def secure(self, **overrides):
+        """The check run under a plain-HTTP deployment unless told otherwise."""
+        values = {
+            "CSRF_COOKIE_SECURE": False,
+            "SESSION_COOKIE_SECURE": False,
+            "SECURE_SSL_REDIRECT": False,
+            "SECURE_HSTS_SECONDS": 0,
+            "CSRF_TRUSTED_ORIGINS": [],
+        }
+        values.update(overrides)
+        with mock.patch("core.checks.settings", **values):
+            return check_secure_cookies_match_the_transport(None)
+
+    def test_secure_cookies_over_plain_http_are_an_error(self):
+        errors = self.secure(CSRF_COOKIE_SECURE=True, SESSION_COOKIE_SECURE=True)
+        ids = {error.id for error in errors}
+        self.assertEqual(ids, {"challenge.E004", "challenge.E005"})
+
+    def test_the_error_names_the_symptom_the_teacher_actually_sees(self):
+        errors = self.secure(CSRF_COOKIE_SECURE=True)
+        hints = " ".join(error.hint for error in errors)
+        self.assertIn("403", hints)
+        self.assertIn("CSRF verification failed", hints)
+
+    def test_a_compliant_http_deployment_passes(self):
+        self.assertEqual(self.secure(), [])
+
+    def test_a_tls_deployment_may_use_secure_cookies(self):
+        for signal in (
+            {"SECURE_SSL_REDIRECT": True},
+            {"SECURE_HSTS_SECONDS": 31536000},
+            {"CSRF_TRUSTED_ORIGINS": ["https://challenge.local"]},
+        ):
+            with self.subTest(signal=signal):
+                errors = self.secure(CSRF_COOKIE_SECURE=True, **signal)
+                self.assertEqual(errors, [], signal)
+
+    def test_the_current_environment_passes(self):
+        """This deployment is plain HTTP and must not be flagged."""
+        self.assertEqual(check_secure_cookies_match_the_transport(None), [])
 
 
 class RegisteredCheckTests(SimpleTestCase):

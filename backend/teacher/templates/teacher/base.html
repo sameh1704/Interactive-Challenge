@@ -1,9 +1,11 @@
-{% load static %}<!DOCTYPE html>
-<html lang="en">
+{% load i18n static %}{% get_current_language as LANGUAGE_CODE %}{% get_current_language_bidi as LANGUAGE_BIDI %}<!DOCTYPE html>
+<html lang="{{ LANGUAGE_CODE }}" dir="{% if LANGUAGE_BIDI %}rtl{% else %}ltr{% endif %}" data-theme="{{ theme.name }}">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}Teacher Workspace{% endblock %}</title>
+  {# Before the stylesheets, so the theme is settled before the first paint. #}
+  {% include "core/partials/theme_init.html" %}
   <link rel="stylesheet" href="{% static 'core/css/site.css' %}">
   <link rel="stylesheet" href="{% static 'teacher/css/teacher.css' %}">
   {% block extra_head %}{% endblock %}
@@ -16,30 +18,55 @@
       <a class="masthead__brand" href="{% url 'teacher:dashboard' %}">
         <span class="masthead__brand-mark">AM</span>
         <span class="masthead__brand-text">
-          <strong>Teacher</strong>
-          <small>Workspace</small>
+          <strong>{% translate "Teacher" %}</strong>
+          <small>{% translate "Workspace" %}</small>
         </span>
       </a>
 
       <nav class="masthead__nav">
         {% if user.is_authenticated %}
-          <a href="{% url 'teacher:dashboard' %}">Dashboard</a>
-          <a href="{% url 'teacher:competitions' %}">My Competitions</a>
-          <a href="{% url 'teacher:competitions' %}">Create Competition</a>
-          <a href="{% url 'teacher:questions' %}">Question Bank</a>
-          <a href="{% url 'teacher:create_question' %}">Create Question</a>
-          <a href="{% url 'teacher:tournaments' %}">My Tournaments</a>
-          <a href="{% url 'teacher:create_tournament' %}">Create Tournament</a>
-          <a href="{% url 'teacher:reports' %}">Reports</a>
-          <a href="{% url 'teacher:hall_of_fame' %}">Hall of Fame</a>
-          <a href="{% url 'teacher:help' %}">Help</a>
+          <a href="{% url 'teacher:dashboard' %}">{% translate "Dashboard" %}</a>
+          <a href="{% url 'teacher:competitions' %}">{% translate "My Competitions" %}</a>
+          <a href="{% url 'teacher:create_competition' %}">{% translate "Create Competition" %}</a>
+          <a href="{% url 'teacher:questions' %}">{% translate "Question Bank" %}</a>
+          <a href="{% url 'teacher:create_question' %}">{% translate "Create Question" %}</a>
+          <a href="{% url 'teacher:tournaments' %}">{% translate "My Tournaments" %}</a>
+          <a href="{% url 'teacher:create_tournament' %}">{% translate "Create Tournament" %}</a>
+          <a href="{% url 'teacher:reports' %}">{% translate "Reports" %}</a>
+          <a href="{% url 'teacher:hall_of_fame' %}">{% translate "Hall of Fame" %}</a>
+          <a href="{% url 'teacher:help' %}">{% translate "Help" %}</a>
           <span class="masthead__user">{{ user.get_full_name }}</span>
-          <form method="post" action="{% url 'accounts:logout' %}" class="masthead__logout">
-            {% csrf_token %}
-            <button type="submit" class="button button--quiet">Sign out</button>
-          </form>
+          <span class="masthead__switchers">
+            {% comment %}
+            The theme switch never reloads the page: it flips the theme on the
+            document and writes the cookie, so a half-filled wizard step here is
+            never the thing that gets thrown away.
+            {% endcomment %}
+            {% include "core/partials/theme_toggle.html" %}
+            {# Language switch: "العربية" | "English", posted to the teacher's own set-language route. #}
+            {# That route validates the code against LANGUAGES and hands the request to Django's set_language, #}
+            {# which writes the language cookie; LocaleMiddleware reads it back on the next request. #}
+            <form method="post" action="{% url 'teacher:set_language' %}" class="language-switcher"
+                  data-language-form role="group" aria-label="{% translate 'Language' %}">
+              {% csrf_token %}
+              <input type="hidden" name="next" value="{{ request.get_full_path }}">
+              {% if LANGUAGE_BIDI %}
+                <button type="submit" name="language" value="ar" lang="ar" hreflang="ar" aria-current="true">العربية</button>
+                <span aria-hidden="true">|</span>
+                <button type="submit" name="language" value="en" lang="en" hreflang="en">English</button>
+              {% else %}
+                <button type="submit" name="language" value="ar" lang="ar" hreflang="ar">العربية</button>
+                <span aria-hidden="true">|</span>
+                <button type="submit" name="language" value="en" lang="en" hreflang="en" aria-current="true">English</button>
+              {% endif %}
+            </form>
+            <form method="post" action="{% url 'accounts:logout' %}" class="masthead__logout">
+              {% csrf_token %}
+              <button type="submit" class="button button--quiet">{% translate "Sign out" %}</button>
+            </form>
+          </span>
         {% else %}
-          <a href="{% url 'accounts:login' %}">Sign in</a>
+          <a href="{% url 'accounts:login' %}">{% translate "Sign in" %}</a>
         {% endif %}
       </nav>
     </div>
@@ -58,9 +85,13 @@
   </main>
 
   <footer class="page__footer">
-    <span>Al Manar Interactive Challenge</span>
+    <span>{% translate "Al Manar Interactive Challenge" %}</span>
   </footer>
 
-  {% block extra_scripts %}{% endblock %}
+   {# Every script below must exist, or production's manifest storage fails the whole page. #}
+   <script src="{% static 'core/js/theme-manager.js' %}" defer></script>
+   <script src="{% static 'teacher/js/contextual-help.js' %}" defer></script>
+   <script src="{% static 'teacher/js/language-switcher.js' %}" defer></script>
+   {% block extra_scripts %}{% endblock %}
 </body>
 </html>

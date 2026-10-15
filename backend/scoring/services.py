@@ -114,6 +114,27 @@ def rule_values_for(competition) -> ScoringRuleValues:
     )
 
 
+def rule_values_for_question(competition, entry) -> ScoringRuleValues:
+    """The scoring rule in force for a specific question of a round.
+
+    A question may override the round's default points. Everything else - the
+    speed bonus and its mode - remains a property of the round, so the speed
+    bonus is not broken by an odd choice of points.
+    """
+    values = rule_values_for(competition)
+    if entry is not None:
+        try:
+            points = entry.effective_points
+        except Exception:  # noqa: BLE001
+            points = entry.points if entry.points is not None else values.correct_points
+    else:
+        points = values.correct_points
+    return ScoringRuleValues(
+        correct_points=points,
+        speed_bonus_max=values.speed_bonus_max,
+        speed_bonus_mode=values.speed_bonus_mode,
+    )
+
 def speed_bonus_for(
     response_time_seconds: float,
     duration_seconds: int,
@@ -316,7 +337,7 @@ def submit_answer(
         is_correct=is_correct,
         response_time_seconds=response_time,
         duration_seconds=duration,
-        rule=rule_values_for(competition),
+        rule=rule_values_for_question(competition, entry),
     )
 
     try:

@@ -70,7 +70,7 @@
 
     var name = role("state-name");
     if (name) {
-      name.textContent = state ? state.replace(/_/g, " ") : "-";
+      name.textContent = root.getAttribute("data-label-state-" + state) || (state ? state.replace(/_/g, " ") : "-");
     }
 
     var controls = root.querySelectorAll("[data-control]");

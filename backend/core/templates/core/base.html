@@ -1,9 +1,14 @@
-{% load static %}<!DOCTYPE html>
-<html lang="en">
+{% load i18n static %}{% get_current_language as LANGUAGE_CODE %}{% get_current_language_bidi as LANGUAGE_BIDI %}<!DOCTYPE html>
+<html lang="{{ LANGUAGE_CODE }}" dir="{% if LANGUAGE_BIDI %}rtl{% else %}ltr{% endif %}" data-theme="{{ theme.name }}">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}Al Manar Interactive Challenge{% endblock %}</title>
+  {% comment %}
+  Before the stylesheet, so the theme is settled before the first paint rather
+  than after it - which is the flash this ordering exists to prevent.
+  {% endcomment %}
+  {% include "core/partials/theme_init.html" %}
   <link rel="stylesheet" href="{% static 'core/css/site.css' %}">
   {# Per-page stylesheets, loaded after the site stylesheet so they win. #}
   {% block extra_head %}{% endblock %}
@@ -36,25 +41,38 @@
       <a class="masthead__brand" href="{% url 'core:landing' %}">
         <span class="masthead__brand-mark">AM</span>
         <span class="masthead__brand-text">
-          <strong>Al Manar</strong>
-          <small>Interactive Challenge</small>
+          <strong>{% translate "Al Manar" %}</strong>
+          <small>{% translate "Interactive Challenge" %}</small>
         </span>
       </a>
 
       <nav class="masthead__nav">
         {% if user.is_authenticated %}
-          <a href="{% url 'dashboard' %}">Dashboard</a>
-          <a href="{% url 'tournaments:list' %}">Tournaments</a>
-          <a href="{% url 'reports:index' %}">Reports</a>
-          {% if user.is_staff %}<a href="{% url 'admin:index' %}">Administration</a>{% endif %}
+          {% if user.is_stage_deputy %}
+          <a href="{% url 'deputy:dashboard' %}">{% translate "Stage Deputy" %}</a>
+          <a href="{% url 'deputy:results' %}">{% translate "Results" %}</a>
+          {% else %}
+          <a href="{% url 'dashboard' %}">{% translate "Dashboard" %}</a>
+          <a href="{% url 'teacher:dashboard' %}">{% translate "Teacher Workspace" %}</a>
+          <a href="{% url 'teacher:questions' %}">{% translate "Question Bank" %}</a>
+          <a href="{% url 'teacher:create_question' %}">{% translate "Create Question" %}</a>
+          <a href="{% url 'teacher:competitions' %}">{% translate "My Competitions" %}</a>
+          <a href="{% url 'tournaments:list' %}">{% translate "Tournaments" %}</a>
+          <a href="{% url 'reports:index' %}">{% translate "Reports" %}</a>
+          {% if user.is_staff %}<a href="{% url 'admin:index' %}">{% translate "Administration" %}</a>{% endif %}
+          {% endif %}
           <span class="masthead__user">{{ user.get_full_name }}</span>
-          <form method="post" action="{% url 'accounts:logout' %}" class="masthead__logout">
-            {% csrf_token %}
-            <button type="submit" class="button button--quiet">Sign out</button>
-          </form>
+          <span class="masthead__switchers">
+            {% include "core/partials/theme_toggle.html" %}
+            <form method="post" action="{% url 'accounts:logout' %}" class="masthead__logout">
+              {% csrf_token %}
+              <button type="submit" class="button button--quiet">{% translate "Sign out" %}</button>
+            </form>
+          </span>
         {% else %}
-          <a href="{% url 'accounts:login' %}">Sign in</a>
+          <a href="{% url 'accounts:login' %}">{% translate "Sign in" %}</a>
         {% endif %}
+        {% include "core/partials/language_switcher.html" %}
       </nav>
     </div>
   </header>
@@ -72,10 +90,16 @@
   </main>
 
   <footer class="page__footer">
-    <span>Al Manar Interactive Challenge</span>
+    <span>{% translate "Al Manar Interactive Challenge" %}</span>
     <span class="page__footer-version">v{{ app_version }}</span>
   </footer>
 
+  {% comment %}
+  The theme switch itself, `defer`ed because nothing in it is needed for the first
+  paint: the head script has already settled the theme, and this only handles a
+  press.
+  {% endcomment %}
+  <script src="{% static 'core/js/theme-manager.js' %}" defer></script>
   {% block extra_scripts %}{% endblock %}
 </body>
 </html>

@@ -51,8 +51,8 @@
   <a class="admin-brand" href="{% url 'dashboard' %}">
     <span class="masthead__brand-mark" aria-hidden="true">AM</span>
     <span class="masthead__brand-text">
-      <strong>Al Manar</strong>
-      <small>Interactive Challenge</small>
+      <strong>{% translate "Al Manar" %}</strong>
+      <small>{% translate "Interactive Challenge" %}</small>
     </span>
   </a>
 {% endblock %}
@@ -62,6 +62,7 @@
 {% endblock %}
 
 {% block userlinks %}
+  {% include "core/partials/language_switcher.html" %}
   {% comment %} Django's default user-tools row, minus the items that do not apply to this
      project (documentation link, and the light/dark toggle, which would fight
      the single dark palette the rest of the application uses). {% endcomment %}

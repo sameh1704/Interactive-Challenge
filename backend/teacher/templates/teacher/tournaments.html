@@ -1,50 +1,64 @@
 {% extends "teacher/base.html" %}
+{% load i18n %}
 
-{% block title %}My Tournaments{% endblock %}
+{% block title %}{% if is_administrator %}{% translate "Tournaments" %}{% else %}{% translate "My Tournaments" %}{% endif %}{% endblock %}
 
 {% block content %}
   <section class="page-heading">
-    <h1 class="page-heading__title">My Tournaments</h1>
-    <p class="page-heading__subtitle">Manage your championships</p>
+    <h1 class="page-heading__title">{% if is_administrator %}{% translate "Tournaments" %}{% else %}{% translate "My Tournaments" %}{% endif %}</h1>
+    <p class="page-heading__subtitle">{% if is_administrator %}{% translate "Review and manage school tournaments" %}{% else %}{% translate "Manage the tournaments you created" %}{% endif %}</p>
   </section>
+  {% translate "A tournament groups classrooms through stages. Results and advancement are recorded as the stages are completed." as hint_text %}
+{% include "teacher/partials/context_hint.html" with text=hint_text %}
+  {% url 'teacher:create_tournament' as create_tournament_url %}
 
   <div class="page-actions">
-    <a class="button" href="{% url 'teacher:create_tournament' %}">Create Tournament</a>
+    <a class="button" href="{% url 'teacher:create_tournament' %}">{% translate "Create Tournament" %}</a>
   </div>
 
   {% if tournaments %}
     <section class="panel">
-      <table class="table">
-        <thead>
-          <tr>
-            <th scope="col">Name</th>
-            <th scope="col">Status</th>
-            <th scope="col">Stages</th>
-            <th scope="col">Participants</th>
-            <th scope="col">Created</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for tournament in tournaments %}
+      <div class="table-scroll" role="region" aria-label="{% translate 'Tournaments' %}" tabindex="0">
+        <table class="table">
+          <thead>
             <tr>
-              <td>
-                <a href="{% url 'teacher:tournament_detail' pk=tournament.pk %}">
-                  {{ tournament.name }}
-                </a>
-              </td>
-              <td>{{ tournament.status }}</td>
-              <td>{{ tournament.stages.count }}</td>
-              <td>{{ tournament.participants.count }}</td>
-              <td>{{ tournament.created_at|date:"Y-m-d H:i" }}</td>
+              <th scope="col">{% translate "Name" %}</th>
+              <th scope="col">{% translate "Subject / Grade" %}</th>
+              <th scope="col">{% translate "Season" %}</th>
+              <th scope="col">{% translate "Status" %}</th>
+              <th scope="col">{% translate "Stages" %}</th>
+              <th scope="col">{% translate "Participants" %}</th>
+              <th scope="col">{% translate "Created" %}</th>
             </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {% for tournament in tournaments %}
+              <tr>
+                <td>
+                  <a href="{% url 'teacher:tournament_detail' pk=tournament.pk %}">
+                    {{ tournament.name }}
+                  </a>
+                </td>
+                <td>{{ tournament.subject|default:"—" }}{% if tournament.grade %} / {{ tournament.grade }}{% endif %}</td>
+                <td>{{ tournament.season|default:"—" }}</td>
+                <td>{% translate tournament.get_status_display %}</td>
+                <td>{{ tournament.stages.count }}</td>
+                <td>{{ tournament.participants.count }}</td>
+                <td>{{ tournament.created_at|date:"Y-m-d H:i" }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
     </section>
   {% else %}
-    <section class="panel">
-      <p class="panel__body">No tournaments found. Create one to get started.</p>
-      <a class="button" href="{% url 'teacher:create_tournament' %}">Create Tournament</a>
-    </section>
+    {% if is_administrator %}
+      {% translate "No tournaments have been created yet. Start a guided tournament setup when ready." as empty_text %}
+    {% else %}
+      {% translate "You have not created a tournament yet. Use the guided setup to choose classrooms, stages and advancement rules." as empty_text %}
+    {% endif %}
+    {% translate "No tournaments yet" as tournaments_empty_title %}
+    {% translate "Create a tournament" as tournaments_empty_action %}
+    {% include "teacher/partials/empty_state.html" with key="tournaments-empty" title=tournaments_empty_title text=empty_text action_url=create_tournament_url action_text=tournaments_empty_action %}
   {% endif %}
 {% endblock %}

@@ -27,11 +27,20 @@
   var RECONNECT_DELAY_MS = 3000;
   var URGENT_SECONDS = 5;
 
-  var root = document.body;
+  // The element carrying the screen's configuration. `data-screen-root` is put on
+  // the display container, so the same script drives a page that is the display
+  // (`/screen/`, `/live/screen/`) and a page that only embeds it - without this
+  // the script would be pinned to <body> and could not be reused. The body is
+  // still honoured for a page that keeps its configuration there.
+  var root = document.querySelector("[data-screen-root]") || document.body;
   var path = root.getAttribute("data-websocket-path");
   var screenId = root.getAttribute("data-screen-id");
   if (!path || !screenId) {
     return;
+  }
+
+  function uiText(key, fallback) {
+    return root.getAttribute("data-label-" + key) || fallback;
   }
 
   var socket = null;
@@ -62,6 +71,29 @@
       badge.textContent = text;
       badge.dataset.state = state;
     }
+  }
+
+  function setLead(panel, text) {
+    var element = root.querySelector('[data-panel="' + panel + '"] .screen__lead');
+    if (element) {
+      element.textContent = text;
+    }
+  }
+
+  /**
+   * Drop the socket and start a new one at once.
+   *
+   * Used when a round starts: a screen that was waiting has nothing to show
+   * yet, and the way it finds out is to ask again. The close handler's retry
+   * timer is cleared first so the two paths cannot both be armed.
+   */
+  function reconnectNow() {
+    window.clearTimeout(retryTimer);
+    if (socket) {
+      socket.close();
+      socket = null;
+    }
+    connect();
   }
 
   function show(name) {
@@ -134,7 +166,7 @@
     answered = true;
     awaitingAck = false;
     stopCountdown();
-    showLocked("Answer sent. Waiting for the teacher.");
+    showLocked(uiText("answer-teacher", "Answer sent. Waiting for the teacher."));
   }
 
   function disableControls() {
@@ -263,7 +295,7 @@
 
       var label = document.createElement("span");
       label.className = "screen__option-label";
-      label.textContent = choice;
+      label.textContent = question.question_type === "true_false" ? root.getAttribute(index === 0 ? "data-label-true" : "data-label-false") || choice : choice;
       button.appendChild(label);
 
       container.appendChild(button);
@@ -303,7 +335,7 @@
         up.type = "button";
         up.className = "screen__order-move";
         up.textContent = "▲";
-        up.setAttribute("aria-label", "Move " + item + " up");
+        up.setAttribute("aria-label", uiText("move", "Move ") + item + uiText("up", " up"));
         up.disabled = index === 0;
         up.addEventListener("click", function () {
           move(index, index - 1);
@@ -314,7 +346,7 @@
         down.type = "button";
         down.className = "screen__order-move";
         down.textContent = "▼";
-        down.setAttribute("aria-label", "Move " + item + " down");
+        down.setAttribute("aria-label", uiText("move", "Move ") + item + uiText("down", " down"));
         down.disabled = index === selection.length - 1;
         down.addEventListener("click", function () {
           move(index, index + 1);
@@ -423,7 +455,7 @@
           var target = document.createElement("button");
           target.type = "button";
           target.className = "screen__place";
-          target.textContent = "Place “" + pending + "” in " + category;
+          target.textContent = uiText("place", "Place “") + pending + uiText("in", "” in ") + category;
           target.addEventListener("click", function () {
             placePending(category);
           });
@@ -500,9 +532,9 @@
 
     showTimer(
       payload && payload.total_questions
-        ? "Question " +
+        ? uiText("question", "Question") + " " +
             payload.question_number +
-            " of " +
+            (" " + uiText("of", "of") + " ") +
             payload.total_questions
         : null
     );
@@ -515,7 +547,7 @@
     stopCountdown();
     showTimer(null);
     if (answered) {
-      showLocked("Answer sent. Waiting for the result.");
+      showLocked(uiText("answer-result", "Answer sent. Waiting for the result."));
     } else {
       show("closed");
     }
@@ -528,8 +560,8 @@
     if (summary) {
       summary.textContent =
         payload && payload.competition_title
-          ? "That is the end of " + payload.competition_title + "."
-          : "That is the end of the competition.";
+          ? uiText("end-title", "That is the end of ") + payload.competition_title + "."
+          : uiText("end", "That is the end of the competition.");
     }
     show("finished");
   }
@@ -589,13 +621,13 @@
 
     if (verdict) {
       if (!mine) {
-        verdict.textContent = "This classroom did not answer";
+        verdict.textContent = uiText("no-answer", "This classroom did not answer");
         verdict.dataset.correct = "false";
       } else if (mine.is_correct) {
-        verdict.textContent = "Correct";
+        verdict.textContent = uiText("correct", "Correct");
         verdict.dataset.correct = "true";
       } else {
-        verdict.textContent = "Answer sent: " + (mine.selected_answer || "");
+        verdict.textContent = uiText("answer-sent", "Answer sent: ") + (mine.selected_answer || "");
         verdict.dataset.correct = "false";
       }
       verdict.hidden = false;
@@ -605,7 +637,7 @@
     // this function is called from, so there is no earlier moment at which the
     // browser could have a key in hand.
     if (key) {
-      key.textContent = "Correct answer: " + (payload.correct_answer || "");
+      key.textContent = uiText("correct-answer", "Correct answer: ") + (payload.correct_answer || "");
       key.hidden = !payload.correct_answer;
     }
 
@@ -653,7 +685,15 @@
 
     switch (payload.type) {
       case "welcome":
+      case "waiting":
+        // `waiting` is explicitly not a failure: the screen identified itself
+        // and there is no round running, so it holds this socket instead of
+        // retrying. The lead says why, and the connection badge stays live.
+        if (payload.type === "waiting" && payload.message) {
+          setLead("waiting", root.getAttribute("data-label-waiting") || payload.message);
+        }
         show(answered ? "locked" : "waiting");
+        setConnection(uiText("live", "Live"), "live");
         break;
 
       case "state_sync":
@@ -705,8 +745,17 @@
         break;
 
       case "rejected":
-        setConnection("Refused", "offline");
+        setConnection(uiText("refused", "Refused"), "offline");
         show("offline");
+        break;
+
+      case "reconnect_now":
+        // A round has started elsewhere in the school. This screen was waiting
+        // with no round to show, so the only thing to do is ask again - its
+        // membership is decided when it identifies, never by this message. The
+        // socket is closed so the reconnect is immediate rather than waiting
+        // out the retry delay.
+        reconnectNow();
         break;
 
       default:
@@ -725,7 +774,7 @@
     socket = new WebSocket(url);
 
     socket.addEventListener("open", function () {
-      setConnection("Live", "live");
+      setConnection(uiText("live", "Live"), "live");
     });
 
     socket.addEventListener("message", function (event) {
@@ -739,7 +788,7 @@
     });
 
     socket.addEventListener("close", function () {
-      setConnection("Reconnecting…", "offline");
+      setConnection(uiText("reconnecting", "Reconnecting…"), "offline");
       if (!answered) {
         show("offline");
       }

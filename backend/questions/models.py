@@ -18,6 +18,9 @@ A question now covers four kinds of interaction:
     Type an answer the teacher has defined. Keyed by ``accepted_answers`` in
     :attr:`Question.type_config`.
 
+An optional ``hint`` is stored as a teacher cue; ``explanation`` is shown after a
+result is revealed.
+
 How the types are stored
 ------------------------
 The three original types keep the columns they always had. ``options``,
@@ -135,10 +138,30 @@ class QuestionQuerySet(models.QuerySet):
 
 
 class Question(models.Model):
-    """A single question that can be asked during a competition."""
+    """A single question that can be asked during a competition.
+
+    A question belongs to exactly one **subject** - the curriculum subject a
+    teacher picks first, so a bank is organised the way the school's timetable
+    is. It may optionally carry a **topic**, an optional subdivision within that
+    subject. Neither is a competition, and neither is the question's answer key.
+    """
 
     text = models.TextField(
         help_text="The question as it should appear on a screen.",
+    )
+    subject = models.ForeignKey(
+        "subjects.Subject",
+        on_delete=models.PROTECT,
+        related_name="questions",
+        help_text="The curriculum subject this question belongs to.",
+    )
+    topic = models.ForeignKey(
+        "subjects.Topic",
+        on_delete=models.SET_NULL,
+        related_name="questions",
+        null=True,
+        blank=True,
+        help_text="Optional subdivision within the subject.",
     )
     question_type = models.CharField(
         max_length=32,
@@ -178,6 +201,10 @@ class Question(models.Model):
             "Per-type settings for ordering, classification and short answer "
             "questions. Unused by multiple choice and true/false."
         ),
+    )
+    hint = models.TextField(
+        blank=True,
+        help_text="Optional clue for the teacher to share while asking the question.",
     )
     explanation = models.TextField(
         blank=True,

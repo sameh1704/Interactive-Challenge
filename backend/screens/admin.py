@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from django.contrib import admin, messages
 from django.utils.html import format_html
+from django.utils.translation import gettext_lazy as _
 
 from core.admin import AdministratorAdminMixin
 from screens.models import InteractiveScreen
@@ -70,20 +71,20 @@ class InteractiveScreenAdmin(AdministratorAdminMixin, admin.ModelAdmin):
         ("Audit", {"classes": ("collapse",), "fields": ("created_at", "updated_at")}),
     )
 
-    @admin.display(description="Classroom")
+    @admin.display(description=_("Classroom"))
     def classroom_display(self, obj: InteractiveScreen) -> str:
         return obj.classroom.display_name if obj.classroom else "—"
 
-    @admin.display(boolean=True, description="Primary")
+    @admin.display(boolean=True, description=_("Primary"))
     def primary_badge(self, obj: InteractiveScreen) -> bool:
         return obj.is_primary
 
-    @admin.display(description="Status")
+    @admin.display(description=_("Status"))
     def status_badge(self, obj: InteractiveScreen) -> str:
         css = "status-online" if obj.is_online else "status-offline"
         return format_html(f'<span class="badge {css}">{obj.status_display}</span>')
 
-    @admin.display(description="Screen registration URL")
+    @admin.display(description=_("Screen registration URL"))
     def registration_url_display(self, obj: InteractiveScreen) -> str:
         """Show the URL the operator should open on the screen.
 

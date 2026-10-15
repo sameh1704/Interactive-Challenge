@@ -1,33 +1,251 @@
 {% extends "teacher/base.html" %}
+{% load i18n %}
 
-{% block title %}Competition Detail{% endblock %}
+{% block title %}{{ competition.title }} &middot; {% translate "Competition detail" %}{% endblock %}
 
 {% block content %}
+  {% comment %}
+  The first thing a teacher reads is what state this competition is in and what
+  pressing the button will do. The lifecycle is spelled out in words rather than
+  left to a status word, because the one thing a teacher must never believe is
+  that saving or scheduling a competition started it.
+  {% endcomment %}
   <section class="page-heading">
     <h1 class="page-heading__title">{{ competition.title }}</h1>
-    <p class="page-heading__subtitle">Competition details</p>
+    <p class="page-heading__subtitle">
+      {% if competition.is_finished %}
+        {% translate "Finished" %}
+      {% elif competition.is_live %}
+        {% translate "Live now" %}
+      {% elif competition.planned_for %}
+        {% blocktranslate with when=competition.planned_for|date:"Y-m-d H:i" %}Planned for {{ when }} — waiting for teacher to start.{% endblocktranslate %}
+      {% else %}
+        {% translate "Prepared — waiting for teacher to start." %}
+      {% endif %}
+    </p>
   </section>
 
-  <section class="stats" aria-label="Competition details">
+  {% comment %}
+  The lifecycle is spelled out in words rather than left to a status word,
+  because the one thing a teacher must never believe is that saving or
+  scheduling a competition started it. Only the Start Competition button does
+  that, and the copy says so.
+  {% endcomment %}
+  {% if competition.is_prepared %}
+    <form method="post" action="{% url 'teacher:resume_competition' competition.pk %}">
+      {% csrf_token %}<button class="button" type="submit">{% translate "Reopen saved draft" %}</button>
+    </form>
+  {% endif %}
+  <section class="panel lifecycle" aria-labelledby="lifecycle-heading">
+    <h2 class="panel__heading" id="lifecycle-heading">{% translate "Where this competition stands" %}</h2>
+    <p class="lifecycle__state">
+      {% if competition.is_finished %}
+        <span class="badge status-offline">{% translate "Finished" %}</span>
+        {% translate "This competition has finished. Its results are kept for the reports." %}
+      {% elif competition.is_live %}
+        <span class="badge status-online">{% translate "Live" %}</span>
+        {% translate "This competition is running. Use the live dashboard to control it." %}
+      {% else %}
+        <span class="badge">{% translate "Not started" %}</span>
+        {% if competition.planned_for %}
+          {% blocktranslate with when=competition.planned_for|date:"Y-m-d H:i" %}Planned for {{ when }} — waiting for teacher to start.{% endblocktranslate %}
+        {% else %}
+          {% translate "Waiting for the teacher to start it." %}
+        {% endif %}
+      {% endif %}
+    </p>
+    {% if competition.is_prepared %}
+      <p class="context-hint">
+        <span>{% translate "Saving or scheduling a competition never starts it. Press Start Competition when it is time." %}</span>
+      </p>
+    {% endif %}
+  </section>
+
+  {% comment %}
+  The start form sits directly under the lifecycle, above the statistics and the
+  screen table, so the one action that turns this into a live round is the first
+  thing a teacher reaches - not the last panel on the page.
+
+  It is a form on purpose. GET requests to the endpoint show this confirmation
+  and change nothing; only this POST starts the round, CSRF is enforced, and a
+  second press is refused by the live engine rather than starting twice.
+  {% endcomment %}
+  {% if competition.is_prepared %}
+    <section class="panel start-competition" aria-labelledby="start-heading">
+      <h2 class="panel__heading" id="start-heading">{% translate "Start this competition" %}</h2>
+
+      {% if start_blockers %}
+        <ul class="field__error" role="alert">
+          {% for blocker in start_blockers %}<li>{{ blocker }}</li>{% endfor %}
+        </ul>
+      {% endif %}
+
+      {% comment %}
+      The confirmation restates what is about to happen - the classrooms, and the
+      screens expected to receive it - because starting is the one action that
+      puts this competition in front of every selected classroom at once.
+      {% endcomment %}
+      <form method="post" action="{% url 'teacher:start_competition' competition.pk %}" class="form">
+        {% csrf_token %}
+
+        <ul class="start-competition__summary">
+          <li>
+            {% blocktranslate count count=competition.classrooms.count %}{{ count }} classroom will take part{% plural %}{{ count }} classrooms will take part{% endblocktranslate %}
+          </li>
+          <li>
+            {% blocktranslate count count=targeting.screens|length %}{{ count }} registered screen expected{% plural %}{{ count }} registered screens expected{% endblocktranslate %}
+          </li>
+        </ul>
+
+        {% if has_offline_screens %}
+          <p class="field__error" role="alert">
+            {% translate "Some expected screens are offline. They will not receive this competition. Tick the box to start anyway." %}
+          </p>
+          <label class="question-builder__checkbox">
+            <input type="checkbox" name="acknowledge_screens" value="1">
+            {% translate "I understand that some screens will miss this competition" %}
+          </label>
+        {% elif has_classrooms_without_screens %}
+          <p class="field__error" role="alert">
+            {% translate "Some participating classrooms have no registered screen, so they will see nothing. Tick the box to start anyway." %}
+          </p>
+          <label class="question-builder__checkbox">
+            <input type="checkbox" name="acknowledge_screens" value="1">
+            {% translate "I understand that some classrooms have no screen" %}
+          </label>
+        {% elif not targeting.screens %}
+          <p class="field__error" role="alert">
+            {% translate "No screens are registered for these classrooms, so nothing will be displayed until an administrator registers one. Tick the box to start anyway." %}
+          </p>
+          <label class="question-builder__checkbox">
+            <input type="checkbox" name="acknowledge_screens" value="1">
+            {% translate "I understand that no screen will display this competition" %}
+          </label>
+        {% endif %}
+
+        <div class="page-actions">
+          <button type="submit" class="button button--primary" {% if start_blockers %}disabled{% endif %}>
+            {% translate "Start Competition" %}
+          </button>
+        </div>
+      </form>
+    </section>
+  {% endif %}
+
+  <section class="stats" aria-label="{% translate 'Competition details' %}">
     <div class="stat">
-      <span class="stat__value">{{ competition.state }}</span>
-      <span class="stat__label">State</span>
+      <span class="stat__value">{{ competition.get_state_display }}</span>
+      <span class="stat__label">{% translate "State" %}</span>
     </div>
     <div class="stat">
       <span class="stat__value">{{ competition.questions.count }}</span>
-      <span class="stat__label">Questions</span>
+      <span class="stat__label">{% translate "Questions" %}</span>
     </div>
     <div class="stat">
       <span class="stat__value">{{ competition.classrooms.count }}</span>
-      <span class="stat__label">Classrooms</span>
+      <span class="stat__label">{% translate "Classrooms" %}</span>
     </div>
-    <div class="stat">
-      <span class="stat__value">{{ competition.created_at|date:"Y-m-d" }}</span>
-      <span class="stat__label">Created</span>
+    <div class="stat {% if targeting.online_screens %}stat--online{% endif %}">
+      <span class="stat__value">{{ targeting.online_screens|length }}/{{ targeting.screens|length }}</span>
+      <span class="stat__label">{% translate "Screens online" %}</span>
     </div>
   </section>
 
+  {% comment %}
+  The screens this round will reach. A round is written only to sockets that are
+  open, so what the WebSocket shows as connected is the truth *now*, while this
+  table is the truth the teacher is relying on when they press Start.
+  {% endcomment %}
+  <section class="panel" aria-labelledby="screens-heading">
+    <h2 class="panel__heading" id="screens-heading">{% translate "Screens this competition will reach" %}</h2>
+    {% if targeting.classrooms %}
+      <div class="table-scroll" role="region" aria-label="{% translate 'Screens this competition will reach' %}" tabindex="0">
+        <table class="table">
+          <thead>
+            <tr>
+              <th scope="col">{% translate "Classroom" %}</th>
+              <th scope="col">{% translate "Screen ID" %}</th>
+              <th scope="col">{% translate "Status" %}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for target in targeting.classrooms %}
+              {% for screen in target.screens %}
+                <tr>
+                  <td>{{ target.name }}</td>
+                  <td><code>{{ screen.screen_id }}</code></td>
+                  <td>
+                    <span class="badge {% if screen.is_online %}status-online{% else %}status-offline{% endif %}">
+                      {{ screen.status_display }}
+                    </span>
+                  </td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td>{{ target.name }}</td>
+                  <td colspan="2">
+                    <span class="badge status-offline">{% translate "No registered screen" %}</span>
+                  </td>
+                </tr>
+              {% endfor %}
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      {% load wizard_extras %}
+      {% if targeting.classrooms_without_screens %}
+        <p class="field__error" role="status">
+          {% translate "These classrooms have no registered screen: " %}{{ targeting.classrooms_without_screens|join_names }}
+        </p>
+      {% endif %}
+      {% if targeting.offline_screens %}
+        <p class="field__error" role="status">
+          {% translate "These screens are offline and will miss the round: " %}{{ targeting.offline_screens|join_screen_ids }}
+        </p>
+      {% endif %}
+      {% if not targeting.offline_screens and not targeting.classrooms_without_screens %}
+        <p class="context-hint">
+          <span>{% translate "Every classroom in this competition has a screen connected." %}</span>
+        </p>
+      {% endif %}
+      <p class="panel__body">
+        {% translate "Screens find the competition from their own registered URL, so nothing needs to be opened on each screen." %}
+      </p>
+    {% else %}
+      <p class="panel__body">{% translate "No classrooms are taking part in this competition." %}</p>
+    {% endif %}
+  </section>
+
+  {% if competition.is_prepared %}
+    <section class="panel" aria-labelledby="plan-heading">
+      <h2 class="panel__heading" id="plan-heading">{% translate "Plan when to run this" %}</h2>
+      {% comment %}
+      A note for later, not a start. It changes no state and sends nothing: the
+      copy above says as much, because a teacher reading "planned for 10:30"
+      could otherwise reasonably expect the round to begin itself.
+      {% endcomment %}
+      <form method="post" action="{% url 'teacher:plan_competition' competition.pk %}" class="form form--inline">
+        {% csrf_token %}
+        <div class="field">
+          <label class="field__label" for="id_planned_for">{% translate "Planned date and time" %}</label>
+          <input type="datetime-local" name="planned_for" id="id_planned_for"
+                 value="{% if competition.planned_for %}{{ competition.planned_for|date:'Y-m-d\TH:i' }}{% endif %}">
+          <p class="question-builder__help">{% translate "Scheduling a time does not start the competition." %}</p>
+        </div>
+        <button type="submit" class="button button--quiet">{% translate "Save planned time" %}</button>
+      </form>
+    </section>
+  {% endif %}
+
   <div class="page-actions">
-    <a class="button button--quiet" href="{% url 'teacher:competitions' %}">Back to list</a>
+    <a class="button button--quiet" href="{% url 'teacher:competitions' %}">{% translate "Back to list" %}</a>
+    {% if competition.is_live %}
+      {# The live dashboard is where a round is actually run, so it is linked from the competition it belongs to. #}
+      {# Before this, the only way to reach it was by typing the URL, which meant the teacher workspace led nowhere. #}
+      <a class="button" href="{% url 'live:teacher_dashboard' competition.pk %}">
+        {% translate "Run the round" %}
+      </a>
+    {% endif %}
   </div>
 {% endblock %}

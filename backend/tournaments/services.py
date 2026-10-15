@@ -157,11 +157,11 @@ def assert_can_manage(tournament: Tournament, user) -> None:
     administrator - so a member of staff who may drive a competition may also set
     up the championship it belongs to.
     """
-    from accounts.permissions import is_administrator
+    from accounts.permissions import is_administrator, is_teacher
 
     if not user or not user.is_authenticated or not user.is_active:
         raise TournamentError("not_signed_in", "Sign in to manage tournaments.")
-    if tournament.created_by_id == user.pk or is_administrator(user):
+    if (is_teacher(user) and tournament.created_by_id == user.pk) or is_administrator(user):
         return
     raise TournamentError(
         "not_authorised", "You are not the teacher running this tournament."

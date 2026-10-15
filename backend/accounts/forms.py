@@ -6,6 +6,7 @@ import logging
 
 from django import forms
 from django.contrib.auth.forms import AuthenticationForm
+from django.utils.translation import gettext_lazy as _
 
 from accounts.models import User
 
@@ -26,29 +27,29 @@ class SignInForm(AuthenticationForm):
     """
 
     username = forms.CharField(
-        label="Username",
+        label=_("Username"),
         max_length=User._meta.get_field(User.USERNAME_FIELD).max_length,
         widget=forms.TextInput(
             attrs={"autofocus": True, "autocomplete": "username"}
         ),
     )
     password = forms.CharField(
-        label="Password",
+        label=_("Password"),
         strip=False,
         widget=forms.PasswordInput(attrs={"autocomplete": "current-password"}),
     )
 
     error_messages = {
         **AuthenticationForm.error_messages,
-        "invalid_login": (
+        "invalid_login": _(
             "That username and password combination is not recognised, or the "
             "account is inactive."
         ),
-        "inactive": "This account is inactive. Please contact an administrator.",
+        "inactive": _("This account is inactive. Please contact an administrator."),
         # Deliberately identical to invalid_login: telling a caller that they are
         # being rate limited confirms the address is being counted, and the
         # message carries no information they did not already have.
-        "rate_limited": (
+        "rate_limited": _(
             "That username and password combination is not recognised, or the "
             "account is inactive."
         ),

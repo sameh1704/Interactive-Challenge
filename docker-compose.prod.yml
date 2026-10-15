@@ -73,6 +73,13 @@ services:
   # Django + Daphne, in production mode.
   # -------------------------------------------------------------------------
   challenge-web:
+    depends_on:
+      challenge-db:
+        condition: service_healthy
+      challenge-redis:
+        condition: service_healthy
+      challenge-prepare:
+        condition: service_completed_successfully
     environment:
       # Set the resolved module name, not just the suffix. The base compose file
       # interpolates `DJANGO_SETTINGS_MODULE` from `DJANGO_SETTINGS_MODULE_NAME`
@@ -92,8 +99,10 @@ services:
       SCREEN_TRUST_FORWARDED_FOR: ${SCREEN_TRUST_FORWARDED_FOR:-True}
       # Secure cookies and HSTS must reach the application, not only the migrate
       # service: these are read by config.settings.production at import time.
-      SESSION_COOKIE_SECURE: ${SESSION_COOKIE_SECURE:-True}
-      CSRF_COOKIE_SECURE: ${CSRF_COOKIE_SECURE:-True}
+      # This deployment uses HTTP; HTTPS deployments must explicitly enable
+      # Secure cookies in .env.
+      SESSION_COOKIE_SECURE: ${SESSION_COOKIE_SECURE:-False}
+      CSRF_COOKIE_SECURE: ${CSRF_COOKIE_SECURE:-False}
       SECURE_SSL_REDIRECT: ${SECURE_SSL_REDIRECT:-False}
       SECURE_HSTS_SECONDS: ${SECURE_HSTS_SECONDS:-0}
       SECURE_HSTS_INCLUDE_SUBDOMAINS: ${SECURE_HSTS_INCLUDE_SUBDOMAINS:-False}
@@ -153,12 +162,9 @@ services:
   # 1. *migrations* - the entrypoint also migrates, which is convenient in
   #    development but wrong here: several web containers would race to migrate
   #    the same database. A one-shot service does it first and exits.
-  # 2. *collectstatic* - the image collects at build time with the **development**
-  #    settings module, which uses plain StaticFilesStorage and therefore writes no
-  #    manifest. Production uses WhiteNoise's manifest storage, which 404s every
-  #    static file whose hashed name it cannot resolve. So it has to be collected
-  #    again with the production settings module, into the staticfiles directory
-  #    the web container reads.
+  # 2. *collectstatic* - the image already collects with production settings,
+  #    but the shared volume masks that directory. Collect with the production
+  #    module again so the mounted volume receives the current manifest/assets.
   # -------------------------------------------------------------------------
   challenge-prepare:
     image: almanar-challenge-web:${APP_VERSION:-0.1.0}
@@ -174,6 +180,7 @@ services:
     environment:
       DJANGO_ENV: production
       DJANGO_SETTINGS_MODULE_NAME: production
+      DJANGO_SETTINGS_MODULE: config.settings.production
       DEBUG: "False"
       APP_VERSION: ${APP_VERSION:-0.1.0}
       APP_NAME: almanar-interactive-challenge
@@ -191,8 +198,8 @@ services:
       DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:?DJANGO_SECRET_KEY is required}
       ALLOWED_HOSTS: ${ALLOWED_HOSTS:?ALLOWED_HOSTS is required}
       CSRF_TRUSTED_ORIGINS: ${CSRF_TRUSTED_ORIGINS:-}
-      SESSION_COOKIE_SECURE: ${SESSION_COOKIE_SECURE:-True}
-      CSRF_COOKIE_SECURE: ${CSRF_COOKIE_SECURE:-True}
+      SESSION_COOKIE_SECURE: ${SESSION_COOKIE_SECURE:-False}
+      CSRF_COOKIE_SECURE: ${CSRF_COOKIE_SECURE:-False}
       SECURE_SSL_REDIRECT: ${SECURE_SSL_REDIRECT:-False}
       SECURE_HSTS_SECONDS: ${SECURE_HSTS_SECONDS:-0}
     depends_on:

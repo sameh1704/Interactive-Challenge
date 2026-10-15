@@ -12,12 +12,16 @@ from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.models import Group
 
 from accounts.models import User
+from accounts.stage_forms import DeputyUserChangeForm, DeputyUserCreationForm
 from core.admin import AdministratorAdminMixin
 
 
 @admin.register(User)
 class UserAdmin(AdministratorAdminMixin, BaseUserAdmin):
     """Create and manage teachers and administrators."""
+
+    form = DeputyUserChangeForm
+    add_form = DeputyUserCreationForm
 
     list_display = ("username", "full_name", "role", "is_active", "date_joined")
     list_filter = ("role", "is_active", "is_superuser")
@@ -36,7 +40,7 @@ class UserAdmin(AdministratorAdminMixin, BaseUserAdmin):
         (
             "Role and access",
             {
-                "fields": ("role", "is_active", "is_superuser"),
+                "fields": ("role", "deputy_stages", "is_active", "is_superuser"),
                 "description": (
                     "Administrators may manage classrooms, screens and accounts. "
                     "Teachers may only see the classrooms assigned to them."
@@ -63,6 +67,7 @@ class UserAdmin(AdministratorAdminMixin, BaseUserAdmin):
                     "full_name",
                     "email",
                     "role",
+                    "deputy_stages",
                     "password1",
                     "password2",
                 ),

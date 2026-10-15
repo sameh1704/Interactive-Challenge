@@ -81,6 +81,10 @@ class User(AbstractBaseUser, PermissionsMixin):
         ordering = ["username"]
         constraints = [
             models.CheckConstraint(
+                condition=~models.Q(role=Role.STAGE_DEPUTY) | models.Q(is_superuser=False),
+                name="accounts_deputy_not_superuser",
+            ),
+            models.CheckConstraint(
                 condition=models.Q(role__in=list(Role.values)),
                 name="accounts_user_role_is_valid",
             )
@@ -98,6 +102,30 @@ class User(AbstractBaseUser, PermissionsMixin):
     @property
     def is_teacher(self) -> bool:
         return self.role == Role.TEACHER
+
+    @property
+    def is_stage_deputy(self) -> bool:
+        return self.role == Role.STAGE_DEPUTY
+
+    def has_perm(self, perm, obj=None):
+        if self.is_stage_deputy:
+            return False
+        return super().has_perm(perm, obj)
+
+    def has_module_perms(self, app_label):
+        if self.is_stage_deputy:
+            return False
+        return super().has_module_perms(app_label)
+
+    async def ahas_perm(self, perm, obj=None):
+        if self.is_stage_deputy:
+            return False
+        return await super().ahas_perm(perm, obj)
+
+    async def ahas_module_perms(self, app_label):
+        if self.is_stage_deputy:
+            return False
+        return await super().ahas_module_perms(app_label)
 
     @property
     def is_staff(self) -> bool:

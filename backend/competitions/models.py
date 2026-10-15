@@ -25,6 +25,34 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 
+def default_points_for(competition_id: int | None = None) -> int:
+    """The default points a correct answer earns in a round.
+
+    Prefers the competition's scoring rule when it exists, otherwise falls back
+    to the configured defaults. A local import keeps scoring and competitions
+    from forming a hard circular import at module load time.
+    """
+    try:
+        from scoring.models import DEFAULT_CORRECT_POINTS, ScoringRule
+    except Exception:  # noqa: BLE001 - safe fallback if scoring not ready
+        return 100
+
+    if competition_id is not None:
+        try:
+            rule = ScoringRule.objects.filter(competition_id=competition_id).first()
+            if rule is not None:
+                return rule.correct_points
+        except Exception:  # noqa: BLE001 - DB access should not break property
+            pass
+
+    try:
+        from django.conf import settings
+
+        return getattr(settings, "SCORING_CORRECT_POINTS", DEFAULT_CORRECT_POINTS)
+    except Exception:  # noqa: BLE001 - safe fallback
+        return DEFAULT_CORRECT_POINTS
+
+
 class CompetitionState(models.TextChoices):
     """The lifecycle of a live round.
 
@@ -81,6 +109,11 @@ class CompetitionQuerySet(models.QuerySet):
             return self.none()
         if is_administrator(user):
             return self
+        if user.is_stage_deputy:
+            from accounts.stage_scope import competitions_for_deputy
+            return competitions_for_deputy(user, queryset=self)
+        if not user.is_teacher:
+            return self.none()
         return self.filter(teacher=user)
 
 
@@ -139,6 +172,21 @@ class Competition(models.Model):
         help_text="Set once, when the teacher starts the round.",
     )
     finished_at = models.DateTimeField(null=True, blank=True)
+    # When the teacher *intends* to run this competition.
+    #
+    # Deliberately not a start trigger: it is a note to themselves and to the
+    # competition list, and nothing in the system reads it to change state. A
+    # competition that is live is the one whose `started_at` is set - which only
+    # the teacher's own Start button does. Keeping the two apart is what makes
+    # "planned for 10:30" honest: it says when, not "and it started itself".
+    planned_for = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text=(
+            "When the teacher intends to run this competition. Scheduling a "
+            "time does not start it; only the Start button does."
+        ),
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -181,6 +229,63 @@ class Competition(models.Model):
     @property
     def is_active(self) -> bool:
         return self.state in ACTIVE_STATES
+
+    # -- the preparation lifecycle ------------------------------------------
+    #
+    # Three phases a teacher cares about, derived from timestamps that already
+    # exist rather than from a second state field. `state` describes where a
+    # *running* round has got to; it has no way to say "prepared but not
+    # started", which is the state a teacher spends days in.
+    #
+    # `started_at` is the one and only marker of "live", and only the teacher's
+    # Start button writes it. `planned_for` is a note about intent and is read by
+    # nothing that changes state.
+
+    @property
+    def is_started(self) -> bool:
+        """Whether this competition has ever been started."""
+        return self.started_at is not None
+
+    @property
+    def is_live(self) -> bool:
+        """Whether the round is running now: started, and not yet finished."""
+        return self.started_at is not None and self.state != CompetitionState.FINISHED
+
+    @property
+    def is_prepared(self) -> bool:
+        """Whether the round is prepared and waiting for the teacher to start it."""
+        return self.started_at is None
+
+    @property
+    def default_points(self) -> int:
+        """Points a correct answer earns in this round, before any override."""
+        return default_points_for(self.pk)
+
+    @property
+    def total_points(self) -> int:
+        """The competition's total possible score, added up from its questions.
+
+        Derived from the stored rows and never from a value a browser sent, so
+        what the review page showed and what the round awards cannot drift
+        apart. A question's own override is used when it has one.
+        """
+        default = self.default_points
+        return sum(entry.points_or(default) for entry in self.questions.all())
+
+    @property
+    def lifecycle_label(self) -> str:
+        """A one-word phrase for where this competition stands.
+
+        Translated at the call site through the template, not here: the models
+        stay free of the request's language.
+        """
+        if self.is_finished:
+            return "finished"
+        if self.is_live:
+            return "live"
+        if self.planned_for is not None:
+            return "planned"
+        return "prepared"
 
     def seconds_remaining(self, now=None) -> float:
         """Seconds left on the current question, per the server clock.
@@ -277,6 +382,21 @@ class CompetitionQuestion(models.Model):
             "to use the question's default."
         ),
     )
+    # What this question is worth in this round. Nullable, and that nullability
+    # is the migration path: every row written before per-question points
+    # existed has no value here and continues to score the competition-wide
+    # default exactly as it did before. A value written from now on overrides
+    # that default for this question only - the scoring engine reads this row,
+    # so a question the teacher marked as worth five points scores five, not the
+    # round's default.
+    points = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+        help_text=(
+            "What a correct answer to this question is worth in this round. "
+            "Leave blank to use the competition's points per question."
+        ),
+    )
 
     class Meta:
         verbose_name = "competition question"
@@ -301,3 +421,26 @@ class CompetitionQuestion(models.Model):
     @property
     def effective_duration_seconds(self) -> int:
         return self.duration_seconds or self.question.duration_seconds
+
+    @property
+    def effective_points(self) -> int:
+        """What this question is worth: its own value, or the round's default.
+
+        The fallback is a local import rather than a field, so that a round set
+        up before per-question points existed - and one whose teacher never
+        opened the scoring step - both score the value the scoring engine would
+        have given them anyway.
+        """
+        if self.points is not None:
+            return self.points
+        return default_points_for(self.competition_id)
+
+    def points_or(self, default_points: int) -> int:
+        """This question's points, with an explicit default for the unknown case.
+
+        The caller resolves the round's default once, which is what keeps a
+        review page or a scoring call from doing one lookup per question.
+        """
+        if self.points is not None:
+            return self.points
+        return default_points

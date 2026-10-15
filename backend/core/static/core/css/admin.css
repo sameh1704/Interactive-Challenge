@@ -33,7 +33,7 @@
   --breadcrumbs-fg: var(--colour-text);
 
   --primary: var(--colour-accent);
-  --primary-fg: #08131c;
+  --primary-fg: var(--colour-on-accent);
   --primary-accent: var(--colour-accent-dim);
   --primary-bg: var(--colour-accent);
   --close-button-bg: var(--colour-danger);
@@ -42,8 +42,8 @@
   --default-button-bg: var(--colour-surface-raised);
   --default-button-hover-bg: var(--colour-border);
   --object-tools-bg: var(--colour-accent);
-  --object-tools-hover-bg: #45dda0;
-  --object-tools-fg: #08131c;
+  --object-tools-hover-bg: var(--colour-accent-strong);
+  --object-tools-fg: var(--colour-on-accent);
   --default-button-fg: var(--colour-text);
 
   --link-fg: var(--colour-accent);
@@ -408,7 +408,7 @@ textarea:focus {
   display: block;
   padding: 0.6rem 1rem;
   background: var(--colour-accent);
-  color: #08131c;
+  color: var(--colour-on-accent);
   font-weight: 600;
   text-decoration: none;
 }

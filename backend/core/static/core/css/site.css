@@ -1,4 +1,77 @@
+/* ---------------------------------------------------------------------------
+   Theme tokens.
+
+   `:root` is the light theme and is the default, so a page with no `data-theme`
+   attribute - a browser with JavaScript switched off, or the first paint of a
+   page that has not been told a preference - reads as light.
+
+   `[data-theme="dark"]` is the whole dark theme, in one block. The attribute is
+   written by the server from the theme cookie before the page is sent, so the
+   correct theme is the first thing painted and there is no flash of the wrong
+   one; `theme-manager.js` keeps it in step when the switch is pressed.
+
+   Both themes define the same set of names, and core/tests/test_theme.py fails
+   the suite if they drift apart, so a component can never be left with a token
+   that resolves to nothing in one of the two themes.
+
+   Contrast is measured against the two backgrounds each colour is actually used
+   on (`--colour-bg` and `--colour-surface`) and both clear 4.5:1 for body text,
+   so nothing here has to lean on size or weight to stay readable.
+   --------------------------------------------------------------------------- */
+
 :root {
+  --colour-bg: #f4f7fa;
+  --colour-surface: #ffffff;
+  --colour-surface-raised: #eaeff5;
+  --colour-border: #cdd7e2;
+  --colour-text: #16212e;
+  --colour-muted: #55636f;
+  --colour-accent: #0d7a51;
+  --colour-accent-strong: #0a5f3f;
+  --colour-accent-dim: #b7e3cd;
+  --colour-on-accent: #ffffff;
+  --colour-danger: #b42318;
+  --colour-danger-surface: #fdf3f2;
+  --colour-danger-border: #f0c4c0;
+  --colour-success: #1c7a3e;
+  --colour-success-surface: #eefaf2;
+  --colour-success-border: #b9e3c8;
+  --colour-warn: #96590a;
+  --colour-warn-surface: #fff8e8;
+  --colour-warn-border: #f0d8a4;
+  /* The focus ring is deliberately not the accent: the accent has to read as
+     text on both backgrounds, which makes it too dark for a ring against the
+     light theme and too quiet against the dark one. */
+  --colour-focus: #1a56c4;
+
+  /* The lifecycle states, each as a surface / border / ink triple so a badge
+     keeps its shape in both themes. The status word is always text, so colour
+     is never the only signal. */
+  --colour-state-neutral-surface: #e8edf3;
+  --colour-state-neutral-border: #cbd5e1;
+  --colour-state-neutral-ink: #334155;
+  --colour-state-info-surface: #dbeafe;
+  --colour-state-info-border: #93c5fd;
+  --colour-state-info-ink: #1e40af;
+  --colour-state-active-surface: #fef3c7;
+  --colour-state-active-border: #fcd34d;
+  --colour-state-active-ink: #92400e;
+  --colour-state-good-surface: #dcfce7;
+  --colour-state-good-border: #86efac;
+  --colour-state-good-ink: #166534;
+  --colour-state-bad-surface: #fee2e2;
+  --colour-state-bad-border: #fca5a5;
+  --colour-state-bad-ink: #991b1b;
+
+  --radius: 10px;
+  --font-stack: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+
+  /* Tells the browser which palette form controls, scrollbars and the caret
+     should draw themselves in, so they follow the theme without being styled. */
+  color-scheme: light;
+}
+
+[data-theme="dark"] {
   --colour-bg: #0f1720;
   --colour-surface: #17222e;
   --colour-surface-raised: #1e2b39;
@@ -6,11 +79,37 @@
   --colour-text: #e8eef4;
   --colour-muted: #9fb0c0;
   --colour-accent: #35c98b;
+  --colour-accent-strong: #45dda0;
   --colour-accent-dim: #1f7a58;
+  --colour-on-accent: #08131c;
   --colour-danger: #ff7a7a;
+  --colour-danger-surface: #2a1b20;
+  --colour-danger-border: #5c2c2c;
+  --colour-success: #6fdca0;
+  --colour-success-surface: #172a20;
+  --colour-success-border: #2a5c40;
   --colour-warn: #f5c451;
-  --radius: 10px;
-  --font-stack: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --colour-warn-surface: #2a2418;
+  --colour-warn-border: #5c4b22;
+  --colour-focus: #7aa2ff;
+
+  --colour-state-neutral-surface: #1e2833;
+  --colour-state-neutral-border: #33414f;
+  --colour-state-neutral-ink: #c3d0dd;
+  --colour-state-info-surface: #17253c;
+  --colour-state-info-border: #2c4a72;
+  --colour-state-info-ink: #a9c8f5;
+  --colour-state-active-surface: #2b2415;
+  --colour-state-active-border: #5c4a22;
+  --colour-state-active-ink: #f0d089;
+  --colour-state-good-surface: #16291d;
+  --colour-state-good-border: #2c5b3c;
+  --colour-state-good-ink: #a4ddb8;
+  --colour-state-bad-surface: #2c1a1c;
+  --colour-state-bad-border: #5e2f2f;
+  --colour-state-bad-ink: #f2b8b8;
+
+  color-scheme: dark;
 }
 
 * {
@@ -61,7 +160,9 @@ body {
   height: 2.25rem;
   border-radius: 8px;
   background: var(--colour-accent);
-  color: #08131c;
+  /* Ink on the accent, not a fixed near-black: the accent is a dark green in the
+     light theme and a bright one in the dark, so the ink has to flip with it. */
+  color: var(--colour-on-accent);
   font-weight: 700;
   letter-spacing: 0.04em;
 }
@@ -84,6 +185,22 @@ body {
   align-items: center;
   gap: 1rem;
   font-size: 0.9rem;
+  /* Wraps rather than overflowing: the shared masthead carries four nav links,
+     the user's name, the theme switch and the sign-out button, which does not
+     fit 20rem-wide phone without this. */
+  flex-wrap: wrap;
+  max-width: 100%;
+  min-width: 0;
+}
+
+/* The theme switch and the sign-out form sit together and wrap as one unit, so
+   they stay reachable without becoming a third line of the masthead on their
+   own at every width. */
+.masthead__switchers {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
 }
 
 .masthead__nav a {
@@ -104,6 +221,102 @@ body {
   margin: 0;
 }
 
+.language-switcher {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0;
+  white-space: nowrap;
+}
+
+.language-switcher button {
+  padding: 0.25rem 0.1rem;
+  border: 0;
+  background: transparent;
+  color: var(--colour-text);
+  font: inherit;
+  cursor: pointer;
+}
+
+.language-switcher button[aria-current="true"] {
+  color: var(--colour-accent);
+  font-weight: 700;
+}
+
+.language-switcher button:focus-visible {
+  outline: 2px solid var(--colour-focus);
+  outline-offset: 2px;
+}
+
+/* --- theme switcher -------------------------------------------------------- */
+
+/* Same visual language as the language switcher beside it: a pair of plain-text
+   controls where the active one is the accented one. */
+.theme-switcher {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0;
+  white-space: nowrap;
+}
+
+.theme-switcher button {
+  padding: 0.25rem 0.1rem;
+  border: 0;
+  background: transparent;
+  color: var(--colour-text);
+  font: inherit;
+  cursor: pointer;
+}
+
+.theme-switcher button[aria-pressed="true"] {
+  color: var(--colour-accent);
+  font-weight: 700;
+}
+
+.theme-switcher button:focus-visible {
+  outline: 2px solid var(--colour-focus);
+  outline-offset: 2px;
+}
+
+/* ---------------------------------------------------------------------------
+   Right-to-left (Arabic)
+
+   Everything here is laid out with inline-start/inline-end and flow-relative
+   rules, so `<html dir="rtl">` mirrors the interface by itself: a plain
+   `flex-direction: row` runs right to left under a right-to-left writing mode,
+   and every logical property flips with it.
+
+   What is deliberately NOT here is `flex-direction: row-reverse`. That is the
+   shortcut that makes an English layout face the other way without ever being
+   a mirrored one: it puts the brand on the wrong side of the header, the
+   primary action on the wrong end of a button row, and the status badge on the
+   wrong edge of a table cell. Asking for the reverse of the English order is
+   not the same as producing the Arabic order, so the rows are left to follow
+   the writing direction they are rendered in.
+   --------------------------------------------------------------------------- */
+
+[dir="rtl"] .question-builder__layout {
+  /* Redundant with the document direction, kept so the two-column builder reads
+     as right-to-left even if it is ever embedded in a left-to-right host page. */
+  direction: rtl;
+}
+
+@media (max-width: 32rem) {
+  .masthead__inner {
+    gap: 0.5rem;
+  }
+
+  .masthead__nav {
+    gap: 0.45rem 0.8rem;
+    font-size: 0.85rem;
+  }
+
+  .masthead__switchers {
+    gap: 0.5rem;
+  }
+}
+
 /* --- messages ----------------------------------------------------------- */
 
 .messages {
@@ -111,22 +324,26 @@ body {
   margin: 1rem auto 0;
 }
 
+/* The accent bar sits on the *start* edge of the message, which is the left in
+   English and the right in Arabic. Writing it as a logical property means the
+   border follows the text instead of needing a mirrored override for every new
+   language. */
 .messages__item {
   margin: 0 0 0.5rem;
   padding: 0.65rem 0.9rem;
   border: 1px solid var(--colour-border);
-  border-left: 3px solid var(--colour-accent);
+  border-inline-start: 3px solid var(--colour-accent);
   border-radius: var(--radius);
   background: var(--colour-surface);
   font-size: 0.9rem;
 }
 
 .messages__item--error {
-  border-left-color: var(--colour-danger);
+  border-inline-start-color: var(--colour-danger);
 }
 
 .messages__item--warning {
-  border-left-color: var(--colour-warn);
+  border-inline-start-color: var(--colour-warn);
 }
 
 .page {
@@ -183,7 +400,7 @@ body {
 
 .panel__list {
   margin: 0;
-  padding-left: 1.15rem;
+  padding-inline-start: 1.15rem;
   color: var(--colour-text);
 }
 
@@ -237,7 +454,7 @@ body {
   border: 1px solid transparent;
   border-radius: var(--radius);
   background: var(--colour-accent);
-  color: #08131c;
+  color: var(--colour-on-accent);
   font: inherit;
   font-weight: 600;
   text-decoration: none;
@@ -245,7 +462,12 @@ body {
 }
 
 .button:hover {
-  background: #45dda0;
+  background: var(--colour-accent-strong);
+}
+
+.button:focus-visible {
+  outline: 2px solid var(--colour-focus);
+  outline-offset: 2px;
 }
 
 .button--quiet {
@@ -304,7 +526,9 @@ body {
 .table th,
 .table td {
   padding: 0.6rem 0.5rem;
-  text-align: left;
+  /* Logical, not `left`: the header then reads from the correct edge in Arabic
+     without a separate [dir="rtl"] rule to remember to update. */
+  text-align: start;
   border-bottom: 1px solid var(--colour-border);
   vertical-align: middle;
 }
@@ -348,7 +572,7 @@ body {
 }
 
 .tag {
-  margin-left: 0.35rem;
+  margin-inline-start: 0.35rem;
   border-color: var(--colour-accent-dim);
   color: var(--colour-accent);
 }
@@ -423,7 +647,9 @@ body {
   color: var(--colour-muted);
 }
 
-.field input {
+.field input,
+.field select,
+.field textarea {
   padding: 0.55rem 0.7rem;
   border: 1px solid var(--colour-border);
   border-radius: var(--radius);
@@ -432,9 +658,44 @@ body {
   font: inherit;
 }
 
-.field input:focus {
-  outline: 2px solid var(--colour-accent);
+/* Every control carries a token-coloured background and text, so a select or a
+   textarea is themed wherever it appears, not only the inputs this rule was
+   first written for. Without this, a native control keeps the browser's white
+   background and dark text in the dark theme and reads as a hole in the page. */
+.field input::placeholder,
+.field textarea::placeholder {
+  color: var(--colour-muted);
+}
+
+.field input:focus,
+.field select:focus,
+.field textarea:focus {
+  outline: 2px solid var(--colour-focus);
   outline-offset: 1px;
+}
+
+/* Raw controls outside a `.field` - the inline forms on the tournament pages,
+   the switchers in the masthead - get the same treatment so they are never left
+   as a browser default on top of a themed page. */
+textarea,
+select {
+  color: var(--colour-text);
+}
+
+textarea::placeholder {
+  color: var(--colour-muted);
+}
+
+textarea {
+  background: var(--colour-surface);
+  border: 1px solid var(--colour-border);
+  border-radius: var(--radius);
+}
+
+select {
+  background: var(--colour-surface);
+  border: 1px solid var(--colour-border);
+  border-radius: var(--radius);
 }
 
 .field__error,
@@ -448,6 +709,12 @@ body {
   padding: 0.65rem 0.9rem;
   border: 1px solid var(--colour-danger);
   border-radius: var(--radius);
+  background: var(--colour-danger-surface);
+}
+
+.form-errors p,
+.form-errors li {
+  color: var(--colour-danger);
 }
 
 /* --- the screen's own page ---------------------------------------------- */
@@ -594,7 +861,7 @@ body {
 .leaderboard__table th,
 .leaderboard__table td {
   padding: 0.7rem 0.9rem;
-  text-align: left;
+  text-align: start;
   border-bottom: 1px solid var(--colour-border);
 }
 
@@ -622,7 +889,8 @@ body {
 }
 
 .leaderboard__numeric {
-  text-align: right;
+  /* Scores hug the far edge of their cell: right in English, left in Arabic. */
+  text-align: end;
   font-variant-numeric: tabular-nums;
   font-size: 1.1rem;
 }

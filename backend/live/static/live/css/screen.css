@@ -111,6 +111,11 @@
   text-align: center;
 }
 
+/* Author display rules must respect the state selected by screen.js. */
+.screen [hidden] {
+  display: none !important;
+}
+
 .screen__panel {
   display: grid;
   gap: clamp(12px, 2vh, 28px);

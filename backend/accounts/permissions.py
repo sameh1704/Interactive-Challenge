@@ -33,8 +33,12 @@ def is_teacher(user) -> bool:
 
 
 def is_staff_member(user) -> bool:
-    """True for either role."""
-    return is_authenticated_staff(user) and user.role in set(Role.values)
+    """Legacy teaching/control surfaces; deputies have separate read-only views."""
+    return is_authenticated_staff(user) and user.role in (Role.ADMINISTRATOR, Role.TEACHER)
+
+
+def is_stage_deputy(user) -> bool:
+    return is_authenticated_staff(user) and user.role == Role.STAGE_DEPUTY
 
 
 class RoleRequiredMixin:

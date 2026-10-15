@@ -1,12 +1,21 @@
 {% extends "teacher/base.html" %}
+{% load i18n static wizard_extras %}
 
-{% block title %}Create Competition{% endblock %}
+{% block title %}{% translate "Create Competition" %}{% endblock %}
+
+{% block extra_head %}<link rel="stylesheet" href="{% static 'teacher/css/wizard-order.css' %}">{% endblock %}
+
+{% block extra_js %}{{ block.super }}<script src="{% static 'teacher/js/wizard-selection.js' %}" defer></script>{% endblock %}
 
 {% block content %}
   <section class="page-heading">
-    <h1 class="page-heading__title">Create Competition</h1>
-    <p class="page-heading__subtitle">Follow the steps to set up a live round</p>
+    <h1 class="page-heading__title">{% translate "Create Competition" %}</h1>
+    <p class="page-heading__subtitle">{% translate "Follow the steps to set up a live round" %}</p>
   </section>
+
+  {% translate "Set up a live round" as first_use_title %}
+  {% translate "Choose your classrooms and questions, check the timing and scoring, then review everything before creating the competition." as first_use_text %}
+  {% include "teacher/partials/first_use.html" with key="competition-wizard" title=first_use_title text=first_use_text %}
 
   <!-- Progress indicator -->
   <section class="wizard-progress">
@@ -22,7 +31,7 @@
 
   {% if errors %}
     <div class="form-errors">
-      <p><strong>Please fix the following errors:</strong></p>
+      <p><strong>{% translate "Please fix the following errors:" %}</strong></p>
       <ul>
         {% for field, error in errors.items %}
           <li>{{ error }}</li>
@@ -34,215 +43,459 @@
   <!-- Step 1: Basic Information -->
   {% if step == "basic" %}
     <section class="panel">
-      <h2 class="panel__heading">Step 1 — Basic Information</h2>
+      <h2 class="panel__heading">{% translate "Step 1 — Basic Information" %}</h2>
       <form method="post" class="form">
         {% csrf_token %}
         <div class="field">
           <label class="field__label" for="id_title">
-            Competition Name
+            {% translate "Competition Name" %}
             {% if errors.title %}<span class="field__error" aria-live="polite">{{ errors.title }}</span>{% endif %}
           </label>
           <input type="text" name="title" id="id_title" value="{{ title }}" required autofocus>
-          <small class="field__help">What will this round be called? e.g. "Science Lab 1 versus Science Lab 2"</small>
+          <small class="field__help">{% translate 'What will this round be called? e.g. "Science Lab 1 versus Science Lab 2"' %}</small>
         </div>
         <div class="field">
-          <label class="field__label" for="id_subject">Subject</label>
-          <input type="text" name="subject" id="id_subject" value="{{ subject }}" placeholder="e.g. Science">
+          <label class="field__label" for="id_subject">{% translate "Subject" %}</label>
+          <input type="text" name="subject" id="id_subject" value="{{ subject }}" placeholder="{% translate 'e.g. Science' %}">
         </div>
         <div class="field">
-          <label class="field__label" for="id_grade">Grade</label>
-          <input type="text" name="grade" id="id_grade" value="{{ grade }}" placeholder="e.g. Grade 7">
+          <label class="field__label" for="id_grade">{% translate "Grade" %}</label>
+          <input type="text" name="grade" id="id_grade" value="{{ grade }}" placeholder="{% translate 'e.g. Grade 7' %}">
         </div>
         <div class="field">
-          <label class="field__label" for="id_description">Description (optional)</label>
+          <label class="field__label" for="id_description">{% translate "Description (optional)" %}</label>
           <textarea name="description" id="id_description" rows="3">{{ description }}</textarea>
         </div>
         <div class="page-actions">
-          <button type="submit" name="action" value="next" class="button">Next: Select Classes</button>
+          <button type="submit" name="action" value="next" class="button">{% translate "Next: Subject and Classrooms" %}</button>
         </div>
       </form>
     </section>
   {% endif %}
 
-  <!-- Step 2: Participating Classrooms -->
-  {% if step == "classrooms" %}
-    <section class="panel">
-      <h2 class="panel__heading">Step 2 — Participating Classrooms</h2>
-      <p class="panel__body">Select the classrooms that will take part in this competition.</p>
-      <form method="post" class="form">
-        {% csrf_token %}
-        <div class="classroom-selection">
-          {% if classrooms %}
-            {% for classroom in classrooms %}
-              <label class="classroom-card {% if classroom.pk in selected_classroom_ids %}classroom-card--selected{% endif %}">
-                <input type="checkbox" name="classroom_ids" value="{{ classroom.pk }}"
-                       {% if classroom.pk in selected_classroom_ids %}checked{% endif %} class="visually-hidden">
-                <div class="classroom-card__content">
-                  <div class="classroom-card__header">
-                    <span class="classroom-card__name">{{ classroom.display_name }}</span>
-                    {% if classroom.pk in selected_classroom_ids %}<span class="classroom-card__selected">Selected</span>{% endif %}
-                  </div>
-                  {% if classroom.location %}<p class="classroom-card__meta">{{ classroom.location }}</p>{% endif %}
-                  {% if classroom.grade %}<p class="classroom-card__meta">{{ classroom.grade }}</p>{% endif %}
-                </div>
-              </label>
-            {% endfor %}
-          {% else %}
-            <p class="panel__body">No classrooms are available. Please assign classrooms to your teacher account.</p>
-          {% endif %}
-        </div>
-        {% if errors.classrooms %}<p class="field__error" aria-live="polite">{{ errors.classrooms }}</p>{% endif %}
-        <div class="page-actions">
-          <button type="submit" name="action" value="back" class="button button--quiet">Back: Basic Info</button>
-          <button type="submit" name="action" value="next" class="button">Next: Settings</button>
-        </div>
-      </form>
-    </section>
-  {% endif %}
-
-  <!-- Step 3: Competition Settings -->
-  {% if step == "settings" %}
-    <section class="panel">
-      <h2 class="panel__heading">Step 3 — Competition Settings</h2>
-      <form method="post" class="form">
-        {% csrf_token %}
-        <div class="field">
-          <label class="field__label" for="id_duration_seconds">
-            Time per question
-            <span class="field__help-icon" title="How long each question stays on screen. Answering closes automatically.">?</span>
-            {% if errors.duration_seconds %}<span class="field__error" aria-live="polite">{{ errors.duration_seconds }}</span>{% endif %}
-          </label>
-          <input type="number" name="duration_seconds" id="id_duration_seconds" value="{{ duration_seconds }}" min="5" max="600" required>
-          <small class="field__help">Seconds each question is shown (5–600). Answering closes automatically when time runs out.</small>
-        </div>
-        <div class="field">
-          <label class="field__label" for="id_scoring_mode">
-            Scoring mode
-            <span class="field__help-icon" title="How points are awarded for correct answers.">?</span>
-          </label>
-          <select name="scoring_mode" id="id_scoring_mode">
-            <option value="standard" {% if scoring_mode == "standard" %}selected{% endif %}>Standard</option>
-          </select>
-          <small class="field__help">Correct answers earn the configured points.</small>
-        </div>
-        <div class="field">
-          <label class="field__label" for="id_speed_bonus">
-            Speed bonus
-            <span class="field__help-icon" title="Extra points for correct answers submitted early.">?</span>
-          </label>
-          <input type="number" name="speed_bonus" id="id_speed_bonus" value="{{ speed_bonus }}" min="0" max="100" required>
-          <small class="field__help">Extra points for correct answers submitted early. 0 disables the speed bonus.</small>
-        </div>
-        <div class="page-actions">
-          <button type="submit" name="action" value="back" class="button button--quiet">Back: Classes</button>
-          <button type="submit" name="action" value="next" class="button">Next: Select Questions</button>
-        </div>
-      </form>
-    </section>
-  {% endif %}
-
-   <!-- Step 4: Select Questions -->
-   {% if step == "questions" %}
-     {% load wizard_extras %}
+   <!-- Step 2: Subject and Participating Classrooms -->
+   {% if step == "subject_classrooms" %}
      <section class="panel">
-       <h2 class="panel__heading">Step 4 — Select Questions</h2>
-       <p class="panel__body">Search, filter and add questions from the question bank.</p>
-       
-       <!-- Search and filter form -->
-       <form method="get" class="form form--inline">
-         <div class="field">
-           <label class="field__label" for="id_q">Search questions</label>
-           <input type="text" name="q" id="id_q" value="{{ q }}" placeholder="Search by question text...">
-         </div>
-         <div class="field">
-           <label class="field__label" for="id_type">Question Type</label>
-           <select name="type" id="id_type">
-             <option value="">All types</option>
-             {% for qt_value, qt_label in question_type_choices %}
-               <option value="{{ qt_value }}" {% if question_type == qt_value %}selected{% endif %}>{{ qt_label }}</option>
-             {% endfor %}
-           </select>
-         </div>
-         <button type="submit" name="action" value="search" class="button">Search</button>
-         <button type="submit" name="action" value="clear" class="button button--quiet">Clear</button>
-       </form>
-       
-       <p class="panel__body">{{ selected_question_ids|length }} question(s) selected. Uncheck to remove.</p>
+       <h2 class="panel__heading">{% translate "Step 2 — Subject and Classrooms" %}</h2>
+       <p class="panel__body">{% translate "Choose the subject the questions come from, and the classrooms that will take part." %}</p>
+       {% translate "The subject you choose here is the only subject questions are offered from in the next step." as hint_text %}
+{% include "teacher/partials/context_hint.html" with text=hint_text arabic="الموضوع الذي تختاره هنا هو الموضوع الوحيد الذي تُعرض أسئلته في الخطوة التالية." %}
        <form method="post" class="form">
          {% csrf_token %}
-         <div class="question-bank">
-           {% if questions %}
-             {% for question in questions %}
-               <label class="question-card {% if question.pk in selected_question_ids %}question-card--selected{% endif %}">
-                 <input type="checkbox" name="question_ids" value="{{ question.pk }}"
-                        {% if question.pk in selected_question_ids %}checked{% endif %} class="visually-hidden">
-                 <div class="question-card__content">
-                   <div class="question-card__preview">{{ question.text|truncatewords:12 }}</div>
-                   <div class="question-card__meta">
-                     <span class="badge">{{ question.get_question_type_display }}</span>
-                     <span class="question-card__duration">{{ question.duration_seconds }}s</span>
+         <div class="field">
+           <label class="field__label" for="wizard-subject">{% translate "Subject" %}</label>
+           <select name="subject_id" id="wizard-subject" required>
+             <option value="">{% translate "Choose a subject" %}</option>
+             {% for subject in subjects %}
+               <option value="{{ subject.pk }}" {% if subject.pk|stringformat:"s" == selected_subject_id|stringformat:"s" %}selected{% endif %}>
+                 {{ subject.name }} — {{ subject_counts|get_item:subject.pk }}
+               </option>
+             {% endfor %}
+           </select>
+           <p class="question-builder__help">{% translate "The number shown is how many questions this subject currently has." %}</p>
+           {% if errors.subject %}<p class="field__error" aria-live="polite">{{ errors.subject }}</p>{% endif %}
+         </div>
+
+         {% if topics %}
+           <div class="field">
+             <label class="field__label" for="wizard-topic">{% translate "Topic (optional)" %}</label>
+             <select name="topic_id" id="wizard-topic">
+               <option value="">{% translate "Whole subject" %}</option>
+               {% for topic in topics %}
+                 <option value="{{ topic.pk }}" {% if topic.pk|stringformat:"s" == selected_topic_id|stringformat:"s" %}selected{% endif %}>{{ topic.name }}</option>
+               {% endfor %}
+             </select>
+           </div>
+         {% endif %}
+
+         <h3>{% translate "Participating classrooms" %}</h3>
+         <p>{% translate "Participation selects the whole classroom and all its active screens." %}</p>
+         <div data-selection-group>
+         <p aria-live="polite">{% translate "Selected classrooms" %}: <strong data-selection-count>{{ selected_classroom_ids|length }}</strong></p>
+         <button type="button" class="button button--quiet" data-select-all>{% translate "Select all" %}</button>
+         <button type="button" class="button button--quiet" data-select-none>{% translate "Clear selection" %}</button>
+         <div class="classroom-selection">
+           {% if classrooms %}
+             {% for target in classroom_targets %}
+               {% with classroom=target.classroom %}
+               <label class="classroom-card {% if classroom.pk in selected_classroom_ids %}classroom-card--selected{% endif %}">
+                 <input type="checkbox" name="classroom_ids" value="{{ classroom.pk }}"
+                        {% if classroom.pk in selected_classroom_ids %}checked{% endif %} class="selection-checkbox">
+                 <div class="classroom-card__content">
+                   <div class="classroom-card__header">
+                     <span class="classroom-card__name">{{ classroom.display_name }}</span>
+                     <span class="selection-mark">✓ {% translate "Selected" %}</span>
                    </div>
-                   {% if question.pk in selected_question_ids %}
-                     <span class="question-card__action">Added</span>
-                   {% else %}
-                     <span class="question-card__action">Add</span>
-                   {% endif %}
+                   <ul>{% for screen in target.screens %}<li>{{ screen.name }} — {{ screen.status_display }}</li>{% empty %}<li>{% translate "No registered screen" %}</li>{% endfor %}</ul>
+                   {% if classroom.location %}<p class="classroom-card__meta">{{ classroom.location }}</p>{% endif %}
+                   {% if classroom.grade %}<p class="classroom-card__meta">{{ classroom.grade }}</p>{% endif %}
                  </div>
                </label>
+               {% endwith %}
              {% endfor %}
            {% else %}
-             <p class="panel__body">No questions are available in the question bank.</p>
+             <p class="panel__body">{% translate "No classrooms are available. Please assign classrooms to your teacher account." %}</p>
            {% endif %}
          </div>
-         {% if errors.questions %}<p class="field__error" aria-live="polite">{{ errors.questions }}</p>{% endif %}
+         </div>
+         {% if errors.classrooms %}<p class="field__error" aria-live="polite">{{ errors.classrooms }}</p>{% endif %}
          <div class="page-actions">
-           <button type="submit" name="action" value="back" class="button button--quiet">Back: Settings</button>
-           <button type="submit" name="action" value="next" class="button">Next: Review</button>
-           <button type="submit" name="action" value="save_draft" class="button button--quiet">Save Draft</button>
+           <button type="submit" name="action" value="back" class="button button--quiet">{% translate "Back: Basic Info" %}</button>
+           <button type="submit" name="action" value="next" class="button">{% translate "Next: Questions" %}</button>
          </div>
        </form>
      </section>
    {% endif %}
 
+
+   <!-- Step 3: Select Questions -->
+   {% if step == "questions" %}
+     <section class="panel">
+        <h2 class="panel__heading">{% translate "Step 3 — Select Questions" %}</h2>
+        <p class="panel__body">
+          {% if wizard_subject_name %}
+            {% blocktranslate with subject=wizard_subject_name %}Questions from the {{ subject }} bank only.{% endblocktranslate %}
+          {% else %}
+            {% translate "Search, filter and add questions from the question bank." %}
+          {% endif %}
+        </p>
+        {% translate "Only questions from the subject you chose are offered here, so a question from another subject cannot end up in this competition." as hint_text %}
+        {% include "teacher/partials/context_hint.html" with text=hint_text %}
+
+        {% comment %}
+The create action is a plain link to the Question Builder, not a second
+wizard step: the builder is a full form of its own and duplicating it
+inside this page would be two builders to keep in step. What makes the
+round trip safe is that the wizard's state lives in the session, so
+leaving and returning cannot lose the name, settings, classrooms or the
+questions already chosen. See the "Save and add to competition" button
+in the builder, and CompetitionWizardView._adopt_returned_question.
+        {% endcomment %}
+        <div class="page-actions">
+          <a class="button" href="{% url 'teacher:create_question' %}?return_to_competition=1"
+             data-quick-create-question>
+            {% translate "Create new question" %}
+          </a>
+        </div>
+        {% if request.GET.question_id %}
+          <p class="panel__body">{% translate "The question you created has been selected below." %}</p>
+        {% endif %}
+
+        <!-- Search and filter form -->
+        <form method="get" class="form form--inline">
+          <div class="field">
+            <label class="field__label" for="id_q">{% translate "Search questions" %}</label>
+            <input type="text" name="q" id="id_q" value="{{ q }}" placeholder="{% translate 'Search by question text...' %}">
+          </div>
+          <div class="field">
+            <label class="field__label" for="id_type">{% translate "Question Type" %}</label>
+            <select name="type" id="id_type">
+              <option value="">{% translate "All types" %}</option>
+              {% for qt_value, qt_label in question_type_choices %}
+                <option value="{{ qt_value }}" {% if question_type == qt_value %}selected{% endif %}>{{ qt_label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <button type="submit" name="action" value="search" class="button">{% translate "Search" %}</button>
+          <button type="submit" name="action" value="clear" class="button button--quiet">{% translate "Clear" %}</button>
+        </form>
+
+        {% comment %}
+        Choosing a number at random, from the same subject's bank. The draw is
+           made and its ids are recorded when this is pressed, so the saved
+           competition holds the questions that were picked rather than a rule
+           that would pick a different set on every visit.
+        {% endcomment %}
+        <form method="post" class="form form--inline">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="add_random">
+          <div class="field">
+            <label class="field__label" for="id_random_count">{% translate "Or pick a number at random" %}</label>
+            <input type="number" name="random_count" id="id_random_count" min="1" max="50" value="" placeholder="{% translate 'Number of questions' %}">
+          </div>
+          <button type="submit" class="button button--quiet">{% translate "Pick for me" %}</button>
+        </form>
+
+        <p class="panel__body">{% blocktranslate count count=selected_question_ids|length %}{{ count }} question selected. Uncheck to remove.{% plural %}{{ count }} questions selected. Uncheck to remove.{% endblocktranslate %}</p>
+        <form method="post" class="form">
+          {% csrf_token %}
+          <div class="question-bank">
+            {% if questions %}
+              {% for question in questions %}
+                <label class="question-card {% if question.pk in selected_question_ids %}question-card--selected{% endif %}">
+                  <input type="checkbox" name="question_ids" value="{{ question.pk }}"
+                         {% if question.pk in selected_question_ids %}checked{% endif %} class="visually-hidden">
+                  <div class="question-card__content">
+                    <div class="question-card__preview">{{ question.text|truncatewords:12 }}</div>
+                    <div class="question-card__meta">
+                      <span class="badge">{{ question.get_question_type_display }}</span>
+                       <span class="question-card__duration">{{ question.duration_seconds }} {% translate "seconds" %}</span>
+                    </div>
+                    {% if question.pk in selected_question_ids %}
+                      <span class="question-card__action">{% translate "Added" %}</span>
+                    {% else %}
+                      <span class="question-card__action">{% translate "Add" %}</span>
+                    {% endif %}
+                  </div>
+                </label>
+              {% endfor %}
+            {% else %}
+              <p class="panel__body">
+                {% if q or question_type %}
+                  {% translate "No questions match this search." %}
+                {% else %}
+                  {% translate "No questions are available in this subject yet." %}
+                {% endif %}
+              </p>
+            {% endif %}
+          </div>
+          {% if errors.questions %}<p class="field__error" aria-live="polite">{{ errors.questions }}</p>{% endif %}
+
+          {% comment %}
+          The order the questions play in is the order the teacher leaves them in,
+          so it is set here and not left to the database. Each button names one
+          question and one direction, and the round is re-recorded on the server:
+          nothing depends on JavaScript being switched on.
+          {% endcomment %}
+          {% if selected_question_ids %}
+            <div class="selected-questions">
+              <h3>{% translate "Order of play" %}</h3>
+              <ol class="selected-questions__list">
+                {% for question in questions %}
+                  {% if question.pk in selected_question_ids %}
+                   <li>
+                       <span class="selected-questions__position">{{ forloop.counter }}</span>
+                       <span class="selected-questions__text">{{ question.text|truncatewords:10 }}</span>
+                       <span class="selected-questions__points">
+                         <label class="visually-hidden" for="points_{{ question.pk }}">{% blocktranslate with n=forloop.counter %}Points for question {{ n }}{% endblocktranslate %}</label>
+                         <input type="number" name="points_{{ question.pk }}" id="points_{{ question.pk }}"
+                                min="1" max="1000"
+                                value="{{ question_points|get_item:question.pk|default:points_per_question }}"
+                                title="{% translate 'Points for this question' %}">
+                       </span>
+                       <span class="selected-questions__controls">
+                        <button type="submit" name="action" value="move_up" class="button button--quiet"
+                                title="{% translate 'Move up' %}" {% if forloop.first %}disabled{% endif %}>&#8593;</button>
+                        <button type="submit" name="action" value="move_down" class="button button--quiet"
+                                title="{% translate 'Move down' %}" {% if forloop.last %}disabled{% endif %}>&#8595;</button>
+                        <input type="hidden" name="question_id" value="{{ question.pk }}">
+                      </span>
+                    </li>
+                  {% endif %}
+                {% endfor %}
+              </ol>
+            </div>
+          {% endif %}
+
+          <div class="page-actions">
+           <button type="submit" name="action" value="back" class="button button--quiet">{% translate "Back: Subject and Classrooms" %}</button>
+           <button type="submit" name="action" value="next" class="button">{% translate "Next: Settings" %}</button>
+            <button type="submit" name="action" value="save_draft" class="button button--quiet">{% translate "Save Draft" %}</button>
+         </div>
+       </form>
+     </section>
+   {% endif %}
+
+  <!-- Step 4: Competition Settings -->
+  {% if step == "settings" %}
+    <section class="panel">
+      <h2 class="panel__heading">{% translate "Step 4 — Competition Settings" %}</h2>
+      <form method="post" class="form">
+        {% csrf_token %}
+        <div class="field">
+          <label class="field__label" for="id_duration_seconds">
+            {% translate "Time per question" %}
+            {% if errors.duration_seconds %}<span class="field__error" aria-live="polite">{{ errors.duration_seconds }}</span>{% endif %}
+          </label>
+          <input type="number" name="duration_seconds" id="id_duration_seconds" value="{{ duration_seconds }}" min="5" max="600" required>
+          <small class="field__help">{% translate "Seconds each question is shown (5–600). Answering closes automatically when time runs out." %}</small>
+          {% translate "About the time limit" as hint_text %}
+{% translate "About the time limit" as hint_label %}
+{% include "teacher/partials/context_tooltip.html" with label=hint_label text=hint_text %}
+        </div>
+        <div class="field">
+          <label class="field__label" for="id_scoring_mode">
+            {% translate "Scoring mode" %}
+          </label>
+          <select name="scoring_mode" id="id_scoring_mode">
+            <option value="standard" {% if scoring_mode == "standard" %}selected{% endif %}>{% translate "Standard" %}</option>
+          </select>
+          <small class="field__help">{% translate "Correct answers earn the configured points." %}</small>
+        </div>
+        <div class="field">
+          <label class="field__label" for="id_speed_bonus">
+            {% translate "Speed bonus" %}
+          </label>
+          <input type="number" name="speed_bonus" id="id_speed_bonus" value="{{ speed_bonus }}" min="0" max="100" required>
+          <small class="field__help">{% translate "Extra points for correct answers submitted early. 0 disables the speed bonus." %}</small>
+        </div>
+        <div class="field">
+          <label class="field__label" for="id_points_per_question">
+            {% translate "Points per question" %}
+            {% if errors.points_per_question %}<span class="field__error" aria-live="polite">{{ errors.points_per_question }}</span>{% endif %}
+          </label>
+          <input type="number" name="points_per_question" id="id_points_per_question" value="{{ points_per_question }}" min="1" max="1000" required>
+          <small class="field__help">{% translate "Points a correct answer earns. You can override this for any single question in the previous step." %}</small>
+        </div>
+        <div class="field">
+          <label class="field__label" for="id_planned_for">
+            {% translate "Planned start (optional)" %}
+            {% if errors.planned_for %}<span class="field__error" aria-live="polite">{{ errors.planned_for }}</span>{% endif %}
+          </label>
+          <input type="datetime-local" name="planned_for" id="id_planned_for" value="{{ planned_for_input }}">
+          <small class="field__help">{% translate "When you intend to run this competition. Adding a time records it and marks the competition as scheduled, but it will not start on its own - only the Start Competition button does that." %}</small>
+        </div>
+        {% translate "The server calculates scores. Correct answers earn points, with an optional speed bonus." as hint_text %}
+{% include "teacher/partials/context_hint.html" with text=hint_text arabic="يتم احتساب النتيجة على السيرفر، ويمكن إضافة نقاط للسرعة." %}
+        <div class="page-actions">
+          <button type="submit" name="action" value="back" class="button button--quiet">{% translate "Back: Questions" %}</button>
+          <button type="submit" name="action" value="next" class="button">{% translate "Next: Review" %}</button>
+        </div>
+      </form>
+    </section>
+  {% endif %}
+
   <!-- Step 5: Review -->
   {% if step == "review" %}
     <section class="panel">
-      <h2 class="panel__heading">Step 5 — Review</h2>
-      <p class="panel__body">Check your competition details before creating it.</p>
+      <h2 class="panel__heading">{% translate "Step 5 — Review and save" %}</h2>
+      <p class="panel__body">{% translate "Check your competition details before creating it." %}</p>
       <div class="review-summary">
         <div class="review-block">
-          <h3>Competition</h3>
+          <h3>{% translate "Competition" %}</h3>
           <p><strong>{{ review_title }}</strong></p>
-          <p>Subject: {{ review_subject }} &middot; Grade: {{ review_grade }}</p>
+          <p>
+            {% if review_subject_name %}{% translate "Subject" %}: {{ review_subject_name }}{% elif review_free_subject %} &middot; {{ review_free_subject }}{% endif %}
+            {% if review_grade %}{% if review_subject_name or review_free_subject %} &middot; {% endif %}{% translate "Grade" %}: {{ review_grade }}{% endif %}
+          </p>
           {% if review_description %}<p>{{ review_description }}</p>{% endif %}
         </div>
         <div class="review-block">
-          <h3>Participating Classrooms</h3>
+          <h3>{% translate "Participating Classrooms" %}</h3>
           <ul>
-            {% for classroom in review_classrooms %}
-              <li>{{ classroom.display_name }}</li>
+            {% for target in review_targeting.classrooms %}
+              <li>
+                {{ target.name }}
+                {% for screen in target.screens %}
+                  <span class="badge {% if screen.is_online %}status-online{% else %}status-offline{% endif %}">
+                    {{ screen.name }}{% if screen.is_online %} · {% translate "online" %}{% else %} · {% translate "offline" %}{% endif %}
+                  </span>
+                {% empty %}
+                  <span class="badge status-offline">{% translate "no registered screen" %}</span>
+                {% endfor %}
+              </li>
             {% endfor %}
           </ul>
         </div>
         <div class="review-block">
-          <h3>Questions</h3>
-          <p>{{ review_question_count }} questions selected</p>
-          {% for question in review_questions %}
-            <p>{{ forloop.counter }}. {{ question.text|truncatewords:10 }} <span class="badge">{{ question.get_question_type_display }}</span></p>
+          <h3>{% translate "Questions" %}</h3>
+          <p>{% blocktranslate count count=review_question_count %}{{ count }} question selected{% plural %}{{ count }} questions selected{% endblocktranslate %}</p>
+          {% for row in review_question_rows %}
+            <p>
+              {{ forloop.counter }}. {{ row.question.text|truncatewords:10 }}
+              <span class="badge">{{ row.question.get_question_type_display }}</span>
+              <span class="badge badge--points">{{ row.points }} {% translate "points" %}{% if row.is_override %} · {% translate "override" %}{% endif %}</span>
+            </p>
           {% endfor %}
         </div>
         <div class="review-block">
-          <h3>Settings</h3>
-          <p>Time per question: {{ review_duration_seconds }} seconds</p>
-          <p>Speed bonus: {{ review_speed_bonus }} points</p>
-          <p>Estimated duration: {{ review_estimated_minutes|floatformat:1 }} minutes</p>
+          <h3>{% translate "Settings" %}</h3>
+          {% if point_errors %}
+            {% comment %}
+            Named here as well as on the questions step: this is the page that
+            shows the points and carries the Save Draft button, so a teacher
+            reading "0 points" has to be told here that it will not be accepted.
+            {% endcomment %}
+            <ul class="field__error" role="alert">
+              {% for message in point_errors.values %}<li>{{ message }}</li>{% endfor %}
+            </ul>
+          {% endif %}
+          <p>{% translate "Time per question" %}: {{ review_duration_seconds }} {% translate "seconds" %}</p>
+          <p>{% translate "Speed bonus" %}: {{ review_speed_bonus }} {% translate "points" %}</p>
+          <p>{% translate "Points per question" %}: {{ review_points_per_question }} {% translate "points" %}</p>
+          <p><strong>{% translate "Total possible score" %}: {{ review_total_points }} {% translate "points" %}</strong></p>
+          <p>{% translate "Estimated duration" %}: {{ review_estimated_minutes|floatformat:1 }} {% translate "minutes" %}</p>
+          {% if review_planned_for %}
+            <p>{% translate "Planned start" %}: {{ review_planned_for }}
+              <small>{% translate "This competition will not start on its own; only the Start Competition button starts it." %}</small>
+            </p>
+          {% endif %}
         </div>
       </div>
+
+       {% comment %}
+Which screens this competition will actually reach, said before anything
+is created. A round only writes to sockets that are open, so a screen
+that is offline right now will miss it - which has to be visible here
+rather than discovered by the classroom that sees nothing. 
+       {% endcomment %}
+      <section class="panel" aria-labelledby="targeting-heading">
+        <h2 class="panel__heading" id="targeting-heading">{% translate "Screens this competition will reach" %}</h2>
+        {% if review_targeting.has_any_screen %}
+          <p class="panel__body">
+            {% blocktranslate count count=review_targeting.online_screens|length %}{{ count }} of {{ review_targeting.screens|length }} screens connected{% plural %}{{ count }} of {{ review_targeting.screens|length }} screens connected{% endblocktranslate %}
+          </p>
+        {% endif %}
+        <div class="table-scroll">
+          <table class="table">
+            <thead>
+              <tr>
+                <th scope="col">{% translate "Classroom" %}</th>
+                <th scope="col">{% translate "Screen" %}</th>
+                <th scope="col">{% translate "Status" %}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for target in review_targeting.classrooms %}
+                {% for screen in target.screens %}
+                  <tr>
+                    <td>{{ target.name }}</td>
+                    <td><code>{{ screen.name }}</code></td>
+                    <td>
+                      <span class="badge {% if screen.is_online %}status-online{% else %}status-offline{% endif %}">
+                        {{ screen.status_display }}
+                      </span>
+                    </td>
+                  </tr>
+                {% empty %}
+                  <tr>
+                    <td>{{ target.name }}</td>
+                    <td colspan="2">
+                      <span class="badge status-offline">{% translate "No registered screen" %}</span>
+                    </td>
+                  </tr>
+                {% endfor %}
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% if not review_targeting.has_any_screen %}
+          <p class="panel__body">
+            {% translate "No screens are registered for these classrooms yet, so nothing will be displayed anywhere. You can still create the competition and add screens later." %}
+          </p>
+        {% else %}
+          {% if review_targeting.classrooms_without_screens %}
+            <p class="field__error" role="status">
+              {% translate "These classrooms have no registered screen: " %}{{ review_targeting.classrooms_without_screens|join_names }}
+            </p>
+          {% endif %}
+          {% if review_targeting.offline_screens %}
+            <p class="field__error" role="status">
+              {% translate "These screens are offline and will miss the round: " %}{{ review_targeting.offline_screens|join_names }}
+            </p>
+          {% endif %}
+          {% if not review_targeting.offline_screens and not review_targeting.classrooms_without_screens %}
+            <p class="context-hint">
+              <span>{% translate "Every participating classroom has at least one screen connected. Starting the competition will reach all of them." %}</span>
+            </p>
+          {% endif %}
+        {% endif %}
+      </section>
       <form method="post" class="page-actions">
         {% csrf_token %}
-        <button type="submit" name="action" value="back" class="button button--quiet">Back: Questions</button>
-        <button type="submit" name="action" value="save_draft" class="button button--quiet">Save Draft</button>
-        <button type="submit" name="action" value="submit" class="button">Create Competition</button>
+        <button type="submit" name="action" value="back" class="button button--quiet">{% translate "Back: Questions" %}</button>
+        <button type="submit" name="action" value="save_draft" class="button button--quiet">{% translate "Save Draft" %}</button>
+        <button type="submit" name="action" value="submit" class="button">{% translate "Create Competition" %}</button>
       </form>
     </section>
   {% endif %}

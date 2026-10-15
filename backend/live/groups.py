@@ -15,6 +15,10 @@ SCREEN_GROUP_PREFIX = "competition"
 TEACHER_GROUP_PREFIX = "competition-teachers"
 LEADERBOARD_GROUP_PREFIX = "competition-leaderboard"
 
+#: Every screen that has identified itself and has no competition to show yet.
+#: See ScreenConsumer.waiting_group for why this exists rather than retrying.
+WAITING_GROUP = "screens.waiting"
+
 
 def screen_group(competition_id: int) -> str:
     """Group holding every screen taking part in a competition."""
@@ -39,3 +43,15 @@ def leaderboard_group(competition_id: int) -> str:
     running the round.
     """
     return f"{LEADERBOARD_GROUP_PREFIX}.{int(competition_id)}"
+
+
+def waiting_group() -> str:
+    """Group holding every screen with no competition to show.
+
+    A screen whose classroom is not in the running round keeps this socket open
+    instead of reconnecting every few seconds to ask again. The Screen ID limit
+    is counted per client address, and every screen in a school can share one,
+    so unbounded retrying would lock the building out between lessons - and the
+    screen would show "reconnecting" for what is really just an idle room.
+    """
+    return WAITING_GROUP

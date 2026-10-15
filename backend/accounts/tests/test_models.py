@@ -150,8 +150,8 @@ class RoleStorageTests(TestCase):
 
         self.assertEqual(administrator.role, "administrator")
 
-    def test_both_required_roles_exist(self) -> None:
-        self.assertEqual(set(Role.values), {"administrator", "teacher"})
+    def test_required_roles_exist(self) -> None:
+        self.assertEqual(set(Role.values), {"administrator", "teacher", "stage_deputy"})
 
     def test_role_labels_are_human_readable(self) -> None:
         self.assertEqual(Role.ADMINISTRATOR.label, "Administrator")

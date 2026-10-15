@@ -14,7 +14,7 @@ from __future__ import annotations
 from django.contrib.auth import get_user_model
 from django.contrib.auth.views import redirect_to_login
 from django.db.models import Count, Q
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.views.generic import TemplateView
 
@@ -35,6 +35,8 @@ class DashboardView(TemplateView):
             return redirect_to_login(request.get_full_path())
         if not request.user.is_active:
             return redirect_to_login(request.get_full_path())
+        if request.user.is_stage_deputy:
+            return redirect("deputy:dashboard")
         return super().dispatch(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):

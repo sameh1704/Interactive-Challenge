@@ -27,6 +27,7 @@ from __future__ import annotations
 from django.contrib.admin import AdminSite
 from django.contrib.auth.views import redirect_to_login
 from django.shortcuts import redirect
+from django.utils.translation import gettext as _, gettext_lazy
 
 from accounts.permissions import is_administrator, is_teacher
 
@@ -34,9 +35,9 @@ from accounts.permissions import is_administrator, is_teacher
 class ChallengeAdminSite(AdminSite):
     """The school's admin site, with an operational overview on its index."""
 
-    site_title = "Al Manar Administration"
-    site_header = "Al Manar Interactive Challenge"
-    index_title = "Administration"
+    site_title = gettext_lazy("Al Manar Administration")
+    site_header = gettext_lazy("Al Manar Interactive Challenge")
+    index_title = gettext_lazy("Administration")
     enable_nav_sidebar = True
 
     def dispatch(self, request, *args, **kwargs):
@@ -51,6 +52,14 @@ class ChallengeAdminSite(AdminSite):
         if not request.user.is_authenticated:
             return redirect_to_login(request.get_full_path())
         return super().dispatch(request, *args, **kwargs)
+
+    def get_app_list(self, request, app_label=None):
+        apps = super().get_app_list(request, app_label)
+        for app in apps:
+            app['name'] = _(str(app['name']))
+            for model in app['models']:
+                model['name'] = _(str(model['name']))
+        return apps
 
     def index(self, request, extra_context=None):
         """Add the school's own totals to Django's standard app list.
@@ -113,50 +122,49 @@ def operational_metrics() -> dict:
     return {
         "tiles": [
             {
-                "label": "Classrooms",
+                "label": _("Classrooms"),
                 "value": classroom_totals["total"],
-                "help": f"{classroom_totals['active']} active",
+                "help": _("%(count)s active") % {"count": classroom_totals['active']},
                 "tone": "neutral",
             },
             {
-                "label": "Screens registered",
+                "label": _("Screens registered"),
                 "value": screen_totals["registered"],
-                "help": f"{screen_totals['active']} active",
+                "help": _("%(count)s active") % {"count": screen_totals['active']},
                 "tone": "neutral",
             },
             {
                 # The one tile that changes on its own, so it gets the accent
                 # and a help line that says how the number is arrived at.
-                "label": "Screens online",
+                "label": _("Screens online"),
                 "value": online,
-                "help": f"{screen_totals['active'] - online} offline",
+                "help": _("%(count)s offline") % {"count": screen_totals['active'] - online},
                 "tone": "online" if online else "neutral",
             },
             {
-                "label": "Teachers",
+                "label": _("Teachers"),
                 "value": staff.filter(role=Role.TEACHER, is_active=True).count(),
-                "help": (
-                    f"{staff.filter(role=Role.ADMINISTRATOR, is_active=True).count()}"
-                    " administrators"
-                ),
+                "help": _("%(count)s administrators") % {
+                    "count": staff.filter(role=Role.ADMINISTRATOR, is_active=True).count()
+                },
                 "tone": "neutral",
             },
             {
-                "label": "Question bank",
+                "label": _("Question bank"),
                 "value": question_totals["total"],
-                "help": f"{question_totals['active']} active",
+                "help": _("%(count)s active") % {"count": question_totals['active']},
                 "tone": "neutral",
             },
             {
-                "label": "Competitions running",
+                "label": _("Competitions running"),
                 "value": competition_totals["active"],
-                "help": f"{competition_totals['completed']} completed",
+                "help": _("%(count)s completed") % {"count": competition_totals['completed']},
                 "tone": "running" if competition_totals["active"] else "neutral",
             },
             {
-                "label": "Tournaments active",
+                "label": _("Tournaments active"),
                 "value": tournament_totals["active"],
-                "help": f"{tournament_totals['completed']} completed",
+                "help": _("%(count)s completed") % {"count": tournament_totals['completed']},
                 "tone": "running" if tournament_totals["active"] else "neutral",
             },
         ],

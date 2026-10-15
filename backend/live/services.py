@@ -23,6 +23,7 @@ from datetime import timedelta
 
 from django.db import transaction
 from django.utils import timezone
+from django.utils.translation import gettext as _
 
 from competitions.models import Competition, CompetitionState
 from questions.models import Question
@@ -55,13 +56,13 @@ def assert_can_control(competition: Competition, user) -> None:
     take over, because during a live lesson an administrator is the person most
     likely to be standing at the laptop. Anyone else is refused.
     """
-    from accounts.permissions import is_administrator
+    from accounts.permissions import is_administrator, is_teacher
 
     if not user or not user.is_authenticated or not user.is_active:
         raise CompetitionControlError(
             "not_signed_in", "Sign in to run a competition."
         )
-    if competition.teacher_id == user.pk or is_administrator(user):
+    if (is_teacher(user) and competition.teacher_id == user.pk) or is_administrator(user):
         return
     raise CompetitionControlError(
         "not_authorised", "You are not the teacher running this competition."
@@ -82,9 +83,16 @@ def start_competition(competition: Competition) -> Transition:
     Re-starting a round that is already running is refused rather than silently
     re-broadcast, so a double-clicked button cannot reset a live competition.
     """
+    # HTTP and WebSocket callers may hold an object read before another start.
+    # Lock and refresh before validating, so only one transition can be issued.
+    competition.refresh_from_db(from_queryset=Competition.objects.select_for_update())
     if competition.started_at is not None:
         raise CompetitionControlError(
-            "already_started", "This competition has already been started."
+            "already_started", _("This competition has already been started.")
+        )
+    if competition.state != CompetitionState.WAITING:
+        raise CompetitionControlError(
+            "invalid_state", _("Only a waiting competition can be started.")
         )
     if not competition.classrooms.exists():
         raise CompetitionControlError(

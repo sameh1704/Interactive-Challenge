@@ -69,3 +69,58 @@ def check_allowed_hosts(app_configs, **kwargs):
             )
         ]
     return []
+
+
+@register(Tags.security, deploy=True)
+def check_secure_cookies_match_the_transport(app_configs, **kwargs):
+    """A Secure cookie cannot be delivered over plain HTTP.
+
+    ``CSRF_COOKIE_SECURE`` and ``SESSION_COOKIE_SECURE`` are easy to set to True
+    on a server that fronts its traffic with a certificate, and equally easy to
+    leave at True after that certificate is gone. The symptom is not a warning: a
+    browser will not store or send a Secure cookie over an ``http://`` origin, so
+    the CSRF cookie never reaches a login POST, Django answers 403
+    "CSRF verification failed", and nobody can sign in at all - with correct
+    credentials. The page gives no hint which setting caused it, so the cause has
+    to be stated here, before anyone spends an afternoon on their password.
+
+    The deployment is judged to be HTTPS when it says so in any of the three
+    places it says so: a redirect to https, an HSTS max-age, or a trusted origin
+    with an https scheme. With none of those, it is plain HTTP, and Secure
+    cookies would break sign-in rather than protect it.
+    """
+    errors = []
+
+    claims_https = (
+        settings.SECURE_SSL_REDIRECT
+        or settings.SECURE_HSTS_SECONDS > 0
+        or any(str(origin).startswith("https://") for origin in settings.CSRF_TRUSTED_ORIGINS)
+    )
+
+    if not claims_https:
+        if settings.CSRF_COOKIE_SECURE:
+            errors.append(
+                Error(
+                    "CSRF_COOKIE_SECURE is set on a deployment that does not use https",
+                    hint=(
+                        "The site is served over plain HTTP, so a browser will drop "
+                        "the Secure csrf cookie and every sign-in will fail with 403 "
+                        "CSRF verification failed. Set CSRF_COOKIE_SECURE=False."
+                    ),
+                    id="challenge.E004",
+                )
+            )
+        if settings.SESSION_COOKIE_SECURE:
+            errors.append(
+                Error(
+                    "SESSION_COOKIE_SECURE is set on a deployment that does not use https",
+                    hint=(
+                        "The site is served over plain HTTP, so a browser will drop "
+                        "the Secure session cookie and no sign-in will stick. Set "
+                        "SESSION_COOKIE_SECURE=False."
+                    ),
+                    id="challenge.E005",
+                )
+            )
+
+    return errors

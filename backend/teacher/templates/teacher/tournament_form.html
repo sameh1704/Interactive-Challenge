@@ -1,37 +1,263 @@
 {% extends "teacher/base.html" %}
+{% load i18n wizard_extras %}
 
-{% block title %}Create Tournament{% endblock %}
+{% block title %}{% translate "Tournament setup" %}{% endblock %}
 
 {% block content %}
   <section class="page-heading">
-    <h1 class="page-heading__title">Create Tournament</h1>
-    <p class="page-heading__subtitle">Set up a new championship</p>
+    <h1 class="page-heading__title">{% translate "Tournament setup" %}</h1>
+    <p class="page-heading__subtitle">{% translate "Plan the tournament in a few guided steps." %}</p>
   </section>
 
-  <section class="panel">
-    <form method="post" class="form">
-      {% csrf_token %}
-      <div class="field">
-        <label class="field__label" for="id_name">Name</label>
-        <input type="text" name="name" id="id_name" placeholder="e.g. Spring Championship 2026" required>
+  {% translate "Plan a tournament step by step" as first_use_title %}
+  {% translate "Choose the classrooms and stage format, set who advances, then attach competitions or add them later. You can review the full plan before creating a draft." as first_use_text %}
+  {% include "teacher/partials/first_use.html" with key="tournament-wizard" title=first_use_title text=first_use_text %}
+
+  <nav class="wizard-progress" aria-label="{% translate 'Tournament setup progress' %}">
+    <ol class="wizard-progress__items">
+      {% for item in wizard_steps %}
+        <li class="wizard-progress__item wizard-progress__item--{{ item.state }}">
+          <span class="wizard-progress__number">{{ forloop.counter }}</span>
+          <span class="wizard-progress__label">{{ item.label }}</span>
+        </li>
+      {% endfor %}
+    </ol>
+  </nav>
+
+  {% if errors %}
+    <div class="form-errors" role="alert" aria-live="assertive">
+      <p><strong>{% translate "Please check the following:" %}</strong></p>
+      <ul>
+        {% for field, error in errors.items %}<li>{{ error }}</li>{% endfor %}
+      </ul>
+    </div>
+  {% endif %}
+
+  <section class="panel tournament-wizard">
+    {% if step == "tournament" %}
+      <h2 class="panel__heading">{% translate "1. Tournament details" %}</h2>
+      <p class="panel__body">{% translate "Start with the information teachers and participants will see." %}</p>
+      <form method="post" class="form">
+        {% csrf_token %}
+        <div class="field">
+          <label class="field__label" for="id_name">{% translate "Name" %}</label>
+          <input id="id_name" name="name" maxlength="160" value="{{ data.tournament.name }}" required autofocus>
+          {% if errors.name %}<p class="field__error" role="alert">{{ errors.name }}</p>{% endif %}
+        </div>
+        <div class="tournament-wizard__grid">
+          <div class="field">
+            <label class="field__label" for="id_subject">{% translate "Subject" %}</label>
+            <input id="id_subject" name="subject" maxlength="80" value="{{ data.tournament.subject }}">
+          </div>
+          <div class="field">
+            <label class="field__label" for="id_grade">{% translate "Grade" %}</label>
+            <input id="id_grade" name="grade" maxlength="64" value="{{ data.tournament.grade }}">
+          </div>
+          <div class="field">
+            <label class="field__label" for="id_season">{% translate "Season / year" %}</label>
+            <input id="id_season" name="season" maxlength="32" value="{{ data.tournament.season }}">
+          </div>
+        </div>
+        <div class="field">
+          <label class="field__label" for="id_description">{% translate "Description" %}</label>
+          <textarea id="id_description" name="description" rows="3">{{ data.tournament.description }}</textarea>
+        </div>
+        <div class="page-actions">
+          <button class="button" type="submit" name="action" value="next">{% translate "Next: participants" %}</button>
+        </div>
+      </form>
+
+    {% elif step == "participants" %}
+      <h2 class="panel__heading">{% translate "2. Choose participating classrooms" %}</h2>
+      <p class="panel__body">{% translate "Choose at least two active classrooms assigned to you. Previous tournament participation is shown for context." %}</p>
+      {% translate "Only selected classrooms enter this tournament." as hint_text %}
+{% include "teacher/partials/context_hint.html" with text=hint_text arabic="اختر الفصول التي ستشارك في البطولة." %}
+      <form method="post" class="form">
+        {% csrf_token %}
+        {% if classrooms %}
+          <div class="tournament-wizard__cards">
+            {% for classroom in classrooms %}
+              <label class="classroom-card {% if classroom.pk in selected_classroom_ids %}classroom-card--selected{% endif %}">
+                <input class="tournament-wizard__checkbox" type="checkbox" name="classroom_ids" value="{{ classroom.pk }}"
+                       {% if classroom.pk in selected_classroom_ids %}checked{% endif %}>
+                <span class="classroom-card__content">
+                  <span class="classroom-card__header">
+                    <span class="classroom-card__name">{{ classroom.display_name }}</span>
+                    <span class="classroom-card__selected">
+                      {% if classroom.pk in selected_classroom_ids %}{% translate "Selected" %}{% else %}{% translate "Select" %}{% endif %}
+                    </span>
+                  </span>
+                  <span class="classroom-card__meta">
+                    {% if classroom.building %}{{ classroom.building }}{% else %}{% translate "Building not specified" %}{% endif %}
+                    {% if classroom.floor %} · {% translate "Floor" %} {{ classroom.floor }}{% endif %}
+                    {% if classroom.room_number %} · {% translate "Room" %} {{ classroom.room_number }}{% endif %}
+                  </span>
+                  <span class="classroom-card__meta">
+                    {{ classroom.grade|default:_("Grade not specified") }} ·
+                    {% blocktranslate count count=classroom.tournament_participation_count %}{{ count }} previous tournament{% plural %}{{ count }} previous tournaments{% endblocktranslate %}
+                  </span>
+                </span>
+              </label>
+            {% endfor %}
+          </div>
+        {% else %}
+          <p class="panel__body">{% translate "No active classrooms are assigned to this account." %}</p>
+        {% endif %}
+        {% if errors.classrooms %}<p class="field__error" role="alert">{{ errors.classrooms }}</p>{% endif %}
+        <div class="page-actions">
+          <button class="button button--quiet" type="submit" name="action" value="back">{% translate "Back" %}</button>
+          <button class="button" type="submit" name="action" value="next">{% translate "Next: stages" %}</button>
+        </div>
+      </form>
+
+    {% elif step == "stages" %}
+      <h2 class="panel__heading">{% translate "3. Choose a stage plan" %}</h2>
+      <p class="panel__body">{% translate "Choose the rounds your classrooms will play. Stage competitions can be attached in the next step." %}</p>
+      {% translate "Choose Qualification → Final for two rounds, or include a Semi Final for three rounds." as hint_text %}
+{% include "teacher/partials/context_hint.html" with text=hint_text arabic="اختر تصفيات ثم نهائي لجولتين، أو أضف نصف النهائي لثلاث جولات." %}
+      <form method="post" class="form">
+        {% csrf_token %}
+        <fieldset class="tournament-wizard__templates">
+          <legend class="field__label">{% translate "Tournament format" %}</legend>
+          {% for template in stage_templates %}
+            <label class="tournament-wizard__template">
+              <input type="radio" name="stage_template" value="{{ template.key }}"
+                     {% if data.stage_template == template.key %}checked{% endif %}>
+              <span>
+                <strong>{{ template.label }}</strong>
+                <span class="field__help">{{ template.stages|join:" → " }}</span>
+              </span>
+            </label>
+          {% endfor %}
+        </fieldset>
+        {% if errors.stage_template %}<p class="field__error" role="alert">{{ errors.stage_template }}</p>{% endif %}
+        <div class="page-actions">
+          <button class="button button--quiet" type="submit" name="action" value="back">{% translate "Back" %}</button>
+          <button class="button" type="submit" name="action" value="next">{% translate "Next: advancement" %}</button>
+        </div>
+      </form>
+
+    {% elif step == "advancement" %}
+      <h2 class="panel__heading">{% translate "4. Set advancement rules" %}</h2>
+      <p class="panel__body">{% translate "The highest-ranked classrooms advance from each round. Ties at the cutoff are flagged for resolution, not silently broken." %}</p>
+      {% translate "Set how many classrooms move on from each stage." as hint_text %}
+{% include "teacher/partials/context_hint.html" with text=hint_text arabic="حدد عدد الفصول التي تنتقل إلى المرحلة التالية." %}
+      <form method="post" class="form">
+        {% csrf_token %}
+        <div class="field">
+          <label class="field__label" for="id_advancing_count">{% translate "How many classrooms advance from Qualification?" %}</label>
+          <input id="id_advancing_count" name="advancing_count" type="number" min="1"
+                 value="{{ data.advancing_count }}" required>
+          <small class="field__help">{% blocktranslate with advancing_count=data.advancing_count classroom_count=selected_classrooms|length %}Top {{ advancing_count }} of {{ classroom_count }} selected classrooms advance to the next round.{% endblocktranslate %}</small>
+          {% translate "How advancement works" as hint_label %}
+{% translate "The highest-ranked classrooms advance. A tie at the cutoff is flagged for review instead of being decided arbitrarily." as hint_text %}
+{% include "teacher/partials/context_tooltip.html" with label=hint_label text=hint_text %}
+          {% if errors.advancing_count %}<p class="field__error" role="alert">{{ errors.advancing_count }}</p>{% endif %}
+        </div>
+        {% if data.stage_template == "qualification_semi_final" %}
+          <div class="field">
+            <label class="field__label" for="id_semi_advancing_count">{% translate "How many advance from Semi Final?" %}</label>
+            <input id="id_semi_advancing_count" name="semi_advancing_count" type="number" min="1"
+                   value="{{ data.semi_advancing_count }}" required>
+            <small class="field__help">{% translate "Choose no more than the number entering the Semi Final." %}</small>
+            {% if errors.semi_advancing_count %}<p class="field__error" role="alert">{{ errors.semi_advancing_count }}</p>{% endif %}
+          </div>
+        {% endif %}
+        <div class="tournament-wizard__rule" aria-live="polite">
+          <strong>{% translate "Preview:" %}</strong>
+          {% if data.stage_template == "qualification_semi_final" %}
+            {% blocktranslate with advancing_count=data.advancing_count semi_count=data.semi_advancing_count %}Top {{ advancing_count }} advance from Qualification; top {{ semi_count }} then advance to the Final.{% endblocktranslate %}
+          {% else %}
+            {% blocktranslate with advancing_count=data.advancing_count %}Top {{ advancing_count }} advance from Qualification to the Final.{% endblocktranslate %}
+          {% endif %}
+        </div>
+        <div class="page-actions">
+          <button class="button button--quiet" type="submit" name="action" value="back">{% translate "Back" %}</button>
+          <button class="button" type="submit" name="action" value="next">{% translate "Next: competitions" %}</button>
+        </div>
+      </form>
+
+    {% elif step == "competitions" %}
+      <h2 class="panel__heading">{% translate "5. Add round competitions" %}</h2>
+      <p class="panel__body">{% translate "Attach an existing eligible competition or create one with the Competition Wizard. This is optional; you can add rounds later from tournament management." %}</p>
+      {% translate "Choosing competitions" as hint_label %}
+{% translate "The competition's classrooms must be tournament participants. The Final can be created later using only classrooms that qualified." as hint_text %}
+{% include "teacher/partials/context_tooltip.html" with label=hint_label text=hint_text %}
+      <form method="post" class="form">
+        {% csrf_token %}
+        {% for slot in stage_slots %}
+          <fieldset class="tournament-wizard__competition">
+            <legend class="field__label">{{ stage_labels|get_item:slot }}</legend>
+            {% for competition in available_competitions|get_item:slot %}
+              <label class="tournament-wizard__template">
+                <input type="checkbox" name="competition_{{ slot }}" value="{{ competition.pk }}"
+                       {% if competition in selected_competitions|get_item:slot %}checked{% endif %}>
+                <span>
+                  <strong>{{ competition.title }}</strong>
+                  <span class="field__help">{% blocktranslate count count=competition.participating_classroom_ids|length %}{{ count }} participating classroom{% plural %}{{ count }} participating classrooms{% endblocktranslate %}</span>
+                </span>
+              </label>
+            {% empty %}
+              <p class="field__help">{% translate "No eligible existing competitions for this round." %}</p>
+            {% endfor %}
+            {% if competition_errors|get_item:slot %}<p class="field__error" role="alert">{{ competition_errors|get_item:slot }}</p>{% endif %}
+            <p><a class="button button--quiet" href="?create_competition={{ slot }}">{% blocktranslate with stage=stage_labels|get_item:slot %}Create {{ stage }} competition{% endblocktranslate %}</a></p>
+          </fieldset>
+        {% endfor %}
+        <div class="page-actions">
+          <button class="button button--quiet" type="submit" name="action" value="back">{% translate "Back" %}</button>
+          <button class="button" type="submit" name="action" value="next">{% translate "Next: review" %}</button>
+        </div>
+      </form>
+
+    {% elif step == "review" %}
+      <h2 class="panel__heading">{% translate "6. Review your tournament" %}</h2>
+      <div class="review-summary">
+        <section class="review-block">
+          <h3>{% translate "Tournament" %}</h3>
+          <p><strong>{{ data.tournament.name }}</strong></p>
+          <p>{{ data.tournament.subject }}{% if data.tournament.grade %} · {{ data.tournament.grade }}{% endif %}{% if data.tournament.season %} · {{ data.tournament.season }}{% endif %}</p>
+          {% if data.tournament.description %}<p>{{ data.tournament.description }}</p>{% endif %}
+        </section>
+        <section class="review-block">
+          <h3>{% blocktranslate with count=selected_classrooms|length %}Participants ({{ count }}){% endblocktranslate %}</h3>
+          <ul>{% for classroom in selected_classrooms %}<li>{{ classroom.display_name }}{% if classroom.building %} — {{ classroom.building }}{% endif %}</li>{% empty %}<li>{% translate "No classrooms selected" %}</li>{% endfor %}</ul>
+        </section>
+        <section class="review-block">
+          <h3>{% translate "Stages and advancement" %}</h3>
+          <ol class="tournament-wizard__review-stages">
+            {% for stage in review_stages %}
+              <li>
+                <strong>{{ stage.name }}</strong>
+                {% if stage.advancing_count %}<span> · {% blocktranslate with count=stage.advancing_count %}Top {{ count }} advance{% endblocktranslate %}</span>{% endif %}
+                {% for competition in stage.competitions %}<span> · {{ competition.title }}</span>{% empty %}<span> · {% translate "No competition attached yet" %}</span>{% endfor %}
+              </li>
+            {% endfor %}
+          </ol>
+        </section>
       </div>
-      <div class="field">
-        <label class="field__label" for="id_description">Description</label>
-        <textarea name="description" id="id_description" rows="3" placeholder="Optional description"></textarea>
+      <form method="post" class="page-actions">
+        {% csrf_token %}
+        <button class="button button--quiet" type="submit" name="action" value="back">{% translate "Back" %}</button>
+        <button class="button" type="submit" name="action" value="next">{% translate "Next: create" %}</button>
+      </form>
+
+    {% elif step == "create" %}
+      <h2 class="panel__heading">{% translate "7. Create tournament" %}</h2>
+      <p class="panel__body">{% translate "Your tournament will be created as a draft. You can open it when you are ready to run the first round." %}</p>
+      <div class="tournament-wizard__rule">
+        <strong>{{ data.tournament.name }}</strong><br>
+        {% blocktranslate with classrooms=selected_classrooms|length stages=review_stages|length %}{{ classrooms }} classrooms · {{ stages }} stages{% endblocktranslate %}
       </div>
-      <div class="field">
-        <label class="field__label" for="id_subject">Subject</label>
-        <input type="text" name="subject" id="id_subject" placeholder="e.g. Science">
-      </div>
-      <div class="field">
-        <label class="field__label" for="id_grade">Grade</label>
-        <input type="text" name="grade" id="id_grade" placeholder="e.g. Grade 7">
-      </div>
-      <div class="field">
-        <label class="field__label" for="id_season">Season</label>
-        <input type="text" name="season" id="id_season" placeholder="e.g. 2026" value="{{ season|default:'' }}">
-      </div>
-      <button type="submit" class="button">Create Tournament</button>
-    </form>
+      <form method="post" class="page-actions">
+        {% csrf_token %}
+        <button class="button button--quiet" type="submit" name="action" value="back">{% translate "Back to review" %}</button>
+        <button class="button" type="submit" name="action" value="create">{% translate "Create tournament" %}</button>
+      </form>
+    {% endif %}
   </section>
+
+  <div class="page-actions">
+    <a class="button button--quiet" href="{% url 'teacher:tournaments' %}">{% translate "Cancel setup" %}</a>
+  </div>
 {% endblock %}

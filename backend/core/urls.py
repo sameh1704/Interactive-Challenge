@@ -11,4 +11,5 @@ app_name = "core"
 urlpatterns = [
     path("", views.landing, name="landing"),
     path("health/", views.health, name="health"),
+    path("theme/", views.ThemeSwitchView.as_view(), name="set_theme"),
 ]

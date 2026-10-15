@@ -32,16 +32,36 @@ class ScreenIdentificationTests(TestCase):
         )
 
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, "screens/status.html")
+        self.assertTemplateUsed(response, "live/screen.html")
+        self.assertEqual(response.context["screen"], self.screen)
+        self.assertEqual(response.context["classroom"], self.classroom)
 
     def test_the_page_shows_the_screen_and_its_classroom(self) -> None:
         response = self.client.get(
             reverse("screens:status"), {"screen_id": self.screen.screen_id}
         )
-
-        self.assertContains(response, "Front interactive board")
+        # On a classroom board the classroom is the label a reader needs, so the
+        # screen's own descriptive name follows only when it has no classroom.
+        self.assertNotContains(response, "Front interactive board")
         self.assertContains(response, self.classroom.display_name)
         self.assertContains(response, self.screen.screen_id)
+
+    def test_the_page_opens_the_screen_socket(self) -> None:
+        """No competition id anywhere: the server works that out from the screen."""
+        response = self.client.get(
+            reverse("screens:status"), {"screen_id": self.screen.screen_id}
+        )
+        self.assertContains(response, 'data-websocket-path="/ws/live/screen/"')
+        self.assertContains(response, f'data-screen-id="{self.screen.screen_id}"')
+
+    def test_an_unassigned_screen_shows_its_own_name(self) -> None:
+        self.screen.classroom = None
+        self.screen.save(update_fields=["classroom"])
+        response = self.client.get(
+            reverse("screens:status"), {"screen_id": self.screen.screen_id}
+        )
+        self.assertContains(response, "Front interactive board")
+        self.assertContains(response, "Not yet assigned to a classroom")
 
     def test_a_screen_can_identify_its_classroom(self) -> None:
         response = self.client.get(
@@ -611,18 +631,23 @@ class HeartbeatCsrfEnforcedTests(TestCase):
     def test_a_signed_in_user_can_still_sign_out(self) -> None:
         """The existing sign-out form keeps its own token.
 
-        The new hidden form adds a second token input to every authenticated
-        page. This proves it did not displace the one that form depends on:
-        both are present, and logout still works.
+        Every POST form, including language and theme preferences, needs its
+        own token. Adding a legitimate preference form must not weaken logout
+        or anonymous heartbeat CSRF protection.
         """
         teacher = create_teacher(username="csrf.teacher")
         self.csrf_client.force_login(teacher)
 
         page = self.csrf_client.get(reverse("dashboard"))
         self.assertEqual(page.status_code, 200)
-        # Two token inputs: the new hidden one and the sign-out form's own.
-        self.assertContains(page, 'name="csrfmiddlewaretoken"', count=2)
+        import re
+        forms = re.findall(r'<form\b[^>]*method="post"[^>]*>.*?</form>', page.content.decode(), re.S)
+        self.assertTrue(forms)
+        for form in forms:
+            self.assertIn('name="csrfmiddlewaretoken"', form)
+        self.assertContains(page, reverse("set_language"))
         self.assertContains(page, reverse("accounts:logout"))
+        self.assertContains(page, reverse("core:set_theme"))
 
         response = self.csrf_client.post(
             reverse("accounts:logout"),

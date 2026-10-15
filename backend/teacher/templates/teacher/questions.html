@@ -1,48 +1,169 @@
 {% extends "teacher/base.html" %}
+{% load i18n %}
 
-{% block title %}Question Bank{% endblock %}
+{% block title %}{% translate "Question Bank" %}{% endblock %}
 
 {% block content %}
   <section class="page-heading">
-    <h1 class="page-heading__title">Question Bank</h1>
-    <p class="page-heading__subtitle">Manage your questions</p>
+    <h1 class="page-heading__title">{% translate "Question Bank" %}</h1>
+    <p class="page-heading__subtitle">{% translate "Create and manage questions you can reuse in any competition" %}</p>
   </section>
+  {% translate "Questions in the bank can be reused in more than one competition. Edit a question to update its answer key or explanation." as hint_text %}
+{% include "teacher/partials/context_hint.html" with text=hint_text %}
 
   <div class="page-actions">
-    <a class="button" href="{% url 'teacher:create_question' %}">Add Question</a>
+    <a class="button" href="{% url 'teacher:create_question' %}">{% translate "Add Question" %}</a>
   </div>
+
+  {% comment %}
+  Every filter the bank offers. Each is a `get` parameter, so the URL holds the
+  whole view and a teacher can bookmark or share "all active Science questions".
+  The subject select changes the topic list with it, so the ids in the URL never
+  disagree with the controls on the page.
+  {% endcomment %}
+  <form method="get" class="form form--inline bank-filters">
+    <div class="field">
+      <label class="field__label" for="bank-q">{% translate "Search questions" %}</label>
+      <input type="search" name="q" id="bank-q" value="{{ query }}" placeholder="{% translate 'Words in the question...' %}">
+    </div>
+    <div class="field">
+      <label class="field__label" for="bank-subject">{% translate "Subject" %}</label>
+      <select name="subject" id="bank-subject" onchange="this.form.submit()">
+        <option value="">{% translate "All subjects" %}</option>
+        {% for choice in subject_choices %}
+          <option value="{{ choice.pk }}" {% if choice.pk|stringformat:"s" == selected_subject|stringformat:"s" %}selected{% endif %}>
+            {{ choice.name }}
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="field">
+      <label class="field__label" for="bank-topic">{% translate "Topic" %}</label>
+      <select name="topic" id="bank-topic" onchange="this.form.submit()">
+        <option value="">{% translate "All topics" %}</option>
+        {% for choice in topic_choices %}
+          <option value="{{ choice.pk }}" {% if choice.pk|stringformat:"s" == selected_topic|stringformat:"s" %}selected{% endif %}>
+            {{ choice.name }}
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="field">
+      <label class="field__label" for="bank-type">{% translate "Type" %}</label>
+      <select name="type" id="bank-type" onchange="this.form.submit()">
+        <option value="">{% translate "All types" %}</option>
+        {% for value, label in question_type_choices %}
+          <option value="{{ value }}" {% if selected_type == value %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="field">
+      <label class="field__label" for="bank-status">{% translate "Status" %}</label>
+      <select name="status" id="bank-status" onchange="this.form.submit()">
+        <option value="active" {% if selected_status == "active" %}selected{% endif %}>{% translate "Active" %}</option>
+        <option value="inactive" {% if selected_status == "inactive" %}selected{% endif %}>{% translate "Inactive" %}</option>
+        <option value="all" {% if selected_status == "all" %}selected{% endif %}>{% translate "All" %}</option>
+      </select>
+    </div>
+    <button type="submit" name="action" value="search" class="button">{% translate "Search" %}</button>
+    <button type="submit" name="action" value="clear" class="button button--quiet">{% translate "Clear" %}</button>
+  </form>
+
+  <p class="bank-count">
+    {% blocktranslate count counter=shown_count %}{{ counter }} question shown{% plural %}{{ counter }} questions shown{% endblocktranslate %}
+    {% if total_count != shown_count %}
+      <span class="bank-count__total">
+        {% blocktranslate count counter=total_count %}of {{ counter }} in the bank{% plural %}of {{ counter }} in the bank{% endblocktranslate %}
+      </span>
+    {% endif %}
+  </p>
 
   {% if questions %}
     <section class="panel">
-      <table class="table">
-        <thead>
-          <tr>
-            <th scope="col">Question</th>
-            <th scope="col">Type</th>
-            <th scope="col">Duration</th>
-            <th scope="col">Active</th>
-            <th scope="col">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for question in questions %}
+      <div class="table-scroll" role="region" aria-label="{% translate 'Question bank' %}" tabindex="0">
+        <table class="table">
+          <thead>
             <tr>
-              <td>{{ question.text|truncatewords:10 }}</td>
-              <td>{{ question.get_question_type_display }}</td>
-              <td>{{ question.duration_seconds }}s</td>
-              <td>{{ question.active }}</td>
-              <td>
-                <a href="{% url 'teacher:edit_question' pk=question.pk %}">Edit</a>
-              </td>
+              <th scope="col">{% translate "Subject" %}</th>
+              <th scope="col">{% translate "Topic" %}</th>
+              <th scope="col">{% translate "Question" %}</th>
+              <th scope="col">{% translate "Type" %}</th>
+              <th scope="col">{% translate "Duration" %}</th>
+              <th scope="col">{% translate "Status" %}</th>
+              <th scope="col">{% translate "Actions" %}</th>
             </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {% for question in questions %}
+              <tr>
+                <td>{{ question.subject.name }}</td>
+                <td>{{ question.topic.name|default:"—" }}</td>
+                <td>{{ question.text|truncatewords:10 }}</td>
+                <td>{{ question.get_question_type_display }}</td>
+                <td>{{ question.duration_seconds }} {% translate "seconds" %}</td>
+                <td>
+                  <span class="badge {% if question.active %}status-online{% else %}status-offline{% endif %}">
+                    {% if question.active %}{% translate "Active" %}{% else %}{% translate "Inactive" %}{% endif %}
+                  </span>
+                </td>
+                <td class="bank-actions">
+                  <a href="{% url 'teacher:question_detail' pk=question.pk %}">{% translate "View" %}</a>
+                  <a href="{% url 'teacher:edit_question' pk=question.pk %}">{% translate "Edit" %}</a>
+                  {% comment %}
+                  Retiring and restoring is a POST, not a link: a URL that changes
+                  data can be triggered by something that merely fetches it, and
+                  a live question going inactive that way would look like a bug in
+                  the bank. It changes no data here, so no extra confirmation is
+                  needed, and the button says exactly which way it will flip.
+                  {% endcomment %}
+                  <form method="post" action="{% url 'teacher:questions' %}" class="bank-actions__form">
+                    {% csrf_token %}
+                    <input type="hidden" name="question_id" value="{{ question.pk }}">
+                    <button type="submit" class="link-button">
+                      {% if question.active %}{% translate "Retire" %}{% else %}{% translate "Restore" %}{% endif %}
+                    </button>
+                  </form>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
     </section>
+
+    {% if is_paginated %}
+      {% translate "Pages" as pages_label %}
+      <nav class="pagination" aria-label="{{ pages_label }}">
+        {% if page_obj.has_previous %}
+          <a class="pagination__step" href="?{% querystring page=page_obj.previous_page_number %}">
+            {% translate "Previous" %}
+          </a>
+        {% endif %}
+        <span class="pagination__current">
+          {% blocktranslate with current=page_obj.number total=paginator.num_pages %}Page {{ current }} of {{ total }}{% endblocktranslate %}
+        </span>
+        {% if page_obj.has_next %}
+          <a class="pagination__step" href="?{% querystring page=page_obj.next_page_number %}">
+            {% translate "Next" %}
+          </a>
+        {% endif %}
+      </nav>
+    {% endif %}
   {% else %}
-    <section class="panel">
-      <p class="panel__body">No questions in the bank. Add one to get started.</p>
-      <a class="button" href="{% url 'teacher:create_question' %}">Add Question</a>
-    </section>
+    {% url 'teacher:create_question' as create_question_url %}
+    {% if query or selected_subject or selected_topic or selected_type or selected_status != "active" %}
+      {% comment %}
+      The bank has questions; these are not them. Saying "Your question bank is
+      empty" here would send a teacher off to create a duplicate of something they
+      already have, so the title names the filter and not the bank.
+      {% endcomment %}
+      {% translate "No questions match this filter" as questions_empty_title %}
+      {% translate "Try a different search, or clear the filters to see the whole bank." as questions_empty_text %}
+    {% else %}
+      {% translate "Your question bank is empty" as questions_empty_title %}
+      {% translate "Questions you create are saved to the bank and can be reused in any competition. Add your first question to get started." as questions_empty_text %}
+    {% endif %}
+    {% translate "Add Question" as questions_empty_action %}
+    {% include "teacher/partials/empty_state.html" with key="questions-empty" title=questions_empty_title text=questions_empty_text action_url=create_question_url action_text=questions_empty_action %}
   {% endif %}
 {% endblock %}

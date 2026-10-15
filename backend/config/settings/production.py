@@ -31,6 +31,19 @@ USE_X_FORWARDED_PORT = True
 SECURE_SSL_REDIRECT = env_bool("SECURE_SSL_REDIRECT", default=False)
 SESSION_COOKIE_SECURE = env_bool("SESSION_COOKIE_SECURE", default=True)
 CSRF_COOKIE_SECURE = env_bool("CSRF_COOKIE_SECURE", default=True)
+
+# The language cookie is not sensitive, so it could be left readable over plain
+# HTTP for ever. It is instead flagged Secure on exactly the transports that can
+# already carry the session cookie: a deployment that reaches HTTPS must not
+# leave a cookie door open to a downgrade, and a deployment still on HTTP must
+# not have its language switch silently stop working.
+LANGUAGE_COOKIE_SECURE = SESSION_COOKIE_SECURE
+
+# The theme cookie is written by the browser as well as by the server, so it must
+# not ask for a flag the plain-HTTP deployment cannot honour. It follows the
+# session cookie for the same reason: sent over HTTP only when the session
+# already is.
+THEME_COOKIE_SECURE = SESSION_COOKIE_SECURE
 SECURE_HSTS_SECONDS = env_int("SECURE_HSTS_SECONDS", 0)
 SECURE_HSTS_INCLUDE_SUBDOMAINS = env_bool("SECURE_HSTS_INCLUDE_SUBDOMAINS", default=False)
 SECURE_HSTS_PRELOAD = env_bool("SECURE_HSTS_PRELOAD", default=False)

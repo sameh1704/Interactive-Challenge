@@ -1,21 +1,29 @@
 {% extends "core/base.html" %}
-{% load static %}
+{% load i18n static %}
 
-{% block title %}{{ competition.title }} &middot; Live control{% endblock %}
+{% block title %}{{ competition.title }} &middot; {% translate "Live control" %}{% endblock %}
 
 {% block extra_head %}{{ block.super }}
   <link rel="stylesheet" href="{% static 'live/css/teacher.css' %}">
+  <link rel="stylesheet" href="{% static 'teacher/css/teacher.css' %}">
 {% endblock %}
 
 {% block content %}
 <div
   class="live-teacher"
   data-websocket-path="{{ websocket_path }}"
+  data-label-state-not_started="{% translate 'Not started' %}"
+  data-label-state-waiting="{% translate 'Waiting' %}"
+  data-label-state-question_active="{% translate 'Question active' %}"
+  data-label-state-answering_closed="{% translate 'Answering closed' %}"
+  data-label-state-showing_result="{% translate 'Showing result' %}"
+  data-label-state-next_question="{% translate 'Next question' %}"
+  data-label-state-finished="{% translate 'Finished' %}"
   data-state="{{ control_state }}">
 
   <header class="live-teacher__head">
     <div>
-      <p class="live-teacher__eyebrow">Live control</p>
+      <p class="live-teacher__eyebrow">{% translate "Live control" %}</p>
       <h1 class="live-teacher__title">{{ competition.title }}</h1>
     </div>
     <p class="live-teacher__state" data-role="state">
@@ -27,26 +35,26 @@
   {# Read-only figures. Nothing here is a control. #}
   <dl class="live-teacher__figures">
     <div>
-      <dt>Question</dt>
+      <dt>{% translate "Question" %}</dt>
       <dd data-role="question-number">
-        {{ competition.question_number|default:"-" }} of
+        {{ competition.question_number|default:"-" }} {% translate "of" %}
         {{ competition.total_questions|default:"-" }}
       </dd>
     </div>
     <div>
-      <dt>Classrooms</dt>
+      <dt>{% translate "Classrooms" %}</dt>
       <dd>{{ participating_classrooms|length }}</dd>
     </div>
     <div>
-      <dt>Screens connected</dt>
+      <dt>{% translate "Screens connected" %}</dt>
       <dd data-role="connected-screens">-</dd>
     </div>
     <div>
-      <dt>State</dt>
+      <dt>{% translate "State" %}</dt>
       <dd data-role="state-name">{{ state_display }}</dd>
     </div>
     <div>
-      <dt>Time left</dt>
+      <dt>{% translate "Time left" %}</dt>
       <dd data-role="seconds-remaining">-</dd>
     </div>
   </dl>
@@ -58,10 +66,83 @@
       {% endfor %}
     </ul>
   {% else %}
-    <p class="live-teacher__empty">No classrooms are taking part in this round.</p>
+    <p class="live-teacher__empty">{% translate "No classrooms are taking part in this round." %}</p>
   {% endif %}
 
+   {% comment %}
+The screens this round is expected to reach, before it is started. Screens
+join by themselves once the round starts - the server works out which
+competition a screen belongs to from its classroom - so this panel is the
+teacher's check that the rooms are actually wired up to a screen.
+"Connected" is only what is attached right now. A screen that is offline is
+said to be offline, because the server writes to sockets that are open and
+nothing else: a broadcast is never claimed to have reached it. 
+   {% endcomment %}
+  <section class="panel" aria-labelledby="expected-screens-heading">
+    <h2 class="panel__heading" id="expected-screens-heading">{% translate "Screens this competition will reach" %}</h2>
+    {% if targeting.screens %}
+      <div class="table-scroll">
+        <table class="table">
+          <thead>
+            <tr>
+              <th scope="col">{% translate "Classroom" %}</th>
+              <th scope="col">{% translate "Screen ID" %}</th>
+              <th scope="col">{% translate "Status" %}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for target in targeting.classrooms %}
+              {% for screen in target.screens %}
+                <tr>
+                  <td>{{ target.name }}</td>
+                  <td><code>{{ screen.screen_id }}</code></td>
+                  <td>
+                    <span class="badge {% if screen.is_online %}status-online{% else %}status-offline{% endif %}">
+                      {{ screen.status_display }}
+                    </span>
+                  </td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td>{{ target.name }}</td>
+                  <td colspan="2">
+                    <span class="badge status-offline">{% translate "No registered screen" %}</span>
+                  </td>
+                </tr>
+              {% endfor %}
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% load wizard_extras %}
+      {% if targeting.classrooms_without_screens %}
+        <p class="field__error" role="status">
+          {% translate "These classrooms have no registered screen: " %}{{ targeting.classrooms_without_screens|join_names }}
+        </p>
+      {% endif %}
+      {% if targeting.offline_screens %}
+        <p class="field__error" role="status">
+          {% translate "These screens are offline and will miss the round: " %}{{ targeting.offline_screens|join_screen_ids }}
+        </p>
+      {% endif %}
+      {% if not targeting.offline_screens and not targeting.classrooms_without_screens %}
+        <p class="context-hint">
+          <span>{% translate "Every classroom in this competition has a screen connected." %}</span>
+        </p>
+      {% endif %}
+      <p class="panel__body">
+        {% translate "Each screen opens its own registered URL once, so nothing has to be typed on the screens." %}
+      </p>
+    {% else %}
+      <p class="panel__body">
+        {% translate "No screens are registered for these classrooms yet. They will be unable to show this competition until an administrator registers one." %}
+      </p>
+    {% endif %}
+  </section>
+
   <p class="live-teacher__error" data-role="error" hidden></p>
+  {% translate "Live controls move the competition through its questions. End a question to reveal its result, then advance when ready." as live_control_hint %}
+  {% include "teacher/partials/context_hint.html" with text=live_control_hint arabic="يتم احتساب النتيجة على السيرفر، وتظهر بعد إغلاق الإجابات." %}
 
   {% comment %}
     One control per transition, each named for the state it produces. No control
@@ -74,40 +155,40 @@
   {% endcomment %}
   <div class="live-teacher__controls">
     <button type="button" class="button button--primary"
-            data-control="start_competition" data-requires="not_started,finished">
-      Start competition
+            data-control="start_competition" data-requires="not_started"{% if control_state != "not_started" %} disabled{% endif %}>
+      {% translate "Start competition" %}
     </button>
 
     <button type="button" class="button button--primary"
             data-control="start_question" data-requires="waiting,answering_closed,next_question">
-      Start / next question
+      {% translate "Start / next question" %}
     </button>
 
     <button type="button" class="button button--warn"
             data-control="end_question" data-requires="question_active">
-      End question
+      {% translate "End question" %}
     </button>
 
     <button type="button" class="button"
             data-control="advance" data-requires="answering_closed,next_question">
-      Next question
+      {% translate "Next question" %}
     </button>
 
     <button type="button" class="button button--quiet"
             data-control="finish_competition" data-requires="waiting,question_active,answering_closed,next_question">
-      Finish competition
+      {% translate "Finish competition" %}
     </button>
   </div>
 
   <p class="live-teacher__hint" data-role="hint">
-    End question stops the answers and shows the result. Next question then moves on.
+    {% translate "End question stops the answers and shows the result. Next question then moves on." %}
   </p>
 
   <p class="live-teacher__links">
-    <a href="{{ leaderboard_path }}">Open the leaderboard display</a>
+    <a href="{{ leaderboard_path }}">{% translate "Open the leaderboard display" %}</a>
   </p>
 
-  <h2 class="live-teacher__subhead">Questions in this round</h2>
+  <h2 class="live-teacher__subhead">{% translate "Questions in this round" %}</h2>
   <ol class="live-teacher__questions">
     {% for entry in questions %}
       <li data-position="{{ entry.position }}">
@@ -116,7 +197,7 @@
         <span class="live-teacher__q-type">{{ entry.question.get_question_type_display }}</span>
       </li>
     {% empty %}
-      <li class="live-teacher__empty">No questions have been added to this round.</li>
+      <li class="live-teacher__empty">{% translate "No questions have been added to this round." %}</li>
     {% endfor %}
   </ol>
 </div>

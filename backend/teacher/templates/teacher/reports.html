@@ -1,23 +1,26 @@
 {% extends "teacher/base.html" %}
+{% load i18n %}
 
-{% block title %}Reports{% endblock %}
+{% block title %}{% translate "Reports" %}{% endblock %}
 
 {% block content %}
   <section class="page-heading">
-    <h1 class="page-heading__title">Reports</h1>
-    <p class="page-heading__subtitle">Competition and classroom reports</p>
+    <h1 class="page-heading__title">{% translate "Reports" %}</h1>
+    <p class="page-heading__subtitle">{% translate "Competition and classroom reports" %}</p>
   </section>
+  {% translate "Reports use saved competition and tournament results. A finished round's standings are preserved for history." as hint_text %}
+{% include "teacher/partials/context_hint.html" with text=hint_text %}
 
   <section class="panel">
-    <h2 class="panel__heading">Available Reports</h2>
+    <h2 class="panel__heading">{% translate "Available Reports" %}</h2>
     <ul class="panel__list">
-      <li>Competition report - performance by competition</li>
-      <li>Classroom report - performance by classroom</li>
-      <li>Question report - statistics by question</li>
-      <li>Tournament report - championship standings</li>
+      <li>{% translate "Competition report - performance by competition" %}</li>
+      <li>{% translate "Classroom report - performance by classroom" %}</li>
+      <li>{% translate "Question report - statistics by question" %}</li>
+      <li>{% translate "Tournament report - championship standings" %}</li>
     </ul>
     <div class="page-actions">
-      <a class="button" href="{% url 'reports:index' %}">Open Reports &rarr;</a>
+      <a class="button" href="{% url 'reports:index' %}">{% translate "Open Reports" %} &rarr;</a>
     </div>
   </section>
 {% endblock %}
